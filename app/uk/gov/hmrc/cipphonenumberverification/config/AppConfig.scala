@@ -22,6 +22,11 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfig @Inject()(config: Configuration) {
+
+  lazy val appName: String = config.get[String]("appName")
+  lazy val validateUrlProtocol: String = config.get[String]("microservice.services.cipphonenumber.validation.protocol")
+  lazy val validateUrlHost: String = config.get[String]("microservice.services.cipphonenumber.validation.host")
+  lazy val validateUrlPort: String = config.get[String]("microservice.services.cipphonenumber.validation.port")
   lazy val govUkNotifyHost: String = config.get[String]("microservice.services.govuk-notify.host")
   lazy val govUkNotifyApiKeyName: String =
     config.get[String]("microservice.services.govuk-notify.api-key.key-name")

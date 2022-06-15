@@ -1,0 +1,15 @@
+### Correct-number
+POST http://localhost:6083/customer-insight-platform/phone-number/verify-format
+content-type: application/json
+
+{
+  "phoneNumber" : "07843274330"
+}
+
+###
+POST http://localhost:6083/customer-insight-platform/phone-number/verify-format
+content-type: application/json
+
+{
+  "phoneNumber" : "dfsdsfs"
+}
