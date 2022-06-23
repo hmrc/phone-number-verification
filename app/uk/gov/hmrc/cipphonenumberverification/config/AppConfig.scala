@@ -16,11 +16,17 @@
 
 package uk.gov.hmrc.cipphonenumberverification.config
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfig @Inject()(config: Configuration) {
-
-  val appName: String = config.get[String]("appName")
+  lazy val govUkNotifyHost: String = config.get[String]("microservice.services.govuk-notify.host")
+  lazy val govUkNotifyApiKeyName: String =
+    config.get[String]("microservice.services.govuk-notify.api-key.key-name")
+  lazy val govUkNotifyApiKeyIssUuid: String =
+    config.get[String]("microservice.services.govuk-notify.api-key.iss-uuid")
+  lazy val govUkNotifyApiKeySecretKeyUuid: String =
+    config.get[String]("microservice.services.govuk-notify.api-key.secret-key-uuid")
 }

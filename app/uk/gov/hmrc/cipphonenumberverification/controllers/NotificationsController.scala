@@ -16,16 +16,17 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.cipphonenumberverification.services.NotificationsService
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(cc: ControllerComponents)
-    extends BackendController(cc) {
+class NotificationsController @Inject()(cc: ControllerComponents, notificationsService: NotificationsService)
+  extends BackendController(cc) {
 
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
+  def status(notificationId: String): Action[AnyContent] = Action.async { implicit request =>
+    notificationsService.status(notificationId)
   }
 }
