@@ -19,11 +19,11 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import play.api.Logging
 import play.api.http.HttpEntity
 import play.api.i18n.{Langs, MessagesApi}
-import play.api.libs.json.{Json, Reads}
-import play.api.mvc.Results._
+import play.api.libs.json.Json
+import play.api.mvc.Results.{Accepted, InternalServerError, Ok}
 import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
-import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, PhoneNumber}
+import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, Passcode, PhoneNumber, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
@@ -36,8 +36,8 @@ import scala.util.Random
 class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
                               validatorConnector: ValidateConnector,
                               govUkConnector: GovUkConnector,
-                              messagesApi: MessagesApi, langs: Langs) (implicit val executionContext: ExecutionContext) extends Logging {
-
+                              messagesApi: MessagesApi, langs: Langs)
+                             (implicit val executionContext: ExecutionContext) extends Logging {
 
   private[services] def passcodeGenerator = {
     val codeSize = 6
@@ -56,19 +56,41 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
     }
   }
 
-  def verifyDetails(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier) = {
-
+  def verifyDetails(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
     validatorConnector.callService(phoneNumber) flatMap {
       case res if is2xx(res.header.status) =>
         persistPasscode(phoneNumber) flatMap {
-            case Some(passcode) =>
-              govUkConnector.sendPasscode(passcode) map {
-                case Left(err) => new Status(err.statusCode).apply(Json.parse(s"""{"error" :"Temporary"}"""))
-                case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
-              }
-            case None => Future(Result.apply(ResponseHeader(500), HttpEntity.NoEntity))
-          }
+          case Some(passcode) =>
+            govUkConnector.sendPasscode(passcode) map {
+              case Left(err) => ???
+              case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
+            }
+          case None => Future(Result.apply(ResponseHeader(500), HttpEntity.NoEntity))
+        }
       case res if is4xx(res.header.status) => Future(res)
+    }
+  }
+
+  def verifyOtp(passcode: Passcode): Future[Result] = {
+    def get: Future[Option[Passcode]] = {
+      logger.debug(s"Retrieving passcode from database for ${passcode.phoneNumber}")
+      passcodeCacheRepository.get[Passcode](passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
+    }
+
+    def delete: Future[Unit] = {
+      logger.debug(s"Deleting passcode from database for ${passcode.phoneNumber}")
+      passcodeCacheRepository.delete(passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
+    }
+
+    (get flatMap {
+      case Some(_) => delete.map {
+        _ => Ok(Json.toJson(VerificationStatus("Verified")))
+      }
+      case None => Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
+    }).recover {
+      case err =>
+        logger.error(s"Database operation failed - ${err.getMessage}")
+        InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
     }
   }
 }

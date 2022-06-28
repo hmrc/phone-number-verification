@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models
 
-import play.api.libs.json._
+import play.api.libs.json.Json
 
-case class PhoneNumber(phoneNumber: String)
+case class VerificationStatus(status: String)
 
-object PhoneNumber {
-  implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
+object VerificationStatus {
+  implicit val writes = Json.writes[VerificationStatus]
 }

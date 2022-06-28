@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
-
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
+import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, Ok}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
@@ -31,9 +31,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig) extends Logging {
+class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext)
+  extends Logging {
 
-  def callService(phoneNumber: PhoneNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier) = {
+  def callService(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
     val validateUrl = s"${config.validateUrlProtocol}://${config.validateUrlHost}:${config.validateUrlPort}"
 
     def parseResponse(res: HttpResponse) = res match {
@@ -53,7 +54,3 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
     }
   }
 }
-
-
-
-

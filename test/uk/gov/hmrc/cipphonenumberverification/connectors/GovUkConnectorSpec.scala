@@ -77,7 +77,6 @@ class GovUkConnectorSpec extends AnyWordSpec
     private val appConfig = new AppConfig(
       Configuration.from(Map(
         "microservice.services.govuk-notify.host" -> wireMockUrl,
-        "microservice.services.govuk-notify.api-key.key-name" -> "",
         "microservice.services.govuk-notify.api-key.iss-uuid" -> "",
         "microservice.services.govuk-notify.api-key.secret-key-uuid" -> UUID.randomUUID().toString,
         "microservice.services.govuk-notify.template_id" -> "template_id_fake",
