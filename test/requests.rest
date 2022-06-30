@@ -1,15 +1,17 @@
 ### Correct-number
-POST http://localhost:6083/customer-insight-platform/phone-number/verify-format
+POST http://localhost:6083/customer-insight-platform/phone-number/verify-details
 content-type: application/json
 
 {
-  "phoneNumber" : "07843274330"
+  "phoneNumber" : "07843274331"
 }
 
 ###
-POST http://localhost:6083/customer-insight-platform/phone-number/verify-format
+POST http://localhost:6083/customer-insight-platform/phone-number/verify-details
 content-type: application/json
 
 {
   "phoneNumber" : "dfsdsfs"
 }
+
+### Notification Id

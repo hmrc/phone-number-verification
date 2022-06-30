@@ -37,10 +37,5 @@ class VerificationController @Inject()(cc: ControllerComponents, service: Verify
   override protected def withJsonBody[T](f: T => Future[Result])(implicit request: Request[JsValue], m: Manifest[T], reads: Reads[T]): Future[Result] =
     Try(request.body.validate[T]) match {
       case Success(JsSuccess(payload, _)) => f(payload)
-// TODO required for CAV-80
-//      case Success(JsError(_)) =>
-//        Future.successful(BadRequest(Json.toJson(ErrorResponse("VERIFICATION_ERROR", cc.messagesApi("error.failure")(cc.langs.availables.head)))))
-//      case Failure(e) =>
-//        Future.successful(BadRequest(Json.toJson(ErrorResponse("VERIFICATION_ERROR", e.getMessage))))
     }
 }

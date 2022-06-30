@@ -1,0 +1,8 @@
+version: '3'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: cip-mongo-cache
+    restart: unless-stopped
+    ports:
+      - '27017:27017'

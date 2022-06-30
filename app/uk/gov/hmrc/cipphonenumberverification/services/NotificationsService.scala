@@ -65,7 +65,7 @@ class NotificationsService @Inject()(govUkConnector: GovUkConnector)(implicit va
       }
     }
 
-    govUkConnector.callService(notificationId).map {
+    govUkConnector.notificationStatus(notificationId).map {
       case Right(response) => success(response)
       case Left(err) => failure(err)
     }

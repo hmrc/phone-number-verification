@@ -16,24 +16,30 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
+import play.api.Logging
+import play.api.http.HttpEntity
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.libs.json.{Json, Reads}
-import play.api.mvc.Results.BadRequest
-import uk.gov.hmrc.cipphonenumberverification.connectors.ValidateConnector
-import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, Passcode, PhoneNumber}
+import play.api.mvc.Results._
+import play.api.mvc.{ResponseHeader, Result}
+import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, PhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
+import uk.gov.hmrc.mongo.cache.DataKey
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Random, Success, Try}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
 
 class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
                               validatorConnector: ValidateConnector,
-                              messagesApi: MessagesApi, langs: Langs) {
+                              govUkConnector: GovUkConnector,
+                              messagesApi: MessagesApi, langs: Langs) (implicit val executionContext: ExecutionContext) extends Logging {
 
-  private[services] def passcode = {
+
+  private[services] def passcodeGenerator = {
     val codeSize = 6
     Random.alphanumeric
       .filterNot(_.isDigit)
@@ -42,17 +48,27 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
       .take(codeSize).mkString
   }
 
-  private[services] def persistPasscode(phoneNumber: PhoneNumber)(implicit passcodeReads: Reads[Passcode]) = {
-    Try(passcodeCacheRepository.persist(phoneNumber.phoneNumber,"cip-phone-number-verification", Passcode(phoneNumber.phoneNumber, passcode)))
+  private[services] def persistPasscode(phoneNumber: PhoneNumber): Future[Option[Passcode]] = {
+    val passcode = passcodeGenerator
+
+    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), Passcode(phoneNumber.phoneNumber, passcode)) map { _ =>
+      Option(Passcode(phoneNumber.phoneNumber, passcode))
+    }
   }
 
-  def verifyDetails(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier) =
-    validatorConnector.callService(phoneNumber) map {
+  def verifyDetails(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier) = {
+
+    validatorConnector.callService(phoneNumber) flatMap {
       case res if is2xx(res.header.status) =>
-        persistPasscode(phoneNumber) match {
-          case Success(passcodeValue) => res //TODO send passcode to gov-notify - "passcodeValue" CAV-110
-          case Failure(e) => BadRequest(Json.toJson(ErrorResponse("VERIFICATION_ERROR", messagesApi("error.failure")(langs.availables.head))))
-        }
-      case res if is4xx(res.header.status) => res
+        persistPasscode(phoneNumber) flatMap {
+            case Some(passcode) =>
+              govUkConnector.sendPasscode(passcode) map {
+                case Left(err) => new Status(err.statusCode).apply(Json.parse(s"""{"error" :"Temporary"}"""))
+                case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
+              }
+            case None => Future(Result.apply(ResponseHeader(500), HttpEntity.NoEntity))
+          }
+      case res if is4xx(res.header.status) => Future(res)
     }
+  }
 }

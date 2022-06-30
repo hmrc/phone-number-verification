@@ -23,6 +23,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import play.api.http.Status
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.cipphonenumberverification.models.Passcode
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
@@ -38,7 +39,7 @@ class GovUkConnectorSpec extends AnyWordSpec
   val notificationId = "test-notification-id"
   val url: String = s"/v2/notifications/$notificationId"
 
-  "GovUkConnector.callService" should {
+ "GovUkConnector.callService" should {
     "return HttpResponse OK for valid input" in new Setup {
       stubFor(
         get(urlEqualTo(url))
@@ -46,7 +47,7 @@ class GovUkConnectorSpec extends AnyWordSpec
       )
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      govUkConnector.callService(notificationId).map(res => {
+      govUkConnector.notificationStatus(notificationId).map(res => {
         res shouldBe Right(HttpResponse(Status.OK, ""))
       })
 
@@ -57,6 +58,20 @@ class GovUkConnectorSpec extends AnyWordSpec
     }
   }
 
+  "GovUkConnector.sendPasscode" should {
+    "return HttpResponse OK for valid input" in new Setup {
+      stubFor(
+        get(urlEqualTo(url))
+          .willReturn(aResponse())
+      )
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      govUkConnector.sendPasscode(Passcode("0789009002","CVFRTG")).map(res => {
+        res shouldBe Right(HttpResponse(Status.CREATED, ""))
+      })
+    }
+  }
+
   trait Setup {
 
     private val appConfig = new AppConfig(
@@ -64,7 +79,9 @@ class GovUkConnectorSpec extends AnyWordSpec
         "microservice.services.govuk-notify.host" -> wireMockUrl,
         "microservice.services.govuk-notify.api-key.key-name" -> "",
         "microservice.services.govuk-notify.api-key.iss-uuid" -> "",
-        "microservice.services.govuk-notify.api-key.secret-key-uuid" -> UUID.randomUUID().toString
+        "microservice.services.govuk-notify.api-key.secret-key-uuid" -> UUID.randomUUID().toString,
+        "microservice.services.govuk-notify.template_id" -> "template_id_fake",
+        "cache.expiry" -> 1,
       ))
     )
 

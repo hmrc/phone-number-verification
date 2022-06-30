@@ -16,32 +16,18 @@
 
 package uk.gov.hmrc.cipphonenumberverification.repositories
 
-import play.api.libs.json.{Reads, Writes}
-import play.api.{Configuration, Logging}
-import uk.gov.hmrc.cipphonenumberverification.models.Passcode
-import uk.gov.hmrc.mongo.cache.{CacheIdType, CacheItem, DataKey, MongoCacheRepository}
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.mongo.cache.{CacheIdType, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationLong
 
-class PasscodeCacheRepository @Inject()(
-                                   mongoComponent  : MongoComponent,
-                                   configuration   : Configuration,
-                                   timestampSupport: TimestampSupport
-                                 )(implicit ec: ExecutionContext)
-                             extends MongoCacheRepository (
-                                        mongoComponent   = mongoComponent,
-                                        collectionName   = "cip-phone-number-verification",
-                                        ttl              = configuration.get[FiniteDuration]("cache.expiry"),
-                                        timestampSupport = timestampSupport,
-                                        cacheIdType      = CacheIdType.SimpleCacheId) with Logging {
-
-  def persist[T](id: String, key: String, data: T)(implicit writes: Writes[T], reads: Reads[T]): Future[Option[T]] =
-    put(id)(DataKey(key), data).map(_.data.asOpt[T]).recover {
-        case e =>
-          logger.error(e.formatted("failed to persist passcode"))
-          None
-      }
-}
+class PasscodeCacheRepository @Inject()(mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
+  extends MongoCacheRepository(
+    mongoComponent = mongoComponent,
+    collectionName = "cip-phone-number-verification",
+    ttl = config.cacheExpiry.minutes,
+    timestampSupport = timestampSupport,
+    cacheIdType = CacheIdType.SimpleCacheId)
