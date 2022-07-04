@@ -2,3 +2,4 @@
 
 # --- Errors
 error.failure=Verification failure
+internal_server.failure=Internal Server Error

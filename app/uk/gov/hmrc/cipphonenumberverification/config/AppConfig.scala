@@ -28,10 +28,12 @@ class AppConfig @Inject()(config: Configuration) {
   lazy val validateUrlHost: String = config.get[String]("microservice.services.cipphonenumber.validation.host")
   lazy val validateUrlPort: String = config.get[String]("microservice.services.cipphonenumber.validation.port")
   lazy val govUkNotifyHost: String = config.get[String]("microservice.services.govuk-notify.host")
+  lazy val templateId: String = config.get[String]("microservice.services.govuk-notify.template_id")
   lazy val govUkNotifyApiKeyName: String =
     config.get[String]("microservice.services.govuk-notify.api-key.key-name")
   lazy val govUkNotifyApiKeyIssUuid: String =
     config.get[String]("microservice.services.govuk-notify.api-key.iss-uuid")
   lazy val govUkNotifyApiKeySecretKeyUuid: String =
     config.get[String]("microservice.services.govuk-notify.api-key.secret-key-uuid")
+  lazy val cacheExpiry: Long = config.get[Long]("cache.expiry")
 }

@@ -44,7 +44,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for created status" in {
       val govukNotificationStatus = GovUkNotificationStatus("created")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -56,7 +56,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for sending status" in {
       val govukNotificationStatus = GovUkNotificationStatus("sending")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -68,7 +68,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for pending status" in {
       val govukNotificationStatus = GovUkNotificationStatus("pending")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -80,7 +80,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for sent (international number) status" in {
       val govukNotificationStatus = GovUkNotificationStatus("sent")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -92,7 +92,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for delivered status" in {
       val govukNotificationStatus = GovUkNotificationStatus("delivered")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -104,7 +104,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for permanent-failure status" in {
       val govukNotificationStatus = GovUkNotificationStatus("permanent-failure")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -117,7 +117,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for temporary-failure status" in {
       val govukNotificationStatus = GovUkNotificationStatus("temporary-failure")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -130,7 +130,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
     "return NotificationStatus for technical-failure status" in {
       val govukNotificationStatus = GovUkNotificationStatus("technical-failure")
       val httpResponse = HttpResponse(Status.OK, Json.toJson(govukNotificationStatus), Map.empty[String, Seq[String]])
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Right(httpResponse)))
 
       val result = service.status(notificationId)
@@ -141,7 +141,7 @@ class NotificationsServiceSpec extends AnyWordSpec with Matchers {
 
     "return NotificationStatus when notification id not found" in {
       val httpResponse = UpstreamErrorResponse("", Status.NOT_FOUND)
-      when(mockGovUkConnector.callService(ArgumentMatchers.eq(notificationId))(any()))
+      when(mockGovUkConnector.notificationStatus(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Left(httpResponse)))
 
       val result = service.status(notificationId)
