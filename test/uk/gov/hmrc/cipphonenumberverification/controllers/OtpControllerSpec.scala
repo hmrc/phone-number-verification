@@ -16,37 +16,46 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar.mock
-import play.api.http.Status.OK
+import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
-import play.api.test.Helpers.{defaultAwaitTimeout, status}
+import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 
 import scala.concurrent.Future
 
-class VerificationControllerSpec
+class OtpControllerSpec
   extends AnyWordSpec with Matchers {
 
-  private implicit val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
+  implicit val writes: OWrites[Passcode] = Json.writes[Passcode]
   private val fakeRequest = FakeRequest()
   private val mockVerifyService = mock[VerifyService]
-  private val controller = new VerificationController(Helpers.stubControllerComponents(), mockVerifyService)
+  private val controller = new OtpController(Helpers.stubControllerComponents(), mockVerifyService)
 
-  "POST /verify-details" should {
-    "return 200 for valid request" in {
-      when(mockVerifyService.verifyDetails(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
-      val result = controller.verifyDetails(
-        fakeRequest.withBody(Json.toJson(PhoneNumber("")))
+  "POST /otp" should {
+    "return 200" in {
+      val passcode = Passcode("07811222333", "123456")
+      when(mockVerifyService.verifyOtp(passcode)).thenReturn(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))
+      val result = controller.verifyOtp(
+        fakeRequest.withBody(Json.toJson(passcode))
       )
       status(result) shouldBe OK
+      (contentAsJson(result) \ "status").as[String] shouldBe "test"
+    }
+
+    "return 400 for invalid request" in {
+      val result = controller.verifyOtp(
+        fakeRequest.withBody(Json.toJson(Passcode("", "123456")))
+      )
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "code").as[String] shouldBe "VALIDATION_ERROR"
+      (contentAsJson(result) \ "message").as[String] shouldBe "error.validation"
     }
   }
 }

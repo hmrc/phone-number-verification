@@ -16,10 +16,23 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models
 
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax.{toApplicativeOps, toFunctionalBuilderOps}
+import play.api.libs.json.Reads.{maxLength, minLength}
+import play.api.libs.json.{JsPath, Json, Reads, Writes}
 
 case class Passcode(phoneNumber: String, passcode: String)
 
 object Passcode {
-  implicit val formats = Json.format[Passcode]
+  val MIN_LENGTH_PASSCODE = 6
+  val MAX_LENGTH_PASSCODE = 6
+
+  val MIN_LENGTH_PHONE_NUMBER = 7
+  val MAX_LENGTH_PHONE_NUMBER = 20
+
+  implicit val reads: Reads[Passcode] = (
+    (JsPath \ "phoneNumber").read[String](minLength[String](MIN_LENGTH_PHONE_NUMBER).keepAnd(maxLength[String](MAX_LENGTH_PHONE_NUMBER))) and
+      (JsPath \ "passcode").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
+    ) (Passcode.apply _)
+
+  implicit val writes: Writes[Passcode] = Json.writes[Passcode]
 }

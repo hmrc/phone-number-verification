@@ -20,25 +20,20 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
-import play.api.mvc.Results.{BadRequest, Ok}
+import play.api.mvc.Results.Ok
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
-import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
-import uk.gov.hmrc.http.test.HttpClientV2Support
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.test.WireMockSupport
-
-import scala.concurrent.Future
 
 class ValidateConnectorSpec extends AnyWordSpec
   with Matchers
   with WireMockSupport
   with ScalaFutures
-  with HttpClientV2Support
-{
+  with HttpClientV2Support {
 
   val url: String = "/customer-insight-platform/phone-number/validate-format"
 

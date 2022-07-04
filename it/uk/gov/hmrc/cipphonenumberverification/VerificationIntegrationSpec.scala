@@ -19,13 +19,13 @@ package uk.gov.hmrc.cipphonenumberverification
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneServerPerSuite}
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 
-class VerificationControllerIntegrationSpec extends AnyWordSpec
+class VerificationIntegrationSpec extends AnyWordSpec
   with Matchers
   with ScalaFutures
   with IntegrationPatience
@@ -40,20 +40,16 @@ class VerificationControllerIntegrationSpec extends AnyWordSpec
       .configure("auditing.enabled" -> false)
       .build()
 
-  "POST /" should {
-    "return 200 with valid telephone number" ignore  {
-
+  "verify-details" ignore {
+    "return 200 with valid telephone number" in {
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify-details")
           .post(Json.parse {
-            """{"phone-number": "07849123456"}""".stripMargin
-          })
-          .futureValue
+            """{"phoneNumber": "07811123456"}""".stripMargin
+          }).futureValue
 
-
-      response.status shouldBe 202
-      response.json.\("notification_id").isDefined
+      response.status shouldBe 200
     }
   }
 }

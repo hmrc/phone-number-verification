@@ -40,7 +40,7 @@ class NotificationsControllerSpec extends AnyWordSpec with Matchers {
   private val controller = new NotificationsController(Helpers.stubControllerComponents(), mockNotificationsService)
 
   "GET /notifications/" should {
-    "return 200" in {
+    "return 200 for valid request" in {
       val notificationId = "notificationId"
       when(mockNotificationsService.status(ArgumentMatchers.eq(notificationId))(any()))
         .thenReturn(Future.successful(Ok(Json.toJson(NotificationStatus(1, "test message")))))

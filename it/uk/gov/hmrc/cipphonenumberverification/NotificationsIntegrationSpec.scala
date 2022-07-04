@@ -20,36 +20,19 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.api.libs.ws.WSClient
+import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
 class NotificationsIntegrationSpec
   extends AnyWordSpec
     with Matchers
     with ScalaFutures
     with IntegrationPatience
-    with GuiceOneServerPerSuite {
-
-  private val wsClient = app.injector.instanceOf[WSClient]
-  private val baseUrl = s"http://localhost:$port"
-
-  override def fakeApplication(): Application =
-    GuiceApplicationBuilder()
-      .configure("metrics.enabled" -> false)
-      .configure("auditing.enabled" -> false)
-      .build()
+    with GuiceOneServerPerSuite
+    with DataSteps {
 
   "notifications" ignore {
     "respond with 200 status with valid notification id" in {
-      val verifyResponse =
-        wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify-details")
-          .post(Json.parse {
-            """{"phone-number": "07849123456"}""".stripMargin
-          })
-          .futureValue
+      val verifyResponse = verify("07849123456").futureValue
 
       val notificationId = verifyResponse.json.\("notificationId")
 
@@ -60,8 +43,8 @@ class NotificationsIntegrationSpec
           .futureValue
 
       response.status shouldBe 200
-      response.json.\("code") shouldBe 102
-      response.json.\("message") shouldBe "Message has been sent"
+      response.json \ "code" shouldBe 102
+      response.json \ "message" shouldBe "Message has been sent"
     }
 
     "respond with 404 status when notification id not found" in {
