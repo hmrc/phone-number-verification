@@ -2,7 +2,11 @@
 
 ### Summary
 
-Backend server for validating and verifying a given phone number
+Backend server for validating and verifying a given phone number.
+The default port for cip-phone-number-verification is port 6083
+
+The default port for cip-phone-number is port 6081
+
 
 ### Testing
 
@@ -23,7 +27,7 @@ Run the services against the current versions in dev, stop the CIP_PHONE_NUMBER_
     sm --start CIP_PHONE_NUMBER_VERIFICATION_ALL -r
     sm --stop CIP_PHONE_NUMBER_VERIFICATION
     cd cip-phone-number-verification
-    sbt 'run 6083'
+    sbt run
 
 For reference here are the details for running each of the services individually
 
@@ -31,13 +35,20 @@ For reference here are the details for running each of the services individually
     sbt 'run 6080'
  
     cd cip-phone-number
-    sbt 'run 6081'
+    sbt run
 
     cd cip-phone-number-validation
     sbt 'run 6082'
 
     cd cip-phone-number-verification
-    sbt 'run 6083'
+    sbt run
+
+### Curl microservice
+
+#### Check notification status
+
+    -XGET -H "Content-type: application/json"
+    'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/notifications/<notificationId>'
 
 ### License
 
