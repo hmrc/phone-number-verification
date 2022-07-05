@@ -35,7 +35,7 @@ class ValidateConnectorSpec extends AnyWordSpec
   with ScalaFutures
   with HttpClientV2Support {
 
-  val url: String = "/customer-insight-platform/phone-number/validate-format"
+  val url: String = "/customer-insight-platform/phone-number/validate"
 
   "ValidatorConnector" when {
     "callService is called" should {

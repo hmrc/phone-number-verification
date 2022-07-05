@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.utils
 
-import play.api.{Configuration, Logging}
+import play.api.Configuration
 import uk.gov.hmrc.mongo.cache.{CacheIdType, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
@@ -34,5 +34,5 @@ class PasscodeCacheRepository @Inject()(
     collectionName = "cip-phone-number-verification",
     ttl = configuration.get[FiniteDuration]("cache.expiry"),
     timestampSupport = timestampSupport,
-    cacheIdType = CacheIdType.SimpleCacheId) with Logging {
+    cacheIdType = CacheIdType.SimpleCacheId) {
 }

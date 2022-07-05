@@ -56,7 +56,7 @@ For reference here are the details for running each of the services individually
     -XPOST -H "Content-type: application/json" -d '{
 	    "phoneNumber": "<phone-number>",
         "passcode": "<passcode>"
-    }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/otp'
+    }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/otp'
 
 ### License
 
