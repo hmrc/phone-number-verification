@@ -56,7 +56,7 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
     }
   }
 
-  def verifyDetails(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
+  def verify(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
     validatorConnector.callService(phoneNumber) flatMap {
       case res if is2xx(res.header.status) =>
         persistPasscode(phoneNumber) flatMap {

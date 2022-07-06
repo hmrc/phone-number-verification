@@ -43,7 +43,7 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
     }
 
     val res = httpClientV2
-      .post(url"$validateUrl/customer-insight-platform/phone-number/validate-format")
+      .post(url"$validateUrl/customer-insight-platform/phone-number/validate")
       .withBody(Json.obj("phoneNumber" -> s"${phoneNumber.phoneNumber}"))
       .execute[HttpResponse]
 

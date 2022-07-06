@@ -35,7 +35,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(implicit executionContext: ExecutionContext) {
 
   def notificationStatus(notificationId: String)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
-
     httpClient
       .get(url"${config.govUkNotifyHost}/v2/notifications/$notificationId")
       .addHeaders((s"Authorization", s"Bearer $jwtBearerToken"))
@@ -43,12 +42,11 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(impl
   }
 
   def sendPasscode(passcode: Passcode)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
-
     // TODO Build this elsewhere
     val passcodeRequest = Json.obj(
       "phone_number" -> s"${passcode.phoneNumber}",
       "template_id" -> s"${config.templateId}",
-      "personalisation" ->  Json.obj(
+      "personalisation" -> Json.obj(
         "clientServiceName" -> "cip-phone-service",
         "passCode" -> s"${passcode.passcode}",
         "timeToLive" -> s"${config.cacheExpiry}")

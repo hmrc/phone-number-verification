@@ -23,5 +23,3 @@ case class GovUkNotificationStatus(status: String)
 object GovUkNotificationStatus {
   implicit val reads = Json.reads[GovUkNotificationStatus]
 }
-
-

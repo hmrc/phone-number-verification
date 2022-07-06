@@ -39,7 +39,7 @@ trait DataSteps {
 
   def verify(phoneNumber: String): Future[WSResponse] = {
     wsClient
-      .url(s"$baseUrl/customer-insight-platform/phone-number/verify-details")
+      .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
       .post(Json.parse {
         s"""{"phoneNumber": "$phoneNumber"}""".stripMargin
       })

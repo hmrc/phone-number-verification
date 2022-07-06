@@ -36,17 +36,17 @@ import scala.concurrent.Future
 
 class VerifyServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  "verifyDetails" should {
+  "verify" should {
     "return success if telephone number is valid" in new SetUp {
       when(validateConnectorMock.callService(any())(any())).thenReturn(Future.successful(Ok))
-      verifyService.verifyDetails(PhoneNumber("07856345678")) map { x =>
+      verifyService.verify(PhoneNumber("07856345678")) map { x =>
         assert(x === Ok)
       }
     }
 
     "return failure if telephone number is invalid" in new SetUp {
       when(validateConnectorMock.callService(any[PhoneNumber]())(any())).thenReturn(Future.successful(Ok))
-      verifyService.verifyDetails(PhoneNumber("078563d45678")) map { x =>
+      verifyService.verify(PhoneNumber("078563d45678")) map { x =>
         assert(x === BadRequest)
       }
     }

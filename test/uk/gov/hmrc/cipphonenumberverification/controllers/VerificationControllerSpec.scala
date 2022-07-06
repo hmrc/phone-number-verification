@@ -42,8 +42,8 @@ class VerificationControllerSpec
 
   "POST /verify-details" should {
     "return 200 for valid request" in {
-      when(mockVerifyService.verifyDetails(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
-      val result = controller.verifyDetails(
+      when(mockVerifyService.verify(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
+      val result = controller.verify(
         fakeRequest.withBody(Json.toJson(PhoneNumber("")))
       )
       status(result) shouldBe OK

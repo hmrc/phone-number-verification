@@ -30,9 +30,9 @@ import scala.util.{Success, Try}
 class VerificationController @Inject()(cc: ControllerComponents, service: VerifyService)
   extends BackendController(cc) {
 
-  def verifyDetails: Action[JsValue] = Action(parse.json).async { implicit request =>
+  def verify: Action[JsValue] = Action(parse.json).async { implicit request =>
     withJsonBody[PhoneNumber] {
-      service.verifyDetails
+      service.verify
     }
   }
 

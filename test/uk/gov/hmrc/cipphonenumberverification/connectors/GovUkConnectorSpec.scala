@@ -39,7 +39,7 @@ class GovUkConnectorSpec extends AnyWordSpec
   val notificationId = "test-notification-id"
   val url: String = s"/v2/notifications/$notificationId"
 
- "GovUkConnector.callService" should {
+  "GovUkConnector.callService" should {
     "return HttpResponse OK for valid input" in new Setup {
       stubFor(
         get(urlEqualTo(url))
@@ -66,7 +66,7 @@ class GovUkConnectorSpec extends AnyWordSpec
       )
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      govUkConnector.sendPasscode(Passcode("0789009002","CVFRTG")).map(res => {
+      govUkConnector.sendPasscode(Passcode("0789009002", "CVFRTG")).map(res => {
         res shouldBe Right(HttpResponse(Status.CREATED, ""))
       })
     }

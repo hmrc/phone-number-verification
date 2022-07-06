@@ -20,8 +20,6 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
@@ -33,12 +31,6 @@ class OtpIntegrationSpec
     with IntegrationPatience
     with GuiceOneServerPerSuite
     with DataSteps {
-
-  override def fakeApplication(): Application =
-    GuiceApplicationBuilder()
-      .configure("metrics.enabled" -> false)
-      .configure("auditing.enabled" -> false)
-      .build()
 
   "otp" should {
     "respond with 200 verified status with valid otp" in {
@@ -52,7 +44,7 @@ class OtpIntegrationSpec
       //verify otp (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/otp")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
@@ -71,7 +63,7 @@ class OtpIntegrationSpec
       //verify otp (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/otp")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
@@ -87,7 +79,7 @@ class OtpIntegrationSpec
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/otp")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .post(Json.parse {
             s"""{
                "phoneNumber": "",
