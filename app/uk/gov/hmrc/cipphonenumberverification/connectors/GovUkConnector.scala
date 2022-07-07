@@ -38,6 +38,7 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(impl
     httpClient
       .get(url"${config.govUkNotifyHost}/v2/notifications/$notificationId")
       .addHeaders((s"Authorization", s"Bearer $jwtBearerToken"))
+      .withProxy
       .execute[Either[UpstreamErrorResponse, HttpResponse]]
   }
 
@@ -56,6 +57,7 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(impl
       .post(url"${config.govUkNotifyHost}/v2/notifications/sms")
       .addHeaders((s"Authorization", s"Bearer $jwtBearerToken"))
       .withBody(Json.toJson(passcodeRequest))
+      .withProxy
       .execute[Either[UpstreamErrorResponse, HttpResponse]]
   }
 
