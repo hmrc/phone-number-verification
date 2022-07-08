@@ -13,5 +13,3 @@ content-type: application/json
 {
   "phoneNumber" : "dfsdsfs"
 }
-
-### Notification Id

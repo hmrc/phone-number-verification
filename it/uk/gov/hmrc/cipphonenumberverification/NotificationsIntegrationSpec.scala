@@ -30,7 +30,7 @@ class NotificationsIntegrationSpec
     with GuiceOneServerPerSuite
     with DataSteps {
 
-  "notifications" ignore {
+  "/notifications" should {
     "respond with 200 status with valid notification id" in {
       val verifyResponse = verify("07849123456").futureValue
 

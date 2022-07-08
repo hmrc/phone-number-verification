@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 case class VerificationStatus(status: String)
 
 object VerificationStatus {
-  implicit val writes = Json.writes[VerificationStatus]
+  implicit val writes: OWrites[VerificationStatus] = Json.writes[VerificationStatus]
 }

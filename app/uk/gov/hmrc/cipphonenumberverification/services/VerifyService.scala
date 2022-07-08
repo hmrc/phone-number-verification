@@ -18,6 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
 import play.api.http.HttpEntity
+import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Results.{Accepted, InternalServerError, Ok}
@@ -51,8 +52,9 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
   private[services] def persistPasscode(phoneNumber: PhoneNumber): Future[Option[Passcode]] = {
     val passcode = passcodeGenerator
 
-    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), Passcode(phoneNumber.phoneNumber, passcode)) map { _ =>
-      Option(Passcode(phoneNumber.phoneNumber, passcode))
+    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"),
+      Passcode(phoneNumber.phoneNumber, passcode)) map { _ =>
+        Option(Passcode(phoneNumber.phoneNumber, passcode))
     }
   }
 
@@ -65,7 +67,7 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
               case Left(err) => ???
               case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
             }
-          case None => Future(Result.apply(ResponseHeader(500), HttpEntity.NoEntity))
+          case None => Future(Result.apply(ResponseHeader(INTERNAL_SERVER_ERROR), HttpEntity.NoEntity))
         }
       case res if is4xx(res.header.status) => Future(res)
     }
