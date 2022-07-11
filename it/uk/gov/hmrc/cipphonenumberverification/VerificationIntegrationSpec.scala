@@ -20,8 +20,6 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 
@@ -34,17 +32,11 @@ class VerificationIntegrationSpec extends AnyWordSpec
   private val wsClient = app.injector.instanceOf[WSClient]
   private val baseUrl = s"http://localhost:$port"
 
-  override def fakeApplication(): Application =
-    GuiceApplicationBuilder()
-      .configure("metrics.enabled" -> false)
-      .configure("auditing.enabled" -> false)
-      .build()
-
-  "verify-details" ignore {
+  "/verify" should {
     "return 200 with valid telephone number" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify-details")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
           .post(Json.parse {
             """{"phoneNumber": "07811123456"}""".stripMargin
           }).futureValue

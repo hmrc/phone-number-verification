@@ -39,7 +39,7 @@ class GovUkConnectorSpec extends AnyWordSpec
   val notificationId = "test-notification-id"
   val url: String = s"/v2/notifications/$notificationId"
 
-  "GovUkConnector.callService" should {
+  "notificationStatus" should {
     "return HttpResponse OK for valid input" in new Setup {
       stubFor(
         get(urlEqualTo(url))
@@ -58,7 +58,7 @@ class GovUkConnectorSpec extends AnyWordSpec
     }
   }
 
-  "GovUkConnector.sendPasscode" should {
+  "sendPasscode" should {
     "return HttpResponse OK for valid input" in new Setup {
       stubFor(
         get(urlEqualTo(url))

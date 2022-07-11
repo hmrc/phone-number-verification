@@ -30,7 +30,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class NotificationsService @Inject()(govUkConnector: GovUkConnector)(implicit val executionContext: ExecutionContext) extends Logging {
+class NotificationsService @Inject()(govUkConnector: GovUkConnector)
+                                    (implicit val executionContext: ExecutionContext) extends Logging {
 
   def status(notificationId: String)(implicit hc: HeaderCarrier): Future[Result] = {
     def success(response: HttpResponse) = {

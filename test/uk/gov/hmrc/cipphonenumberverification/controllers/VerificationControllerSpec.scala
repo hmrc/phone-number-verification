@@ -40,7 +40,7 @@ class VerificationControllerSpec
   private val mockVerifyService = mock[VerifyService]
   private val controller = new VerificationController(Helpers.stubControllerComponents(), mockVerifyService)
 
-  "POST /verify-details" should {
+  "verify" should {
     "return 200 for valid request" in {
       when(mockVerifyService.verify(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
       val result = controller.verify(

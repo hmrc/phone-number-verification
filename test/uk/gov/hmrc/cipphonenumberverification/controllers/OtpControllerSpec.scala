@@ -33,12 +33,12 @@ import scala.concurrent.Future
 class OtpControllerSpec
   extends AnyWordSpec with Matchers {
 
-  implicit val writes: OWrites[Passcode] = Json.writes[Passcode]
+  private implicit val writes: OWrites[Passcode] = Json.writes[Passcode]
   private val fakeRequest = FakeRequest()
   private val mockVerifyService = mock[VerifyService]
   private val controller = new OtpController(Helpers.stubControllerComponents(), mockVerifyService)
 
-  "POST /otp" should {
+  "verifyOtp" should {
     "return 200" in {
       val passcode = Passcode("07811222333", "123456")
       when(mockVerifyService.verifyOtp(passcode)).thenReturn(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))

@@ -49,7 +49,7 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
 
     res flatMap parseResponse recoverWith {
       case e: Throwable =>
-        logger.error(s"Downstream call failed: ${config.validateUrlHost}")
+        logger.error(s"Upstream call failed: ${config.validateUrlHost}")
         Future.failed(e)
     }
   }

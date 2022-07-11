@@ -32,7 +32,7 @@ class OtpIntegrationSpec
     with GuiceOneServerPerSuite
     with DataSteps {
 
-  "otp" should {
+  "/verify/otp" should {
     "respond with 200 verified status with valid otp" in {
       val phoneNumber = "07811123456"
       //generate otp
