@@ -85,6 +85,15 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[String] shouldBe "Not verified"
     }
 
+    "return Not verified if passcode does not match" in new SetUp {
+      val passcode = Passcode("", "123456")
+      when(passcodeCacheRepositoryMock.get[Passcode](passcode.phoneNumber)(DataKey("cip-phone-number-verification")))
+        .thenReturn(Future.successful(Some(Passcode("", "654321"))))
+      val result = verifyService.verifyOtp(passcode)
+      status(result) shouldBe OK
+      (contentAsJson(result) \ "status").as[String] shouldBe "Not verified"
+    }
+
     "return internal sever error when datastore exception occurs on get" in new SetUp {
       val passcode = Passcode("", "")
       when(passcodeCacheRepositoryMock.get[Passcode](passcode.phoneNumber)(DataKey("cip-phone-number-verification")))
