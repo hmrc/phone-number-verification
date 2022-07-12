@@ -85,8 +85,14 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
     }
 
     (get flatMap {
-      case Some(_) => delete.map {
-        _ => Ok(Json.toJson(VerificationStatus("Verified")))
+      case Some(actualPasscode) => {
+        if (passcode.passcode.equals(actualPasscode.passcode)) {
+          delete.map {
+            _ => Ok(Json.toJson(VerificationStatus("Verified")))
+          }
+        } else {
+          Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
+        }
       }
       case None => Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
     }).recover {
