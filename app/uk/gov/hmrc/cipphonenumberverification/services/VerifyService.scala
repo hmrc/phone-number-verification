@@ -17,12 +17,9 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import play.api.http.HttpEntity
-import play.api.http.Status.INTERNAL_SERVER_ERROR
-import play.api.i18n.{Langs, MessagesApi}
 import play.api.libs.json.Json
+import play.api.mvc.Result
 import play.api.mvc.Results.{Accepted, InternalServerError, Ok}
-import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, Passcode, PhoneNumber, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
@@ -36,11 +33,10 @@ import scala.util.Random
 
 class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
                               validatorConnector: ValidateConnector,
-                              govUkConnector: GovUkConnector,
-                              messagesApi: MessagesApi, langs: Langs)
+                              govUkConnector: GovUkConnector)
                              (implicit val executionContext: ExecutionContext) extends Logging {
 
-  private[services] def passcodeGenerator = {
+  private[services] def otpGenerator = {
     val codeSize = 6
     Random.alphanumeric
       .filterNot(_.isDigit)
@@ -49,25 +45,27 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
       .take(codeSize).mkString
   }
 
-  private[services] def persistPasscode(phoneNumber: PhoneNumber): Future[Option[Passcode]] = {
-    val passcode = passcodeGenerator
-
-    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"),
-      Passcode(phoneNumber.phoneNumber, passcode)) map { _ =>
-        Option(Passcode(phoneNumber.phoneNumber, passcode))
-    }
-  }
-
   def verify(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
+    def put(phoneNumber: PhoneNumber) = {
+      logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
+
+      val otp = otpGenerator
+      val passcode = Passcode(phoneNumber.phoneNumber, otp)
+
+      passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
+    }
+
     validatorConnector.callService(phoneNumber) flatMap {
       case res if is2xx(res.header.status) =>
-        persistPasscode(phoneNumber) flatMap {
-          case Some(passcode) =>
-            govUkConnector.sendPasscode(passcode) map {
-              case Left(err) => ???
-              case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
-            }
-          case None => Future(Result.apply(ResponseHeader(INTERNAL_SERVER_ERROR), HttpEntity.NoEntity))
+        (put(phoneNumber) flatMap { passcode =>
+          govUkConnector.sendPasscode(passcode) map {
+            case Left(err) => ???
+            case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
+          }
+        }).recover {
+          case err =>
+            logger.error(s"Database operation failed - ${err.getMessage}")
+            InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
         }
       case res if is4xx(res.header.status) => Future(res)
     }
