@@ -61,8 +61,8 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
       case res if is2xx(res.header.status) =>
         (put(phoneNumber) flatMap { passcode =>
           govUkConnector.sendPasscode(passcode) map {
-            case Left(err) => ???
-            case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notification_id" : ${response.json("id")}}"""))
+            case Left(err) => ??? //TODO: CAV-163
+            case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
           }
         }).recover {
           case err =>

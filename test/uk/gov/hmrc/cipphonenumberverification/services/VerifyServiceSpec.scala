@@ -55,7 +55,7 @@ class VerifyServiceSpec extends AnyWordSpec
           """.stripMargin))))
         val result = verifyService.verify(PhoneNumber("test"))
         status(result) shouldBe ACCEPTED
-        (contentAsJson(result) \ "notification_id").as[String] shouldBe "test-notification-id"
+        (contentAsJson(result) \ "notificationId").as[String] shouldBe "test-notification-id"
       }
     }
 

@@ -47,10 +47,6 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
       .withBody(Json.obj("phoneNumber" -> s"${phoneNumber.phoneNumber}"))
       .execute[HttpResponse]
 
-    res flatMap parseResponse recoverWith {
-      case e: Throwable =>
-        logger.error(s"Upstream call failed: ${config.validateUrlHost}")
-        Future.failed(e)
-    }
+    res flatMap parseResponse
   }
 }
