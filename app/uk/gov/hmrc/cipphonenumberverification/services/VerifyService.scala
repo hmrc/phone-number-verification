@@ -29,7 +29,7 @@ import uk.gov.hmrc.mongo.cache.DataKey
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
+import java.security.SecureRandom
 
 class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
                               validatorConnector: ValidateConnector,
@@ -37,12 +37,14 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
                              (implicit val executionContext: ExecutionContext) extends Logging {
 
   private[services] def otpGenerator = {
-    val codeSize = 6
-    Random.alphanumeric
-      .filterNot(_.isDigit)
-      .filterNot(_.isLower)
-      .filterNot(Set('A', 'E', 'I', 'O', 'U'))
-      .take(codeSize).mkString
+    val sb = new StringBuilder()
+    val passcodeSize = 6
+    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val secureRandom = SecureRandom.getInstanceStrong
+    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
+      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
+      .forEach(x => sb.append(x))
+    sb.mkString
   }
 
   def verify(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {

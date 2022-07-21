@@ -22,12 +22,14 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
+import play.api.libs.ws.ahc.AhcCurlRequestLogger
 
 class VerificationIntegrationSpec extends AnyWordSpec
   with Matchers
   with ScalaFutures
   with IntegrationPatience
-  with GuiceOneServerPerSuite {
+  with GuiceOneServerPerSuite
+   {
 
   private val wsClient = app.injector.instanceOf[WSClient]
   private val baseUrl = s"http://localhost:$port"
@@ -37,11 +39,12 @@ class VerificationIntegrationSpec extends AnyWordSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
+          .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             """{"phoneNumber": "07811123456"}""".stripMargin
           }).futureValue
 
-      response.status shouldBe 200
+      response.status shouldBe 202
     }
   }
 }
