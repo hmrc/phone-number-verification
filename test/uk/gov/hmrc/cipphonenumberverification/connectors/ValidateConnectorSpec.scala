@@ -21,7 +21,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import play.api.mvc.Results.Ok
+import play.api.http.Status.OK
+import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,34 +38,34 @@ class ValidateConnectorSpec extends AnyWordSpec
 
   val url: String = "/customer-insight-platform/phone-number/validate"
 
-  "ValidatorConnector" when {
-    "callService is called" should {
-      "return HttpResponse OK for valid input" in new Setup {
-        val phoneNumber = PhoneNumber("07843274323")
-        stubFor(
-          post(urlEqualTo(url))
-            .willReturn(aResponse())
-        )
+  "callService" should {
+    "return HttpResponse OK for valid input" in new SetUp {
+      val phoneNumber = PhoneNumber("test")
 
-        implicit val hc = HeaderCarrier()
-        validateConnector.callService(phoneNumber)
-          .futureValue shouldBe Ok
+      stubFor(
+        post(urlEqualTo(url))
+          .willReturn(aResponse())
+      )
 
-        verify(
-          postRequestedFor(urlEqualTo(url))
-            .withRequestBody(equalToJson(s"""{"phoneNumber": "07843274323"}"""))
-        )
-      }
+      val result = validateConnector.callService(phoneNumber)
+      status(result) shouldBe OK
+
+      verify(
+        postRequestedFor(urlEqualTo(url))
+          .withRequestBody(equalToJson(s"""{"phoneNumber": "${phoneNumber.phoneNumber}"}"""))
+      )
     }
   }
 
-  trait Setup {
+  trait SetUp {
+
+    protected implicit val hc: HeaderCarrier = HeaderCarrier()
 
     private val appConfig = new AppConfig(
       Configuration.from(Map(
         "microservice.services.cipphonenumber.validation.host" -> wireMockHost,
         "microservice.services.cipphonenumber.validation.port" -> wireMockPort,
-        "microservice.services.cipphonenumber.validation.protocol" -> "http",
+        "microservice.services.cipphonenumber.validation.protocol" -> "http"
       ))
     )
 

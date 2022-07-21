@@ -22,6 +22,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
+import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
 class OtpIntegrationSpec
@@ -45,6 +46,7 @@ class OtpIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
+          .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
@@ -64,6 +66,7 @@ class OtpIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
+          .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
@@ -80,6 +83,7 @@ class OtpIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
+          .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
                "phoneNumber": "",

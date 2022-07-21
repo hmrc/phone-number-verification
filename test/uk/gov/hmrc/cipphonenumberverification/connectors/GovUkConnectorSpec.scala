@@ -21,11 +21,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import play.api.http.Status
+import play.api.http.Status.OK
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.Passcode
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,50 +38,63 @@ class GovUkConnectorSpec extends AnyWordSpec
   with HttpClientV2Support {
 
   val notificationId = "test-notification-id"
-  val url: String = s"/v2/notifications/$notificationId"
+  val notificationsUrl: String = s"/v2/notifications/$notificationId"
+  val smsUrl: String = "/v2/notifications/sms"
 
   "notificationStatus" should {
-    "return HttpResponse OK for valid input" in new Setup {
+    "return HttpResponse OK for valid input" in new SetUp {
       stubFor(
-        get(urlEqualTo(url))
+        get(urlEqualTo(notificationsUrl))
           .willReturn(aResponse())
       )
 
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      govUkConnector.notificationStatus(notificationId).map(res => {
-        res shouldBe Right(HttpResponse(Status.OK, ""))
-      })
+      val result = govUkConnector.notificationStatus(notificationId)
+      await(result).right.get.status shouldBe OK
 
-      //      TODO: find out why this is failing
-      //      verify(
-      //        getRequestedFor(urlEqualTo(url))
-      //      )
+      verify(
+        getRequestedFor(urlEqualTo(notificationsUrl))
+      )
     }
   }
 
   "sendPasscode" should {
-    "return HttpResponse OK for valid input" in new Setup {
+    "return HttpResponse OK for valid input" in new SetUp {
       stubFor(
-        get(urlEqualTo(url))
+        post(urlEqualTo(smsUrl))
           .willReturn(aResponse())
       )
 
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      govUkConnector.sendPasscode(Passcode("0789009002", "CVFRTG")).map(res => {
-        res shouldBe Right(HttpResponse(Status.CREATED, ""))
-      })
+      val result = govUkConnector.sendPasscode(Passcode("test", "test"))
+      await(result).right.get.status shouldBe OK
+
+      verify(
+        postRequestedFor(urlEqualTo(smsUrl)).withRequestBody(equalToJson(
+          """
+            {
+              "phone_number": "test",
+              "template_id": "template-id-fake",
+              "personalisation": {
+                "clientServiceName": "cip-phone-service",
+                "passCode": "test",
+                "timeToLive": "1"
+              }
+            }
+            """))
+      )
     }
   }
 
-  trait Setup {
+  trait SetUp {
+
+    protected implicit val hc: HeaderCarrier = HeaderCarrier()
 
     private val appConfig = new AppConfig(
       Configuration.from(Map(
         "microservice.services.govuk-notify.host" -> wireMockUrl,
         "microservice.services.govuk-notify.api-key.iss-uuid" -> "",
         "microservice.services.govuk-notify.api-key.secret-key-uuid" -> UUID.randomUUID().toString,
-        "microservice.services.govuk-notify.template_id" -> "template_id_fake",
-        "cache.expiry" -> 1,
+        "microservice.services.govuk-notify.template_id" -> "template-id-fake",
+        "cache.expiry" -> 1
       ))
     )
 

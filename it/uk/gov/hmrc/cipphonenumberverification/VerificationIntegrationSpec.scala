@@ -28,8 +28,7 @@ class VerificationIntegrationSpec extends AnyWordSpec
   with Matchers
   with ScalaFutures
   with IntegrationPatience
-  with GuiceOneServerPerSuite
-   {
+  with GuiceOneServerPerSuite {
 
   private val wsClient = app.injector.instanceOf[WSClient]
   private val baseUrl = s"http://localhost:$port"

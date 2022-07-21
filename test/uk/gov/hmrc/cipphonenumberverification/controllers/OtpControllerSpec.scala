@@ -40,7 +40,7 @@ class OtpControllerSpec
 
   "verifyOtp" should {
     "return 200" in {
-      val passcode = Passcode("07811222333", "123456")
+      val passcode = Passcode("07123456789", "123456")
       when(mockVerifyService.verifyOtp(passcode)).thenReturn(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))
       val result = controller.verifyOtp(
         fakeRequest.withBody(Json.toJson(passcode))
@@ -51,7 +51,7 @@ class OtpControllerSpec
 
     "return 400 for invalid request" in {
       val result = controller.verifyOtp(
-        fakeRequest.withBody(Json.toJson(Passcode("", "123456")))
+        fakeRequest.withBody(Json.toJson(Passcode("", "test")))
       )
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "VALIDATION_ERROR"
