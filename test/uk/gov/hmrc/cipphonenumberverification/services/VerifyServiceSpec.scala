@@ -86,8 +86,8 @@ class VerifyServiceSpec extends AnyWordSpec
       verifyService.otpGenerator.forall(y => y.isUpper) shouldBe true
       verifyService.otpGenerator.forall(y => y.isLetter) shouldBe true
 
-      val a = List('A', 'E', 'I', 'O', 'U')
-      verifyService.otpGenerator.toList map (y => assertResult(a contains (y))(false))
+      val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(',')', '-', '+')
+      verifyService.otpGenerator.toList map (y => assertResult(illegalChars contains y)(false))
 
       verifyService.otpGenerator.length shouldBe 6
     }
