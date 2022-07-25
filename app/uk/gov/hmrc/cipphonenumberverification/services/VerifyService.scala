@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.{InternalServerError, Ok}
+import play.api.mvc.Results.InternalServerError
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.models._
-import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -30,19 +30,23 @@ import scala.concurrent.{ExecutionContext, Future}
 class VerifyService @Inject()(passcodeService: PasscodeService,
                               validatorConnector: ValidateConnector,
                               govUkConnector: GovUkConnector)
-                             (implicit val executionContext: ExecutionContext) extends VerifyHelper(passcodeService, govUkConnector) {
+                             (implicit val executionContext: ExecutionContext)
+  extends VerifyHelper(passcodeService, govUkConnector) with Logging {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       httpResponse <- validatorConnector.callService(phoneNumber)
-      result <- processResponse(httpResponse, phoneNumber)
+      result <- processResponse(httpResponse)
     } yield result
 
-  def verifyOtp(passcode: Passcode): Future[Result] = {
-    for {
-      otpPasscode <- passcodeService.retrievePasscode(passcode)
-      result <- processPasscode(passcode, otpPasscode)
-    } yield result
+  def verifyOtp(passcode: PhoneNumberAndOtp): Future[Result] = {
+    (for {
+      maybePhoneNumberAndOtp <- passcodeService.retrievePasscode(passcode)
+      result <- processPasscode(passcode, maybePhoneNumberAndOtp)
+    } yield result).recover {
+      case err =>
+        logger.error(s"Database operation failed - ${err.getMessage}")
+        InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
+    }
   }
-
 }

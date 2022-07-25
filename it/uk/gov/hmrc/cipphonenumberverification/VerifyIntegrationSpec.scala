@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 
-class VerificationIntegrationSpec extends AnyWordSpec
+class VerifyIntegrationSpec extends AnyWordSpec
   with Matchers
   with ScalaFutures
   with IntegrationPatience
@@ -41,25 +41,26 @@ class VerificationIntegrationSpec extends AnyWordSpec
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             """{"phoneNumber": "07811123456"}""".stripMargin
-          }).futureValue
+          })
+          .futureValue
 
       response.status shouldBe 202
     }
 
-    "return 200 with valid fixed line number" in {
+    //TODO: Fix as part of CAV-242
+    "respond with 400 status for invalid request" ignore {
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
-            """{"phoneNumber": "02088208907"}""".stripMargin
-          }).futureValue
+            s"""{"phoneNumber": ""}""".stripMargin
+          })
+          .futureValue
 
-      response.status shouldBe 200
-      response.json shouldBe Json.parse("""{
-                                    |        "status": "Indeterminate",
-                                    |        "message": "Only mobile numbers can be verified"
-                                    |      }""".stripMargin)
+      response.status shouldBe 400
+      (response.json \ "code").as[String] shouldBe "VALIDATION_ERROR"
+      (response.json \ "message").as[String] shouldBe "Enter a valid phone number"
     }
   }
 }

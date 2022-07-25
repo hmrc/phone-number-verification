@@ -23,15 +23,15 @@ import play.api.libs.json.Json
 import play.api.mvc.Results.{NotFound, Ok}
 import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
-import uk.gov.hmrc.cipphonenumberverification.models.{GovUkNotificationStatus, NotificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, GovUkNotificationStatus, NotificationStatus}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class NotificationsService @Inject()(govUkConnector: GovUkConnector)
-                                    (implicit val executionContext: ExecutionContext) extends Logging {
+class NotificationService @Inject()(govUkConnector: GovUkConnector)
+                                   (implicit val executionContext: ExecutionContext) extends Logging {
 
   def status(notificationId: String)(implicit hc: HeaderCarrier): Future[Result] = {
     def success(response: HttpResponse) = {
@@ -51,18 +51,12 @@ class NotificationsService @Inject()(govUkConnector: GovUkConnector)
     def failure(err: UpstreamErrorResponse) = {
       err.statusCode match {
         case NOT_FOUND =>
-          val json = Json.parse(
-            """
-               {
-              "message": "Notification ID not found"
-              }
-              """)
-          NotFound(json)
-        case _ => {
-          //          TODO: Do we need a separate ticket to handle other errors?
+          logger.warn("Notification ID not found")
+          NotFound(Json.toJson(ErrorResponse("NOTIFICATION_NOT_FOUND", "Notification ID not found")))
+        case _ =>
+          //TODO: Do we need a separate ticket to handle other errors?
           logger.error(err.message)
           Result.apply(ResponseHeader(err.statusCode), HttpEntity.NoEntity)
-        }
       }
     }
 

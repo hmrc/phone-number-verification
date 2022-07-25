@@ -21,7 +21,7 @@ import io.jsonwebtoken.{Jwts, SignatureAlgorithm}
 import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.Passcode
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
 import uk.gov.hmrc.http.HttpReadsInstances.readEitherOf
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -32,7 +32,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(implicit executionContext: ExecutionContext) {
+class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
+                              (implicit executionContext: ExecutionContext) {
 
   def notificationStatus(notificationId: String)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     httpClient
@@ -42,7 +43,7 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(impl
       .execute[Either[UpstreamErrorResponse, HttpResponse]]
   }
 
-  def sendPasscode(passcode: Passcode)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
+  def sendPasscode(passcode: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     // TODO Build this elsewhere
     val passcodeRequest = Json.obj(
       "phone_number" -> s"${passcode.phoneNumber}",

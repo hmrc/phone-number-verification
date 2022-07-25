@@ -16,34 +16,35 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchersSugar.any
+import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.models.NotificationStatus
-import uk.gov.hmrc.cipphonenumberverification.services.NotificationsService
+import uk.gov.hmrc.cipphonenumberverification.services.NotificationService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class NotificationsControllerSpec extends AnyWordSpec with Matchers {
+class NotificationControllerSpec extends AnyWordSpec
+  with Matchers
+  with IdiomaticMockito {
 
   private implicit val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
-  private val fakeRequest = FakeRequest("GET", "/")
-  private val mockNotificationsService = mock[NotificationsService]
-  private val controller = new NotificationsController(Helpers.stubControllerComponents(), mockNotificationsService)
+  private val fakeRequest = FakeRequest()
+  private val mockNotificationsService = mock[NotificationService]
+  private val controller = new NotificationController(Helpers.stubControllerComponents(), mockNotificationsService)
 
   "status" should {
-    "return 200 for valid request" in {
+    "delegate to notification service" in {
       val notificationId = "notificationId"
-      when(mockNotificationsService.status(ArgumentMatchers.eq(notificationId))(any()))
-        .thenReturn(Future.successful(Ok(Json.toJson(NotificationStatus(1, "test message")))))
+      mockNotificationsService.status(notificationId)(any[HeaderCarrier])
+        .returns(Future.successful(Ok(Json.toJson(NotificationStatus(1, "test message")))))
 
       val result = controller.status(notificationId)(fakeRequest)
       status(result) shouldBe Status.OK

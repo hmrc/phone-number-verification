@@ -24,7 +24,7 @@ import play.api.Configuration
 import play.api.http.Status.OK
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.Passcode
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
@@ -42,7 +42,7 @@ class GovUkConnectorSpec extends AnyWordSpec
   val smsUrl: String = "/v2/notifications/sms"
 
   "notificationStatus" should {
-    "return HttpResponse OK for valid input" in new SetUp {
+    "delegate to http client" in new SetUp {
       stubFor(
         get(urlEqualTo(notificationsUrl))
           .willReturn(aResponse())
@@ -58,13 +58,13 @@ class GovUkConnectorSpec extends AnyWordSpec
   }
 
   "sendPasscode" should {
-    "return HttpResponse OK for valid input" in new SetUp {
+    "delegate to http client" in new SetUp {
       stubFor(
         post(urlEqualTo(smsUrl))
           .willReturn(aResponse())
       )
 
-      val result = govUkConnector.sendPasscode(Passcode("test", "test"))
+      val result = govUkConnector.sendPasscode(PhoneNumberAndOtp("test", "test"))
       await(result).right.get.status shouldBe OK
 
       verify(

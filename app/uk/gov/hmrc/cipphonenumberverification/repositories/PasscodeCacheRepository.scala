@@ -16,28 +16,18 @@
 
 package uk.gov.hmrc.cipphonenumberverification.repositories
 
-import play.api.Logging
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, PhoneNumber}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.cache.{CacheIdType, DataKey, MongoCacheRepository}
+import uk.gov.hmrc.mongo.cache.{CacheIdType, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
 class PasscodeCacheRepository @Inject()(mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
-  extends MongoCacheRepository (
+  extends MongoCacheRepository(
     mongoComponent = mongoComponent,
     collectionName = "cip-phone-number-verification",
     ttl = config.cacheExpiry.minutes,
     timestampSupport = timestampSupport,
-    cacheIdType = CacheIdType.SimpleCacheId) with Logging {
-
-    def persistPasscode(phoneNumber: PhoneNumber, passcode: Passcode)(implicit hc: HeaderCarrier): Future[Passcode] = {
-        logger.debug(s"Saving passcode for phone number ${phoneNumber.phoneNumber} to the database")
-        put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
-    }
-
-}
+    cacheIdType = CacheIdType.SimpleCacheId)

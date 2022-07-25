@@ -22,17 +22,13 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import play.api.http.Status.OK
-import play.api.mvc.Results.{BadRequest, Ok}
-import play.api.mvc.{ResponseHeader, Result}
-import play.api.test.Helpers.{await, defaultAwaitTimeout, status}
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class ValidateConnectorSpec extends AnyWordSpec
   with Matchers
@@ -43,7 +39,7 @@ class ValidateConnectorSpec extends AnyWordSpec
   val url: String = "/customer-insight-platform/phone-number/validate"
 
   "callService" should {
-    "return HttpResponse OK for valid input" in new SetUp {
+    "delegate to http client" in new SetUp {
       val phoneNumber = PhoneNumber("test")
 
       stubFor(
