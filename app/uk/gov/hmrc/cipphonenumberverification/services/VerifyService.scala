@@ -48,11 +48,14 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
   }
 
   def verify(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
+    def put(phoneNumber: PhoneNumber): Future[Passcode] = {
+      logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
 
     val otp = otpGenerator
     val passcode = Passcode(phoneNumber.phoneNumber, otp)
 
-    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
+      passcodeCacheRepository.persistPasscode(phoneNumber, passcode)
+    }
 
     validatorConnector.callService(phoneNumber) flatMap {
       case res if is2xx(res.status) =>
@@ -61,6 +64,8 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
             (persistPasscode(phoneNumber) flatMap { passcode =>
               govUkConnector.sendPasscode(passcode) map {
                 case Left(err) => ??? //TODO: CAV-163
+                  logger.error(s"Gov Notify failure - to be covered by CAV-163")
+                  InternalServerError(Json.toJson(ErrorResponse("EXTERNAL_SYSTEM_FAIL", "sending to Gov Notify failed")))
                 case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
               }
             }).recover {
@@ -110,16 +115,3 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
     passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
   }
 }
-
-//{
-//          (persistPasscode(phoneNumber) flatMap { passcode =>
-//            govUkConnector.sendPasscode(passcode) map {
-//              case Left(err) => ??? //TODO: CAV-163
-//              case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
-//            }
-//          }).recover {
-//            case err =>
-//              logger.error(s"Database operation failed - ${err.getMessage}")
-//              InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
-//          }
-
