@@ -20,7 +20,7 @@ import play.api.libs.functional.syntax.{toApplicativeOps, toFunctionalBuilderOps
 import play.api.libs.json.Reads.{maxLength, minLength}
 import play.api.libs.json.{JsPath, Json, Reads, Writes}
 
-case class Passcode(phoneNumber: String, passcode: String)
+case class Passcode(phoneNumber: String, otp: String)
 
 object Passcode {
   val MIN_LENGTH_PASSCODE = 6

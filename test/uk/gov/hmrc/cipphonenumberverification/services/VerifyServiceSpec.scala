@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
 import org.mockito.{Answers, ArgumentMatchers}
 import org.scalatest.matchers.should.Matchers
@@ -23,7 +24,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status._
 import play.api.libs.json.JsObject
-import play.api.mvc.Results.{BadRequest, Ok}
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, PhoneNumber}
@@ -42,9 +42,10 @@ class VerifyServiceSpec extends AnyWordSpec
   "verify" should {
     "return success if telephone number is valid" ignore {
       new SetUp {
-        when(validateConnectorMock.callService(PhoneNumber("test"))(hc)).thenReturn(Future.successful(Ok))
+        when(validateConnectorMock.callService(PhoneNumber("test"))(hc)).thenReturn(Future.successful(HttpResponse(200, "")))
         //        TODO: Figure out why these Mockito mocks/matchers do not work with generics/type params
-        when(passcodeCacheRepositoryMock.put[Passcode](ArgumentMatchers.eq("test"))(ArgumentMatchers.eq(DataKey[Passcode]("cip-phone-number-verification")), (ArgumentMatchers.eq(Passcode("", "")))))
+//        when(passcodeCacheRepositoryMock.put[Passcode](ArgumentMatchers.eq("test"))(ArgumentMatchers.eq(DataKey[Passcode]("cip-phone-number-verification")), (ArgumentMatchers.eq(Passcode("", "")))))
+        when(passcodeCacheRepositoryMock.put[Passcode](any())(any(), any()))
           .thenReturn(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
         when(govUkConnectorMock.sendPasscode(ArgumentMatchers.eq(Passcode("test", "123456")))(ArgumentMatchers.eq(hc)))
           .thenReturn(Future.successful(Right(HttpResponse(CREATED,
@@ -62,7 +63,7 @@ class VerifyServiceSpec extends AnyWordSpec
     "return failure if telephone number is invalid" in new SetUp {
       val phoneNumber = PhoneNumber("test")
       when(validateConnectorMock.callService(phoneNumber)(hc))
-        .thenReturn(Future.successful(BadRequest))
+        .thenReturn(Future.successful(HttpResponse(400, "")))
       val result = verifyService.verify(phoneNumber)
       status(result) shouldBe BAD_REQUEST
     }
@@ -70,7 +71,7 @@ class VerifyServiceSpec extends AnyWordSpec
     "return internal sever error when datastore exception occurs" ignore {
       new SetUp {
         when(validateConnectorMock.callService(PhoneNumber("test"))(hc))
-          .thenReturn(Future.successful(Ok))
+          .thenReturn(Future.successful(HttpResponse(200, "")))
         //        TODO: Figure out why these Mockito mocks/matchers do not work with generics/type params
         when(passcodeCacheRepositoryMock.put[Passcode](ArgumentMatchers.eq("test"))(ArgumentMatchers.eq(DataKey[Passcode]("cip-phone-number-verification")), (ArgumentMatchers.eq(Passcode("", "")))))
           .thenReturn(Future.failed(new Exception("simulated database operation failure")))
@@ -86,7 +87,7 @@ class VerifyServiceSpec extends AnyWordSpec
       verifyService.otpGenerator.forall(y => y.isUpper) shouldBe true
       verifyService.otpGenerator.forall(y => y.isLetter) shouldBe true
 
-      val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(',')', '-', '+')
+      val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(', ')', '-', '+')
       verifyService.otpGenerator.toList map (y => assertResult(illegalChars contains y)(false))
 
       verifyService.otpGenerator.length shouldBe 6

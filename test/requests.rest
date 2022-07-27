@@ -6,6 +6,30 @@ content-type: application/json
   "phoneNumber" : "07843274331"
 }
 
+### Fixed_line
+POST http://localhost:6083/customer-insight-platform/phone-number/verify
+content-type: application/json
+
+{
+  "phoneNumber" : "02088207098"
+}
+
+### MObile
+POST http://localhost:6083/customer-insight-platform/phone-number/verify
+content-type: application/json
+
+{
+  "phoneNumber" : "07843274331"
+}
+
+### Toll_free
+POST http://localhost:6083/customer-insight-platform/phone-number/verify
+content-type: application/json
+
+{
+  "phoneNumber" : "0845 46 41"
+}
+
 ###
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json

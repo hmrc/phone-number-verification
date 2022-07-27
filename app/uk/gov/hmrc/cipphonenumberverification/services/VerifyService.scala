@@ -19,11 +19,11 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.{Accepted, InternalServerError, Ok}
+import play.api.mvc.Results.{Accepted, BadRequest, InternalServerError, Ok}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
-import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, Passcode, PhoneNumber, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, IndeterminateResponse, Passcode, PhoneNumber, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -48,28 +48,29 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
   }
 
   def verify(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
-    def put(phoneNumber: PhoneNumber) = {
-      logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
 
-      val otp = otpGenerator
-      val passcode = Passcode(phoneNumber.phoneNumber, otp)
+    val otp = otpGenerator
+    val passcode = Passcode(phoneNumber.phoneNumber, otp)
 
-      passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
-    }
+    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
 
     validatorConnector.callService(phoneNumber) flatMap {
-      case res if is2xx(res.header.status) =>
-        (put(phoneNumber) flatMap { passcode =>
-          govUkConnector.sendPasscode(passcode) map {
-            case Left(err) => ??? //TODO: CAV-163
-            case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
-          }
-        }).recover {
-          case err =>
-            logger.error(s"Database operation failed - ${err.getMessage}")
-            InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
+      case res if is2xx(res.status) =>
+        (res.json \ "phoneNumberType").as[String] match {
+          case "Mobile" =>
+            (persistPasscode(phoneNumber) flatMap { passcode =>
+              govUkConnector.sendPasscode(passcode) map {
+                case Left(err) => ??? //TODO: CAV-163
+                case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
+              }
+            }).recover {
+              case err =>
+                logger.error(s"Database operation failed - ${err.getMessage}")
+                InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
+            }
+          case _ => Future(Ok(Json.toJson(IndeterminateResponse("Indeterminate", "Only mobile numbers can be verified"))))
         }
-      case res if is4xx(res.header.status) => Future(res)
+      case res if is4xx(res.status) => Future(BadRequest(res.json))
     }
   }
 
@@ -86,7 +87,7 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
 
     (get flatMap {
       case Some(actualPasscode) => {
-        if (passcode.passcode.equals(actualPasscode.passcode)) {
+        if (passcode.otp.equals(actualPasscode.otp)) {
           delete.map {
             _ => Ok(Json.toJson(VerificationStatus("Verified")))
           }
@@ -101,4 +102,24 @@ class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
         InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
     }
   }
+
+  private[services] def persistPasscode(phoneNumber: PhoneNumber) = {
+    logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
+    val otp = otpGenerator
+    val passcode = Passcode(phoneNumber.phoneNumber, otp)
+    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
+  }
 }
+
+//{
+//          (persistPasscode(phoneNumber) flatMap { passcode =>
+//            govUkConnector.sendPasscode(passcode) map {
+//              case Left(err) => ??? //TODO: CAV-163
+//              case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
+//            }
+//          }).recover {
+//            case err =>
+//              logger.error(s"Database operation failed - ${err.getMessage}")
+//              InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
+//          }
+

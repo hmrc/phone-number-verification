@@ -17,12 +17,12 @@
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
 import play.api.Logging
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.writeableOf_JsValue
 import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, Ok}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.{IndeterminateResponse, PhoneNumber}
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
@@ -31,22 +31,19 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext)
-  extends Logging {
+class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext) {
 
-  def callService(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
+  def callService(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     val validateUrl = s"${config.validateUrlProtocol}://${config.validateUrlHost}:${config.validateUrlPort}"
 
-    def parseResponse(res: HttpResponse) = res match {
-      case r if is2xx(r.status) => Future.successful(Ok)
-      case r if is4xx(r.status) => Future.successful(BadRequest(r.body))
-    }
-
-    val res = httpClientV2
+    httpClientV2
       .post(url"$validateUrl/customer-insight-platform/phone-number/validate")
       .withBody(Json.obj("phoneNumber" -> s"${phoneNumber.phoneNumber}"))
       .execute[HttpResponse]
 
-    res flatMap parseResponse
   }
+//
+//  private[connectors] def extract(json: JsValue): String = {
+//    (json \ "phoneNumberType").as[String]
+//  }
 }

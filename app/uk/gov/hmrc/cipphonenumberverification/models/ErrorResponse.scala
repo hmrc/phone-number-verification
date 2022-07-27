@@ -23,3 +23,9 @@ case class ErrorResponse(code: String, message: String)
 object ErrorResponse {
   implicit val writes: OWrites[ErrorResponse] = Json.writes[ErrorResponse]
 }
+
+case class IndeterminateResponse(status: String, message: String)
+
+object IndeterminateResponse {
+  implicit val writes: OWrites[IndeterminateResponse] = Json.writes[IndeterminateResponse]
+}

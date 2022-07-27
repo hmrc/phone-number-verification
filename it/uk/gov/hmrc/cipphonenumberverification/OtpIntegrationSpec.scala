@@ -50,7 +50,7 @@ class OtpIntegrationSpec
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
-               "passcode": "${otp.get.passcode}"
+               "passcode": "${otp.get.otp}"
                }""".stripMargin
           })
           .futureValue
