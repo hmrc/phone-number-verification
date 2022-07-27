@@ -17,7 +17,7 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumberAndOtp}
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -26,11 +26,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository)
                                (implicit ec: ExecutionContext) extends Logging {
-  def persistPasscode(phoneNumber: String): Future[PhoneNumberAndOtp] = {
-    logger.debug(s"Storing phoneNumberAndOtp in database for $phoneNumber")
-    val otp = OtpService.otpGenerator
-    val phoneNumberAndOtp = PhoneNumberAndOtp(phoneNumber, otp)
-    passcodeCacheRepository.put(phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtp)
+  def persistPasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[PhoneNumberAndOtp] = {
+    logger.debug(s"Storing phoneNumberAndOtp in database for ${phoneNumberAndOtp.phoneNumber}")
+    passcodeCacheRepository.put(phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtp)
       .map(_ => phoneNumberAndOtp)
   }
 

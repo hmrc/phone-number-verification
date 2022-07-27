@@ -24,11 +24,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class VerifyService @Inject()(passcodeService: PasscodeService,
+class VerifyService @Inject()(otpService: OtpService,
+                              auditService: AuditService,
+                              passcodeService: PasscodeService,
                               validatorConnector: ValidateConnector,
                               govUkConnector: GovUkConnector)
                              (implicit val executionContext: ExecutionContext)
-  extends VerifyHelper(passcodeService, govUkConnector) {
+  extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     for {

@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.services
+package uk.gov.hmrc.cipphonenumberverification.audit
 
-import java.security.SecureRandom
-import javax.inject.Singleton
-import scala.collection.mutable
+import play.api.libs.json.{Json}
 
-@Singleton()
-class OtpService {
-  def otpGenerator(): String = {
-    val sb = new mutable.StringBuilder()
-    val passcodeSize = 6
-    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    val secureRandom = SecureRandom.getInstanceStrong
-    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
-      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
-      .forEach(x => sb.append(x))
-    sb.mkString
-  }
+case class VerificationDeliveryResultRequestAuditEvent(phoneNumber: String, passcode: String, notificationId: String,
+                                                                  notificationStatus: String) extends AuditEvent(phoneNumber, passcode)
+
+object VerificationDeliveryResultRequestAuditEvent {
+  implicit val writes = Json.writes[VerificationDeliveryResultRequestAuditEvent]
 }

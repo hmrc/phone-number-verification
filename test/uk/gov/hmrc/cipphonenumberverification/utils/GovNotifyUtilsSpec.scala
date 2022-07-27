@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.services
+package uk.gov.hmrc.cipphonenumberverification.utils
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class OtpServiceSpec extends AnyWordSpec with Matchers{
+class GovNotifyUtilsSpec extends AnyWordSpec with Matchers{
 
-  private val otpService = new OtpService()
+  private val govNotifyUtils = new GovNotifyUtils()
 
-  "create 6 digit passcode" in {
-    otpService.otpGenerator.forall(y => y.isUpper) shouldBe true
-    otpService.otpGenerator.forall(y => y.isLetter) shouldBe true
+  "should extract passcode from GovNotify Body property" in {
+    val input = "CIP Phone Number Verification Service: myTaxService needs to verify your telephone number.\n  Your telephone number verification code is ABCDEF.\n  Use this code within 10 minutes to verify your telephone number."
 
-    val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(', ')', '-', '+')
-    otpService.otpGenerator.toList map (y => assertResult(illegalChars contains y)(false))
+    val actual = govNotifyUtils.extractPasscodeFromGovNotifyBody(input)
 
-    otpService.otpGenerator.length shouldBe 6
+    actual shouldBe "ABCDEF"
   }
 }
