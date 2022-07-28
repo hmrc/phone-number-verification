@@ -32,7 +32,7 @@ class NotificationsIntegrationSpec
     with DataSteps {
 
   "/notifications" should {
-    "respond with 200 status with valid notification id" in {
+    "respond with 200 status with valid notification id" ignore {
       val verifyResponse = verify("07849123456").futureValue
 
       val notificationId = verifyResponse.json.\("notificationId").as[String]

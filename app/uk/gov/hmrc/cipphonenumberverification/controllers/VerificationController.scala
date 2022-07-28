@@ -31,8 +31,9 @@ class VerificationController @Inject()(cc: ControllerComponents, service: Verify
   extends BackendController(cc) {
 
   def verify: Action[JsValue] = Action(parse.json).async { implicit request =>
+    // TODO create some form of response builder
     withJsonBody[PhoneNumber] {
-      service.verify
+      service.verifyPhoneNumber
     }
   }
 

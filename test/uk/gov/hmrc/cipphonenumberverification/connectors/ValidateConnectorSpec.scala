@@ -24,7 +24,7 @@ import play.api.Configuration
 import play.api.http.Status.OK
 import play.api.mvc.Results.{BadRequest, Ok}
 import play.api.mvc.{ResponseHeader, Result}
-import play.api.test.Helpers.{defaultAwaitTimeout, status}
+import play.api.test.Helpers.{await, defaultAwaitTimeout, status}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -53,12 +53,7 @@ class ValidateConnectorSpec extends AnyWordSpec
 
       val result = validateConnector.callService(phoneNumber)
 
-      def parseResponse(res: HttpResponse) = res match {
-        case r if is2xx(r.status) => Future.successful(Ok(r.body))
-        case r if is4xx(r.status) => Future.successful(BadRequest(r.body))
-      }
-
-      status(result flatMap parseResponse)
+      await(result).status shouldBe OK
 
       verify(
         postRequestedFor(urlEqualTo(url))

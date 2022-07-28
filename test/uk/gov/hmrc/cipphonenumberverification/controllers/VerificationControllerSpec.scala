@@ -42,7 +42,7 @@ class VerificationControllerSpec
 
   "verify" should {
     "return 200 for valid request" in {
-      when(mockVerifyService.verify(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
+      when(mockVerifyService.verifyPhoneNumber(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
       val result = controller.verify(
         fakeRequest.withBody(Json.toJson(PhoneNumber("")))
       )

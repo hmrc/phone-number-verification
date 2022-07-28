@@ -37,3 +37,14 @@ content-type: application/json
 {
   "phoneNumber" : "dfsdsfs"
 }
+
+###
+POST http://localhost:6083/customer-insight-platform/phone-number/verify/otp
+content-type: application/json
+
+{
+  "phoneNumber": "07843274331",
+  "passcode": "GTHJKL"
+}
+
+

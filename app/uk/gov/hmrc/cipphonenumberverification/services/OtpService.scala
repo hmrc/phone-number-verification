@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.services
 
-import play.api.libs.json.{Json, OWrites}
+import java.security.SecureRandom
 
-case class VerificationStatus(status: String)
-
-object VerificationStatus {
-  implicit val writes: OWrites[VerificationStatus] = Json.writes[VerificationStatus]
-}
-
-case class Indeterminate(status: String, message: String)
-
-object Indeterminate {
-  implicit val writes: OWrites[Indeterminate] = Json.writes[Indeterminate]
+object OtpService {
+  def otpGenerator = {
+    val sb = new StringBuilder()
+    val passcodeSize = 6
+    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val secureRandom = SecureRandom.getInstanceStrong
+    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
+      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
+      .forEach(x => sb.append(x))
+    sb.mkString
+  }
 }

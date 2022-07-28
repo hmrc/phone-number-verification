@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.services
 
-import play.api.libs.json.{Json, OWrites}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-case class ErrorResponse(code: String, message: String)
+class OtpServiceSpec extends AnyWordSpec with Matchers{
 
-object ErrorResponse {
-  implicit val writes: OWrites[ErrorResponse] = Json.writes[ErrorResponse]
-}
+  "create 6 digit passcode" in {
+    OtpService.otpGenerator.forall(y => y.isUpper) shouldBe true
+    OtpService.otpGenerator.forall(y => y.isLetter) shouldBe true
 
-case class IndeterminateResponse(status: String, message: String)
+    val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(', ')', '-', '+')
+    OtpService.otpGenerator.toList map (y => assertResult(illegalChars contains y)(false))
 
-object IndeterminateResponse {
-  implicit val writes: OWrites[IndeterminateResponse] = Json.writes[IndeterminateResponse]
+    OtpService.otpGenerator.length shouldBe 6
+  }
 }

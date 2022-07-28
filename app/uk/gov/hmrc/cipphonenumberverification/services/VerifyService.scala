@@ -16,102 +16,33 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.{Accepted, BadRequest, InternalServerError, Ok}
+import play.api.mvc.Results.{InternalServerError, Ok}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
-import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, IndeterminateResponse, Passcode, PhoneNumber, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
-import uk.gov.hmrc.mongo.cache.DataKey
+import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import java.security.SecureRandom
 
-class VerifyService @Inject()(passcodeCacheRepository: PasscodeCacheRepository,
+class VerifyService @Inject()(passcodeService: PasscodeService,
                               validatorConnector: ValidateConnector,
                               govUkConnector: GovUkConnector)
-                             (implicit val executionContext: ExecutionContext) extends Logging {
+                             (implicit val executionContext: ExecutionContext) extends VerifyHelper(passcodeService, govUkConnector) {
 
-  private[services] def otpGenerator = {
-    val sb = new StringBuilder()
-    val passcodeSize = 6
-    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    val secureRandom = SecureRandom.getInstanceStrong
-    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
-      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
-      .forEach(x => sb.append(x))
-    sb.mkString
-  }
-
-  def verify(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
-    def put(phoneNumber: PhoneNumber): Future[Passcode] = {
-      logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
-
-    val otp = otpGenerator
-    val passcode = Passcode(phoneNumber.phoneNumber, otp)
-
-      passcodeCacheRepository.persistPasscode(phoneNumber, passcode)
-    }
-
-    validatorConnector.callService(phoneNumber) flatMap {
-      case res if is2xx(res.status) =>
-        (res.json \ "phoneNumberType").as[String] match {
-          case "Mobile" =>
-            (persistPasscode(phoneNumber) flatMap { passcode =>
-              govUkConnector.sendPasscode(passcode) map {
-                case Left(err) => ??? //TODO: CAV-163
-                  logger.error(s"Gov Notify failure - to be covered by CAV-163")
-                  InternalServerError(Json.toJson(ErrorResponse("EXTERNAL_SYSTEM_FAIL", "sending to Gov Notify failed")))
-                case Right(response) if response.status == 201 => Accepted(Json.parse(s"""{"notificationId" : ${response.json("id")}}"""))
-              }
-            }).recover {
-              case err =>
-                logger.error(s"Database operation failed - ${err.getMessage}")
-                InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
-            }
-          case _ => Future(Ok(Json.toJson(IndeterminateResponse("Indeterminate", "Only mobile numbers can be verified"))))
-        }
-      case res if is4xx(res.status) => Future(BadRequest(res.json))
-    }
-  }
+  def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
+    for {
+      httpResponse <- validatorConnector.callService(phoneNumber)
+      result <- processResponse(httpResponse, phoneNumber)
+    } yield result
 
   def verifyOtp(passcode: Passcode): Future[Result] = {
-    def get: Future[Option[Passcode]] = {
-      logger.debug(s"Retrieving passcode from database for ${passcode.phoneNumber}")
-      passcodeCacheRepository.get[Passcode](passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
-    }
-
-    def delete: Future[Unit] = {
-      logger.debug(s"Deleting passcode from database for ${passcode.phoneNumber}")
-      passcodeCacheRepository.delete(passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
-    }
-
-    (get flatMap {
-      case Some(actualPasscode) => {
-        if (passcode.otp.equals(actualPasscode.otp)) {
-          delete.map {
-            _ => Ok(Json.toJson(VerificationStatus("Verified")))
-          }
-        } else {
-          Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
-        }
-      }
-      case None => Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
-    }).recover {
-      case err =>
-        logger.error(s"Database operation failed - ${err.getMessage}")
-        InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
-    }
+    for {
+      otpPasscode <- passcodeService.retrievePasscode(passcode)
+      result <- processPasscode(passcode, otpPasscode)
+    } yield result
   }
 
-  private[services] def persistPasscode(phoneNumber: PhoneNumber) = {
-    logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
-    val otp = otpGenerator
-    val passcode = Passcode(phoneNumber.phoneNumber, otp)
-    passcodeCacheRepository.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), passcode).map(_ => passcode)
-  }
 }
