@@ -18,14 +18,8 @@ package uk.gov.hmrc.cipphonenumberverification.models
 
 import play.api.libs.json.{Json, OWrites}
 
-case class VerificationStatus(status: String)
+case class NotificationId(notificationId: String)
 
-object VerificationStatus {
-  implicit val writes: OWrites[VerificationStatus] = Json.writes[VerificationStatus]
-}
-
-case class Indeterminate(status: String, message: String)
-
-object Indeterminate {
-  implicit val writes: OWrites[Indeterminate] = Json.writes[Indeterminate]
+object NotificationId {
+  implicit val writes: OWrites[NotificationId] = Json.writes[NotificationId]
 }

@@ -45,5 +45,21 @@ class VerificationIntegrationSpec extends AnyWordSpec
 
       response.status shouldBe 202
     }
+
+    "return 200 with valid fixed line number" in {
+      val response =
+        wsClient
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
+          .withRequestFilter(AhcCurlRequestLogger())
+          .post(Json.parse {
+            """{"phoneNumber": "02088208907"}""".stripMargin
+          }).futureValue
+
+      response.status shouldBe 200
+      response.json shouldBe Json.parse("""{
+                                    |        "status": "Indeterminate",
+                                    |        "message": "Only mobile numbers can be verified"
+                                    |      }""".stripMargin)
+    }
   }
 }

@@ -49,7 +49,7 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)(impl
       "template_id" -> s"${config.templateId}",
       "personalisation" -> Json.obj(
         "clientServiceName" -> "cip-phone-service",
-        "passCode" -> s"${passcode.passcode}",
+        "passCode" -> s"${passcode.otp}",
         "timeToLive" -> s"${config.cacheExpiry}")
     )
 
