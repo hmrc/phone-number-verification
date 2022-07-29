@@ -24,10 +24,9 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
-import scala.util.{Success, Try}
 
 @Singleton()
-class VerificationController @Inject()(cc: ControllerComponents, service: VerifyService)
+class VerifyController @Inject()(cc: ControllerComponents, service: VerifyService)
   extends BackendController(cc) {
 
   def verify: Action[JsValue] = Action(parse.json).async { implicit request =>
@@ -38,7 +37,7 @@ class VerificationController @Inject()(cc: ControllerComponents, service: Verify
   }
 
   override protected def withJsonBody[T](f: T => Future[Result])(implicit request: Request[JsValue], m: Manifest[T], reads: Reads[T]): Future[Result] =
-    Try(request.body.validate[T]) match {
-      case Success(JsSuccess(payload, _)) => f(payload)
+    request.body.validate[T] match {
+      case JsSuccess(payload, _) => f(payload)
     }
 }

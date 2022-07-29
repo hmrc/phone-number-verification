@@ -17,28 +17,30 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, PhoneNumber}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
-class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository) extends Logging {
-  def persistPasscode(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier) = {
-    logger.debug(s"Storing passcode in database for ${phoneNumber.phoneNumber}")
+class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository)
+                               (implicit ec: ExecutionContext) extends Logging {
+  def persistPasscode(phoneNumber: String): Future[PhoneNumberAndOtp] = {
+    logger.debug(s"Storing phoneNumberAndOtp in database for $phoneNumber")
     val otp = OtpService.otpGenerator
-    val passcode = Passcode(phoneNumber.phoneNumber, otp)
-    passcodeCacheRepository.persistPasscode(phoneNumber, passcode)
+    val phoneNumberAndOtp = PhoneNumberAndOtp(phoneNumber, otp)
+    passcodeCacheRepository.put(phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtp)
+      .map(_ => phoneNumberAndOtp)
   }
 
-  def retrievePasscode(passcode: Passcode) = {
-    logger.debug(s"Retrieving passcode from database for ${passcode.phoneNumber}")
-    passcodeCacheRepository.get[Passcode](passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
+  def retrievePasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[Option[PhoneNumberAndOtp]] = {
+    logger.debug(s"Retrieving phoneNumberAndOtp from database for ${phoneNumberAndOtp.phoneNumber}")
+    passcodeCacheRepository.get[PhoneNumberAndOtp](phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"))
   }
 
-  def delete(passcode: Passcode) = {
-    logger.debug(s"Deleting passcode from database for ${passcode.phoneNumber}")
-    passcodeCacheRepository.delete(passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
+  def deletePasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[Unit] = {
+    logger.debug(s"Deleting phoneNumberAndOtp from database for ${phoneNumberAndOtp.phoneNumber}")
+    passcodeCacheRepository.delete(phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"))
   }
 }

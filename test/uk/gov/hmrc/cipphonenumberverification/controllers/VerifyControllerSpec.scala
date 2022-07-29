@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchersSugar.any
+import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status.OK
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
@@ -29,22 +27,27 @@ import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class VerificationControllerSpec
-  extends AnyWordSpec with Matchers {
+class VerifyControllerSpec
+  extends AnyWordSpec
+    with Matchers
+    with IdiomaticMockito {
 
   private implicit val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
   private val fakeRequest = FakeRequest()
   private val mockVerifyService = mock[VerifyService]
-  private val controller = new VerificationController(Helpers.stubControllerComponents(), mockVerifyService)
+  private val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService)
 
   "verify" should {
-    "return 200 for valid request" in {
-      when(mockVerifyService.verifyPhoneNumber(ArgumentMatchers.eq(PhoneNumber("")))(any())).thenReturn(Future.successful(Ok))
+    "delegate to verify service" in {
+      val phoneNumber = PhoneNumber("")
+      mockVerifyService.verifyPhoneNumber(phoneNumber)(any[HeaderCarrier])
+        .returns(Future.successful(Ok))
       val result = controller.verify(
-        fakeRequest.withBody(Json.toJson(PhoneNumber("")))
+        fakeRequest.withBody(Json.toJson(phoneNumber))
       )
       status(result) shouldBe OK
     }

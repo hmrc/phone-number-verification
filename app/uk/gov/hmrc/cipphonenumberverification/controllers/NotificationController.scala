@@ -17,13 +17,13 @@
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.cipphonenumberverification.services.NotificationsService
+import uk.gov.hmrc.cipphonenumberverification.services.NotificationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class NotificationsController @Inject()(cc: ControllerComponents, notificationsService: NotificationsService)
+class NotificationController @Inject()(cc: ControllerComponents, notificationsService: NotificationService)
   extends BackendController(cc) {
 
   def status(notificationId: String): Action[AnyContent] = Action.async { implicit request =>

@@ -19,13 +19,12 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, Passcode, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, PhoneNumberAndOtp}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 @Singleton()
 class OtpController @Inject()(cc: ControllerComponents, service: VerifyService)
@@ -33,19 +32,16 @@ class OtpController @Inject()(cc: ControllerComponents, service: VerifyService)
     with Logging {
 
   def verifyOtp: Action[JsValue] = Action(parse.json).async { implicit request =>
-    withJsonBody[Passcode] {
+    withJsonBody[PhoneNumberAndOtp] {
       service.verifyOtp
     }
   }
 
   override protected def withJsonBody[T](f: T => Future[Result])(implicit request: Request[JsValue], m: Manifest[T], reads: Reads[T]): Future[Result] =
-    Try(request.body.validate[T]) match {
-      case Success(JsSuccess(payload, _)) => f(payload)
-      case Success(JsError(_)) =>
+    request.body.validate[T] match {
+      case JsSuccess(payload, _) => f(payload)
+      case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse("VALIDATION_ERROR", cc.messagesApi("error.validation")(cc.langs.availables.head)))))
-      case Failure(e) =>
-        logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse("VALIDATION_ERROR", e.getMessage))))
+        Future.successful(BadRequest(Json.toJson(ErrorResponse("VALIDATION_ERROR", "Enter a valid passcode"))))
     }
 }

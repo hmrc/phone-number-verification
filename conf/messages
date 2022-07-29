@@ -1,5 +1,0 @@
-# Default messages
-
-# --- Errors
-error.failure=Verification failure
-error.validation=Validation error

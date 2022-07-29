@@ -16,32 +16,34 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import org.mockito.Mockito.when
+import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.cipphonenumberverification.models.{Passcode, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumberAndOtp, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 
 import scala.concurrent.Future
 
 class OtpControllerSpec
-  extends AnyWordSpec with Matchers {
+  extends AnyWordSpec
+    with Matchers
+    with IdiomaticMockito {
 
-  private implicit val writes: OWrites[Passcode] = Json.writes[Passcode]
+  private implicit val writes: OWrites[PhoneNumberAndOtp] = Json.writes[PhoneNumberAndOtp]
   private val fakeRequest = FakeRequest()
   private val mockVerifyService = mock[VerifyService]
   private val controller = new OtpController(Helpers.stubControllerComponents(), mockVerifyService)
 
   "verifyOtp" should {
-    "return 200" ignore {
-      val passcode = Passcode("07123456789", "123456")
-      when(mockVerifyService.verifyOtp(passcode)).thenReturn(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))
+    "delegate to verify service" in {
+      val passcode = PhoneNumberAndOtp("07123456789", "123456")
+      mockVerifyService.verifyOtp(passcode)
+        .returns(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))
       val result = controller.verifyOtp(
         fakeRequest.withBody(Json.toJson(passcode))
       )
@@ -51,11 +53,11 @@ class OtpControllerSpec
 
     "return 400 for invalid request" in {
       val result = controller.verifyOtp(
-        fakeRequest.withBody(Json.toJson(Passcode("", "test")))
+        fakeRequest.withBody(Json.toJson(PhoneNumberAndOtp("", "test")))
       )
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "VALIDATION_ERROR"
-      (contentAsJson(result) \ "message").as[String] shouldBe "error.validation"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Enter a valid passcode"
     }
   }
 }

@@ -34,23 +34,25 @@ class OtpIntegrationSpec
     with DataSteps {
 
   "/verify/otp" should {
-    "respond with 200 verified status with valid otp" ignore {
+    "respond with 200 verified status with valid phone number and otp" in {
       val phoneNumber = "07811123456"
-      //generate otp
+      val normalisedPhoneNumber = "+447811123456"
+
+      //generate PhoneNumberAndOtp
       verify(phoneNumber).futureValue
 
-      //retrieve otp
-      val otp = retrieveOtp(phoneNumber).futureValue
+      //retrieve PhoneNumberAndOtp
+      val maybePhoneNumberAndOtp = retrieveOtp(normalisedPhoneNumber).futureValue
 
-      //verify otp (sut)
+      //verify PhoneNumberAndOtp (sut)
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
-               "phoneNumber": "$phoneNumber",
-               "passcode": "${otp.get.otp}"
+               "phoneNumber": "$normalisedPhoneNumber",
+               "otp": "${maybePhoneNumberAndOtp.get.otp}"
                }""".stripMargin
           })
           .futureValue
@@ -59,10 +61,10 @@ class OtpIntegrationSpec
       (response.json \ "status").as[String] shouldBe "Verified"
     }
 
-    "respond with 200 not verified status with non existent otp" in {
+    "respond with 200 not verified status with non existent phone number" in {
       val phoneNumber = "07811654321"
 
-      //verify otp (sut)
+      //verify PhoneNumberAndOtp (sut)
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
@@ -70,7 +72,7 @@ class OtpIntegrationSpec
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
-               "passcode": "123456"
+               "otp": "123456"
                }""".stripMargin
           })
           .futureValue
@@ -87,14 +89,14 @@ class OtpIntegrationSpec
           .post(Json.parse {
             s"""{
                "phoneNumber": "",
-               "passcode": ""
+               "otp": ""
                }""".stripMargin
           })
           .futureValue
 
       response.status shouldBe 400
       (response.json \ "code").as[String] shouldBe "VALIDATION_ERROR"
-      (response.json \ "message").as[String] shouldBe "Validation error"
+      (response.json \ "message").as[String] shouldBe "Enter a valid passcode"
     }
   }
 }

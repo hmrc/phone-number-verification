@@ -16,14 +16,10 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
-import play.api.Logging
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
-import play.api.mvc.Result
-import play.api.mvc.Results.{BadRequest, Ok}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.{Indeterminate, PhoneNumber}
-import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 

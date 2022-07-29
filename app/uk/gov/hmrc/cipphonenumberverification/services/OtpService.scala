@@ -17,10 +17,11 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import java.security.SecureRandom
+import scala.collection.mutable
 
 object OtpService {
-  def otpGenerator = {
-    val sb = new StringBuilder()
+  def otpGenerator: String = {
+    val sb = new mutable.StringBuilder()
     val passcodeSize = 6
     val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     val secureRandom = SecureRandom.getInstanceStrong

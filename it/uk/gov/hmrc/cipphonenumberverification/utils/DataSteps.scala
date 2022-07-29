@@ -19,7 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.utils
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
-import uk.gov.hmrc.cipphonenumberverification.models.Passcode
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future
@@ -33,8 +33,8 @@ trait DataSteps {
   val baseUrl = s"http://localhost:$port"
 
   //mimics user reading text message
-  def retrieveOtp(phoneNumber: String): Future[Option[Passcode]] = {
-    repository.get[Passcode](phoneNumber)(DataKey("cip-phone-number-verification"))
+  def retrieveOtp(phoneNumber: String): Future[Option[PhoneNumberAndOtp]] = {
+    repository.get[PhoneNumberAndOtp](phoneNumber)(DataKey("cip-phone-number-verification"))
   }
 
   def verify(phoneNumber: String): Future[WSResponse] = {

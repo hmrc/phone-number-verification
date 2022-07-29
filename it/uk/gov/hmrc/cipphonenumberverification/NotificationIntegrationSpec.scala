@@ -23,7 +23,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
-class NotificationsIntegrationSpec
+class NotificationIntegrationSpec
   extends AnyWordSpec
     with Matchers
     with ScalaFutures
@@ -32,7 +32,7 @@ class NotificationsIntegrationSpec
     with DataSteps {
 
   "/notifications" should {
-    "respond with 200 status with valid notification id" ignore {
+    "respond with 200 status with valid notification id" in {
       val verifyResponse = verify("07849123456").futureValue
 
       val notificationId = verifyResponse.json.\("notificationId").as[String]
@@ -49,7 +49,7 @@ class NotificationsIntegrationSpec
       (response.json \ "message").as[String] shouldBe "Message was delivered successfully"
     }
 
-    //    TODO: Fix as part of CAV-256
+    //TODO: Fix as part of CAV-256
     "respond with 404 status when notification id not found" ignore {
       val response =
         wsClient
@@ -59,6 +59,8 @@ class NotificationsIntegrationSpec
           .futureValue
 
       response.status shouldBe 404
+      (response.json \ "code").as[String] shouldBe "NOTIFICATION_NOT_FOUND"
+      (response.json \ "message").as[String] shouldBe "Notification ID not found"
     }
   }
 }
