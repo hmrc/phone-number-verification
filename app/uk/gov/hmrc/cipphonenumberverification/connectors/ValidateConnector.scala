@@ -19,7 +19,6 @@ package uk.gov.hmrc.cipphonenumberverification.connectors
 import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
@@ -31,10 +30,10 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
 
   val validateUrl = s"${config.validateUrlProtocol}://${config.validateUrlHost}:${config.validateUrlPort}/customer-insight-platform/phone-number/validate"
 
-  def callService(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def callService(phoneNumber: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     httpClientV2
       .post(url"$validateUrl")
-      .withBody(Json.obj("phoneNumber" -> s"${phoneNumber.phoneNumber}"))
+      .withBody(Json.obj("phoneNumber" -> s"${phoneNumber}"))
       .execute[HttpResponse]
   }
 }

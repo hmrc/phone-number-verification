@@ -34,9 +34,9 @@ class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository
       .map(_ => phoneNumberAndOtp)
   }
 
-  def retrievePasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[Option[PhoneNumberAndOtp]] = {
-    logger.debug(s"Retrieving phoneNumberAndOtp from database for ${phoneNumberAndOtp.phoneNumber}")
-    passcodeCacheRepository.get[PhoneNumberAndOtp](phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"))
+  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndOtp]] = {
+    logger.debug(s"Retrieving phoneNumberAndOtp from database for $phoneNumber")
+    passcodeCacheRepository.get[PhoneNumberAndOtp](phoneNumber)(DataKey("cip-phone-number-verification"))
   }
 
   def deletePasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[Unit] = {

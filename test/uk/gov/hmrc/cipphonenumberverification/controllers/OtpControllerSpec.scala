@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
+import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -26,6 +27,7 @@ import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumberAndOtp, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -42,7 +44,7 @@ class OtpControllerSpec
   "verifyOtp" should {
     "delegate to verify service" in {
       val passcode = PhoneNumberAndOtp("07123456789", "123456")
-      mockVerifyService.verifyOtp(passcode)
+      mockVerifyService.verifyOtp(passcode)(any[HeaderCarrier])
         .returns(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))
       val result = controller.verifyOtp(
         fakeRequest.withBody(Json.toJson(passcode))

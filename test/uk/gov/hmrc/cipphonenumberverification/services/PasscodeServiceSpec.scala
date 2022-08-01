@@ -49,10 +49,10 @@ class PasscodeServiceSpec extends AnyWordSpec
 
   "retrievePasscode" should {
     "return passcode" in new SetUp {
-      val passcode = PhoneNumberAndOtp("", "")
-      passcodeCacheRepositoryMock.get[PhoneNumberAndOtp](passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
+      val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
+      passcodeCacheRepositoryMock.get[PhoneNumberAndOtp](phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"))
         .returns(Future.successful(Some(PhoneNumberAndOtp("", ""))))
-      val result = passcodeService.retrievePasscode(passcode)
+      val result = passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
       await(result) shouldBe Some(PhoneNumberAndOtp("", ""))
     }
   }
