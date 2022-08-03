@@ -47,7 +47,7 @@ class ValidateConnectorSpec extends AnyWordSpec
           .willReturn(aResponse())
       )
 
-      val result = validateConnector.callService(phoneNumber)
+      val result = validateConnector.callService(phoneNumber.phoneNumber)
 
       await(result).status shouldBe OK
 

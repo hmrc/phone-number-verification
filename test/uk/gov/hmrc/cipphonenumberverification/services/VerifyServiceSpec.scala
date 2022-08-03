@@ -36,20 +36,21 @@ class VerifyServiceSpec extends AnyWordSpec
 
   "verify" should {
     "return success if telephone number is valid" in new SetUp {
-      validateConnectorMock.callService(PhoneNumber("test"))
-        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber("test", "Mobile")).toString())))
-      passcodeService.persistPasscode("test")
-        .returns(Future.successful(PhoneNumberAndOtp("test", "")))
+      val phoneNumber = PhoneNumber("test")
+      validateConnectorMock.callService(phoneNumber.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumber.phoneNumber, "Mobile")).toString())))
+      passcodeService.persistPasscode(phoneNumber.phoneNumber)
+        .returns(Future.successful(PhoneNumberAndOtp(phoneNumber.phoneNumber, "")))
       govUkConnectorMock.sendPasscode(any[PhoneNumberAndOtp])
         .returns(Future.successful(Right(HttpResponse(CREATED, Json.toJson(GovUkNotificationId("test-notification-id")).toString()))))
-      val result = verifyService.verifyPhoneNumber(PhoneNumber("test"))
+      val result = verifyService.verifyPhoneNumber(phoneNumber)
       status(result) shouldBe ACCEPTED
       (contentAsJson(result) \ "notificationId").as[String] shouldBe "test-notification-id"
     }
 
     "return bad request if telephone number is invalid" in new SetUp {
       val phoneNumber = PhoneNumber("test")
-      validateConnectorMock.callService(phoneNumber)
+      validateConnectorMock.callService(phoneNumber.phoneNumber)
         .returns(Future.successful(HttpResponse(BAD_REQUEST, """{"res": "res"}""")))
       val result = verifyService.verifyPhoneNumber(phoneNumber)
       status(result) shouldBe BAD_REQUEST
@@ -57,9 +58,10 @@ class VerifyServiceSpec extends AnyWordSpec
     }
 
     "return internal sever error when datastore exception occurs" in new SetUp {
-      validateConnectorMock.callService(PhoneNumber("test"))
-        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber("test", "Mobile")).toString())))
-      passcodeService.persistPasscode("test")
+      val phoneNumber = PhoneNumber("test")
+      validateConnectorMock.callService(phoneNumber.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumber.phoneNumber, "Mobile")).toString())))
+      passcodeService.persistPasscode(phoneNumber.phoneNumber)
         .returns(Future.failed(new Exception("simulated database operation failure")))
 
       val result = verifyService.verifyPhoneNumber(PhoneNumber("test"))
@@ -70,10 +72,12 @@ class VerifyServiceSpec extends AnyWordSpec
   }
 
   "verifyOtp" should {
-    "return Verified if passcode is valid" in new SetUp {
+    "return Verified if passcode matches" in new SetUp {
       val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
-      passcodeService.retrievePasscode(PhoneNumberAndOtp("", ""))
-        .returns(Future.successful(Some(PhoneNumberAndOtp("", ""))))
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(Some(phoneNumberAndOtp)))
       passcodeService.deletePasscode(phoneNumberAndOtp)
         .returns(Future.unit)
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
@@ -83,9 +87,11 @@ class VerifyServiceSpec extends AnyWordSpec
       passcodeService.deletePasscode(phoneNumberAndOtp) was called
     }
 
-    "return Not verified if passcode is invalid" in new SetUp {
+    "return Not verified if passcode does not exist" in new SetUp {
       val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
-      passcodeService.retrievePasscode(phoneNumberAndOtp)
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
         .returns(Future.successful(None))
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
       status(result) shouldBe OK
@@ -94,16 +100,29 @@ class VerifyServiceSpec extends AnyWordSpec
 
     "return Not verified if passcode does not match" in new SetUp {
       val phoneNumberAndOtp = PhoneNumberAndOtp("", "123456")
-      passcodeService.retrievePasscode(phoneNumberAndOtp)
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
         .returns(Future.successful(Some(PhoneNumberAndOtp("", "654321"))))
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
       status(result) shouldBe OK
       (contentAsJson(result) \ "status").as[String] shouldBe "Not verified"
     }
 
+    "return bad request if telephone number is invalid" in new SetUp {
+      val phoneNumberAndOtp = PhoneNumberAndOtp("test", "test")
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(BAD_REQUEST, """{"res": "res"}""")))
+      val result = verifyService.verifyOtp(phoneNumberAndOtp)
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "res").as[String] shouldBe "res"
+    }
+
     "return internal sever error when datastore exception occurs on get" in new SetUp {
       val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
-      passcodeService.retrievePasscode(phoneNumberAndOtp)
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
         .returns(Future.failed(new Exception("simulated database operation failure")))
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
       status(result) shouldBe INTERNAL_SERVER_ERROR
@@ -113,7 +132,9 @@ class VerifyServiceSpec extends AnyWordSpec
 
     "return internal sever error when datastore exception occurs on delete" in new SetUp {
       val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
-      passcodeService.retrievePasscode(phoneNumberAndOtp)
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(phoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
         .returns(Future.successful(Some(phoneNumberAndOtp)))
       passcodeService.deletePasscode(phoneNumberAndOtp)
         .returns(Future.failed(new Exception("simulated database operation failure")))

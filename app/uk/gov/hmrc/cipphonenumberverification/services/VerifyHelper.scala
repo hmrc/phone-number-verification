@@ -36,13 +36,9 @@ abstract class VerifyHelper @Inject()(passcodeService: PasscodeService, govUkCon
     case _ if is4xx(res.status) => Future(BadRequest(res.json))
   }
 
-  protected def processPasscode(enteredPhoneNumberAndOtp: PhoneNumberAndOtp,
-                                maybePhoneNumberAndOtp: Option[PhoneNumberAndOtp]): Future[Result] = maybePhoneNumberAndOtp match {
-    case Some(storedPhoneNumberAndOtp)
-      if enteredPhoneNumberAndOtp.otp.equals(storedPhoneNumberAndOtp.otp) => passcodeService.deletePasscode(enteredPhoneNumberAndOtp) map {
-      _ => Ok(Json.toJson(VerificationStatus("Verified")))
-    }
-    case _ => Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
+  protected def processResponseForOtp(res: HttpResponse, phoneNumberAndOtp: PhoneNumberAndOtp): Future[Result] = res match {
+    case _ if is2xx(res.status) => processValidOtp(res.json.as[ValidatedPhoneNumber], phoneNumberAndOtp.otp)
+    case _ if is4xx(res.status) => Future(BadRequest(res.json))
   }
 
   private def processValidPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)
@@ -54,6 +50,26 @@ abstract class VerifyHelper @Inject()(passcodeService: PasscodeService, govUkCon
           InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
       }
     case _ => Future(Ok(Json.toJson(Indeterminate("Indeterminate", "Only mobile numbers can be verified"))))
+  }
+
+  private def processPasscode(enteredPhoneNumberAndOtp: PhoneNumberAndOtp,
+                              maybePhoneNumberAndOtp: Option[PhoneNumberAndOtp]): Future[Result] = maybePhoneNumberAndOtp match {
+    case Some(storedPhoneNumberAndOtp)
+      if enteredPhoneNumberAndOtp.otp.equals(storedPhoneNumberAndOtp.otp) => passcodeService.deletePasscode(enteredPhoneNumberAndOtp) map {
+      _ => Ok(Json.toJson(VerificationStatus("Verified")))
+    }
+    case _ => Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
+  }
+
+  private def processValidOtp(validatedPhoneNumber: ValidatedPhoneNumber, otp: String) = {
+    (for {
+      maybePhoneNumberAndOtp <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
+      result <- processPasscode(PhoneNumberAndOtp(validatedPhoneNumber.phoneNumber, otp), maybePhoneNumberAndOtp)
+    } yield result).recover {
+      case err =>
+        logger.error(s"Database operation failed - ${err.getMessage}")
+        InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
+    }
   }
 
   private def sendPasscode(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier) = (govUkConnector.sendPasscode(phoneNumberAndOtp) map {

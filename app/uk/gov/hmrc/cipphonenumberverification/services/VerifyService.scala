@@ -35,14 +35,14 @@ class VerifyService @Inject()(passcodeService: PasscodeService,
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      httpResponse <- validatorConnector.callService(phoneNumber)
+      httpResponse <- validatorConnector.callService(phoneNumber.phoneNumber)
       result <- processResponse(httpResponse)
     } yield result
 
-  def verifyOtp(passcode: PhoneNumberAndOtp): Future[Result] = {
+  def verifyOtp(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
     (for {
-      maybePhoneNumberAndOtp <- passcodeService.retrievePasscode(passcode)
-      result <- processPasscode(passcode, maybePhoneNumberAndOtp)
+      httpResponse <- validatorConnector.callService(phoneNumberAndOtp.phoneNumber)
+      result <- processResponseForOtp(httpResponse, phoneNumberAndOtp)
     } yield result).recover {
       case err =>
         logger.error(s"Database operation failed - ${err.getMessage}")

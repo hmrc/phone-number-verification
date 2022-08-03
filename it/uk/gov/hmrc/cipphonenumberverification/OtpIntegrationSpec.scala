@@ -36,13 +36,12 @@ class OtpIntegrationSpec
   "/verify/otp" should {
     "respond with 200 verified status with valid phone number and otp" in {
       val phoneNumber = "07811123456"
-      val normalisedPhoneNumber = "+447811123456"
 
       //generate PhoneNumberAndOtp
       verify(phoneNumber).futureValue
 
       //retrieve PhoneNumberAndOtp
-      val maybePhoneNumberAndOtp = retrieveOtp(normalisedPhoneNumber).futureValue
+      val maybePhoneNumberAndOtp = retrieveOtp("+447811123456").futureValue
 
       //verify PhoneNumberAndOtp (sut)
       val response =
@@ -51,7 +50,7 @@ class OtpIntegrationSpec
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
-               "phoneNumber": "$normalisedPhoneNumber",
+               "phoneNumber": "$phoneNumber",
                "otp": "${maybePhoneNumberAndOtp.get.otp}"
                }""".stripMargin
           })
@@ -62,8 +61,6 @@ class OtpIntegrationSpec
     }
 
     "respond with 200 not verified status with non existent phone number" in {
-      val phoneNumber = "07811654321"
-
       //verify PhoneNumberAndOtp (sut)
       val response =
         wsClient
@@ -71,7 +68,7 @@ class OtpIntegrationSpec
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
-               "phoneNumber": "$phoneNumber",
+               "phoneNumber": "07811654321",
                "otp": "123456"
                }""".stripMargin
           })
@@ -88,7 +85,7 @@ class OtpIntegrationSpec
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
-               "phoneNumber": "",
+               "phoneNumber": "07811654321",
                "otp": ""
                }""".stripMargin
           })
