@@ -26,11 +26,8 @@ object PhoneNumberAndOtp {
   val MIN_LENGTH_PASSCODE = 6
   val MAX_LENGTH_PASSCODE = 6
 
-  val MIN_LENGTH_PHONE_NUMBER = 7
-  val MAX_LENGTH_PHONE_NUMBER = 20
-
   implicit val reads: Reads[PhoneNumberAndOtp] = (
-    (JsPath \ "phoneNumber").read[String](minLength[String](MIN_LENGTH_PHONE_NUMBER).keepAnd(maxLength[String](MAX_LENGTH_PHONE_NUMBER))) and
+    (JsPath \ "phoneNumber").read[String] and
       (JsPath \ "otp").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
     ) (PhoneNumberAndOtp.apply _)
 
