@@ -60,7 +60,7 @@ class VerifyIntegrationSpec extends AnyWordSpec
 
       response.status shouldBe 400
       (response.json \ "code").as[String] shouldBe "VALIDATION_ERROR"
-      (response.json \ "message").as[String] shouldBe "Enter a valid phone number"
+      (response.json \ "message").as[String] shouldBe "Enter a valid telephone number"
     }
   }
 }

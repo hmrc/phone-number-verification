@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import play.api.Logging
-import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.InternalServerError
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -31,7 +28,7 @@ class VerifyService @Inject()(passcodeService: PasscodeService,
                               validatorConnector: ValidateConnector,
                               govUkConnector: GovUkConnector)
                              (implicit val executionContext: ExecutionContext)
-  extends VerifyHelper(passcodeService, govUkConnector) with Logging {
+  extends VerifyHelper(passcodeService, govUkConnector) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     for {
@@ -40,13 +37,9 @@ class VerifyService @Inject()(passcodeService: PasscodeService,
     } yield result
 
   def verifyOtp(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
-    (for {
+    for {
       httpResponse <- validatorConnector.callService(phoneNumberAndOtp.phoneNumber)
       result <- processResponseForOtp(httpResponse, phoneNumberAndOtp)
-    } yield result).recover {
-      case err =>
-        logger.error(s"Database operation failed - ${err.getMessage}")
-        InternalServerError(Json.toJson(ErrorResponse("DATABASE_OPERATION_FAIL", "Database operation failed")))
-    }
+    } yield result
   }
 }
