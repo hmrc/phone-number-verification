@@ -47,8 +47,7 @@ class VerifyIntegrationSpec extends AnyWordSpec
       response.status shouldBe 202
     }
 
-    //TODO: Fix as part of CAV-242
-    "respond with 400 status for invalid request" ignore {
+    "respond with 400 status for invalid request" in {
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
