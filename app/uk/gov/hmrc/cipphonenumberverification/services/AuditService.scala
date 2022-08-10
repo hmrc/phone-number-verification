@@ -18,8 +18,8 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.google.inject.Inject
 import play.api.Logging
-import play.api.libs.json.{Writes}
-import uk.gov.hmrc.cipphonenumberverification.audit.{AuditEvent}
+import play.api.libs.json.Writes
+import uk.gov.hmrc.cipphonenumberverification.audit.AuditEvent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -34,5 +34,4 @@ class AuditService @Inject()(auditConnector: AuditConnector
     logger.debug(s"Sending explicit audit event for $auditEvent")
     auditConnector.sendExplicitAudit(auditType, auditEvent)
   }
-
 }

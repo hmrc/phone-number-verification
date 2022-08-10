@@ -17,7 +17,7 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumberAndOtp}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.DataKey
 

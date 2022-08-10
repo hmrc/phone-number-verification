@@ -19,6 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, PhoneNumberAndOtp}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -42,6 +43,6 @@ class OtpController @Inject()(cc: ControllerComponents, service: VerifyService)
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse("VALIDATION_ERROR", "Enter a valid passcode"))))
+        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR, "Enter a valid passcode"))))
     }
 }

@@ -17,10 +17,17 @@
 package uk.gov.hmrc.cipphonenumberverification.models
 
 import play.api.libs.json.{Json, OWrites}
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.Code
 
-case class ErrorResponse(code: String, message: String)
+case class ErrorResponse(code: Code, message: String)
 
 object ErrorResponse {
   implicit val writes: OWrites[ErrorResponse] = Json.writes[ErrorResponse]
+
+  object Codes extends Enumeration {
+    type Code = Value
+
+    val VALIDATION_ERROR, NOT_FOUND, EXTERNAL_SERVICE_FAIL, PASSCODE_PERSISTING_FAIL, PASSCODE_VERIFY_FAIL = Value
+  }
 }
 
