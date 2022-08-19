@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.services
+package uk.gov.hmrc.cipphonenumberverification.models.govnotify.response
 
-import java.security.SecureRandom
-import javax.inject.Singleton
-import scala.collection.mutable
+import play.api.libs.json.{Json, Reads}
 
-@Singleton()
-class OtpService {
-  def otpGenerator(): String = {
-    val sb = new mutable.StringBuilder()
-    val passcodeSize = 6
-    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    val secureRandom = SecureRandom.getInstanceStrong
-    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
-      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
-      .forEach(x => sb.append(x))
-    sb.mkString
-  }
+case class GovUkNotificationStatusResponse(phone_number: String, body: String, status: String)
+
+object GovUkNotificationStatusResponse {
+  implicit val reads: Reads[GovUkNotificationStatusResponse] = Json.reads[GovUkNotificationStatusResponse]
 }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import org.mockito.{ArgumentCaptor, IdiomaticMockito}
+import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsObject
@@ -34,16 +34,16 @@ class PasscodeServiceSpec extends AnyWordSpec
   with IdiomaticMockito {
 
   "persistPasscode" should {
-    //TODO: We should probably inject the OtpService into the Passcode service
     "return passcode" in new SetUp {
       val phoneNumber = PhoneNumber("test")
-      val phoneNumberAndOtpCaptor = ArgumentCaptor.forClass(classOf[PhoneNumberAndOtp])
-      passcodeCacheRepositoryMock.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtpCaptor.capture())
+      val otp = "ABCDEF"
+      val phoneNumberAndOtpToPersist = PhoneNumberAndOtp(phoneNumber.phoneNumber, otp = otp)
+      passcodeCacheRepositoryMock.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtpToPersist)
         .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
-      val result = passcodeService.persistPasscode(phoneNumber.phoneNumber)
-      val phoneNumberAndOtp = phoneNumberAndOtpCaptor.getValue()
 
-      await(result) shouldBe phoneNumberAndOtp
+      val result = passcodeService.persistPasscode(phoneNumberAndOtpToPersist)
+
+      await(result) shouldBe phoneNumberAndOtpToPersist
     }
   }
 
