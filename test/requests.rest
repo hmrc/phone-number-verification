@@ -6,6 +6,18 @@ content-type: application/json
   "phoneNumber" : "07843274331"
 }
 
+### Notification Status
+GET http://localhost:6083/customer-insight-platform/phone-number/notifications/ecf20f0a-86af-4ebf-9012-e48bc6a31174
+
+### Notification Status
+GET http://localhost:6083/customer-insight-platform/phone-number/notifications/noresult-d385-4b17-a0b4-23a85c0c5b1a
+
+### Notification Status
+GET http://localhost:6083/customer-insight-platform/phone-number/notifications/systemclock-d385-4b17-a0b4-23a85c0c5b1a
+
+### Notification Status
+GET http://localhost:6083/customer-insight-platform/phone-number/notifications/validation-d385-4b17-a0b4-23a85c0c5b1a
+
 ### Fixed_line
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
@@ -14,7 +26,7 @@ content-type: application/json
   "phoneNumber" : "02088207098"
 }
 
-### MObile
+### Mobile
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
 
@@ -46,5 +58,4 @@ content-type: application/json
   "phoneNumber": "07843274331",
   "passcode": "GTHJKL"
 }
-
 

@@ -37,7 +37,7 @@ class VerifyService @Inject()(otpService: OtpService,
   extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
-    validateConnector.callService(phoneNumber.phoneNumber).transformWith {
+    validateConnector.callService(phoneNumber.phoneNumber) transformWith {
       case Success(httpResponse) => processResponse(httpResponse)
       case Failure(error) =>
         logger.error(error.getMessage)

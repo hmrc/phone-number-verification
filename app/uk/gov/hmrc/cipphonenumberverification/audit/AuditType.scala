@@ -17,7 +17,7 @@
 package uk.gov.hmrc.cipphonenumberverification.audit
 
 object AuditType extends Enumeration {
-  val PHONE_NUMBER_VERIFICATION_REQUEST: AuditType.Value = Value("PhoneNumberVerificationRequest")
-  val PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST: AuditType.Value = Value("PhoneNumberVerificationDeliveryResultRequest")
-  val PHONE_NUMBER_VERIFICATION_CHECK: AuditType.Value = Value("PhoneNumberVerificationCheck")
+  type Type = Value
+  
+  val PhoneNumberVerificationRequest, PhoneNumberVerificationDeliveryResultRequest, PhoneNumberVerificationCheck = Value
 }
