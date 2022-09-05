@@ -16,32 +16,40 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
+import play.api.libs.json.Json
 import play.api.mvc.Result
+import play.api.mvc.Results.BadGateway
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class VerifyService @Inject()(otpService: OtpService,
                               auditService: AuditService,
                               passcodeService: PasscodeService,
-                              validatorConnector: ValidateConnector,
+                              validateConnector: ValidateConnector,
                               govUkConnector: GovUkConnector)
                              (implicit val executionContext: ExecutionContext)
   extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
-    for {
-      httpResponse <- validatorConnector.callService(phoneNumber.phoneNumber)
-      result <- processResponse(httpResponse)
-    } yield result
+    validateConnector.callService(phoneNumber.phoneNumber).transformWith {
+      case Success(httpResponse) => processResponse(httpResponse)
+      case Failure(error) =>
+        logger.error(error.getMessage)
+        Future.successful(BadGateway(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
+    }
 
   def verifyOtp(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
-    for {
-      httpResponse <- validatorConnector.callService(phoneNumberAndOtp.phoneNumber)
-      result <- processResponseForOtp(httpResponse, phoneNumberAndOtp)
-    } yield result
+    validateConnector.callService(phoneNumberAndOtp.phoneNumber).transformWith {
+      case Success(httpResponse) => processResponseForOtp(httpResponse, phoneNumberAndOtp)
+      case Failure(error) =>
+        logger.error(error.getMessage)
+        Future.successful(BadGateway(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
+    }
   }
 }

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
+import akka.stream.ConnectionException
 import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
@@ -26,7 +27,7 @@ import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.models.{GovUkNotificationId, PhoneNumber, PhoneNumberAndOtp, ValidatedPhoneNumber}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -38,7 +39,7 @@ class VerifyServiceSpec extends AnyWordSpec
   "verify" should {
     "return success if telephone number is valid" in new SetUp {
       val enteredPhoneNumber = PhoneNumber("test")
-      val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp(phoneNumber = "normalisedPhoneNumber", otp)
+      val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp("normalisedPhoneNumber", otp)
       validateConnectorMock.callService(enteredPhoneNumber.phoneNumber)
         .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(normalisedPhoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
       passcodeService.persistPasscode(any[PhoneNumberAndOtp])
@@ -55,8 +56,9 @@ class VerifyServiceSpec extends AnyWordSpec
       validateConnectorMock.callService("test")(any[HeaderCarrier]) was called
       mockOtpService.otpGenerator() was called
       // check what is sent to the audit service
-      val expectedVerificationRequestAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", otp)
-      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationRequest", expectedVerificationRequestAuditEvent)(any[HeaderCarrier], any[Writes[VerificationRequestAuditEvent]]) was called
+      val expectedVerificationRequestAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", otp)
+      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationRequest",
+        expectedVerificationRequestAuditEvent)(any[HeaderCarrier], any[Writes[VerificationRequestAuditEvent]]) was called
       // check what is sent to DAO
       passcodeService.persistPasscode(normalisedPhoneNumberAndOtp) was called
       // Check what is sent to GovNotify
@@ -81,7 +83,7 @@ class VerifyServiceSpec extends AnyWordSpec
 
     "return internal sever error when datastore exception occurs" in new SetUp {
       val enteredPhoneNumber = PhoneNumber("test")
-      val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp(phoneNumber = "normalisedPhoneNumber", otp)
+      val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp("normalisedPhoneNumber", otp)
       validateConnectorMock.callService(enteredPhoneNumber.phoneNumber)
         .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(normalisedPhoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
       passcodeService.persistPasscode(any[PhoneNumberAndOtp])
@@ -90,20 +92,71 @@ class VerifyServiceSpec extends AnyWordSpec
       val result = verifyService.verifyPhoneNumber(enteredPhoneNumber)
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
-      (contentAsJson(result) \ "code").as[String] shouldBe "DATABASE_OPERATION_FAIL"
-      (contentAsJson(result) \ "message").as[String] shouldBe "Database operation failed"
+      (contentAsJson(result) \ "code").as[String] shouldBe "PASSCODE_PERSISTING_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server has experienced an issue"
 
       // check what is sent to validation service
       validateConnectorMock.callService("test")(any[HeaderCarrier]) was called
       mockOtpService.otpGenerator() was called
       // check what is sent to the audit service
-      val expectedVerificationRequestAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", otp)
-      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationRequest", expectedVerificationRequestAuditEvent)(any[HeaderCarrier], any[Writes[VerificationRequestAuditEvent]]) was called
+      val expectedVerificationRequestAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", otp)
+      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationRequest",
+        expectedVerificationRequestAuditEvent)(any[HeaderCarrier], any[Writes[VerificationRequestAuditEvent]]) was called
       // check what is sent to DAO
       passcodeService.persistPasscode(normalisedPhoneNumberAndOtp) was called
 
       // Check NOTHING is sent to GovNotify
       govUkConnectorMock wasNever called
+    }
+
+    "return bad gateway when validation service returns 503" in new SetUp {
+      val phoneNumber = PhoneNumber("test")
+      validateConnectorMock.callService(phoneNumber.phoneNumber)
+        .returns(Future.successful(HttpResponse(SERVICE_UNAVAILABLE, "")))
+      val result = verifyService.verifyPhoneNumber(phoneNumber)
+      status(result) shouldBe BAD_GATEWAY
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
+    }
+
+    "return bad gateway when validation service throws connection exception" in new SetUp {
+      val phoneNumber = PhoneNumber("test")
+      validateConnectorMock.callService(phoneNumber.phoneNumber)
+        .returns(Future.failed(new ConnectionException("")))
+      val result = verifyService.verifyPhoneNumber(phoneNumber)
+      status(result) shouldBe BAD_GATEWAY
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
+    }
+
+    "return bad gateway when govUk notify service returns 503" in new SetUp {
+      val enteredPhoneNumber = PhoneNumber("test")
+      val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp("normalisedPhoneNumber", otp)
+      validateConnectorMock.callService(enteredPhoneNumber.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(normalisedPhoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.persistPasscode(normalisedPhoneNumberAndOtp)
+        .returns(Future.successful(normalisedPhoneNumberAndOtp))
+      govUkConnectorMock.sendPasscode(any[PhoneNumberAndOtp])
+        .returns(Future.successful(Left(UpstreamErrorResponse("", SERVICE_UNAVAILABLE))))
+      val result = verifyService.verifyPhoneNumber(PhoneNumber(enteredPhoneNumber.phoneNumber))
+      status(result) shouldBe BAD_GATEWAY
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
+    }
+
+    "return bad gateway when govUk notify service throws connection exception" in new SetUp {
+      val enteredPhoneNumber = PhoneNumber("test")
+      val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp("normalisedPhoneNumber", otp)
+      validateConnectorMock.callService(enteredPhoneNumber.phoneNumber)
+        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(normalisedPhoneNumberAndOtp.phoneNumber, "Mobile")).toString())))
+      passcodeService.persistPasscode(normalisedPhoneNumberAndOtp)
+        .returns(Future.successful(normalisedPhoneNumberAndOtp))
+      govUkConnectorMock.sendPasscode(any[PhoneNumberAndOtp])
+        .returns(Future.failed(new ConnectionException("")))
+      val result = verifyService.verifyPhoneNumber(PhoneNumber(enteredPhoneNumber.phoneNumber))
+      status(result) shouldBe BAD_GATEWAY
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
   }
 
@@ -124,8 +177,9 @@ class VerifyServiceSpec extends AnyWordSpec
 
       passcodeService.deletePasscode(phoneNumberAndOtp) was called
       // check what is sent to the audit service
-      val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Verified")
-      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck", expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
+      val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Verified")
+      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck",
+        expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
     }
 
     "return Not verified if passcode does not exist" in new SetUp {
@@ -142,8 +196,9 @@ class VerifyServiceSpec extends AnyWordSpec
 
       passcodeService.deletePasscode(phoneNumberAndOtp) wasNever called
       // check what is sent to the audit service
-      val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Not verified")
-      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck", expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
+      val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Not verified")
+      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck",
+        expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
     }
 
     "return Not verified if passcode does not match" in new SetUp {
@@ -159,8 +214,9 @@ class VerifyServiceSpec extends AnyWordSpec
       (contentAsJson(result) \ "status").as[String] shouldBe "Not verified"
       passcodeService.deletePasscode(phoneNumberAndOtp) wasNever called
       // check what is sent to the audit service
-      val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Not verified")
-      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck", expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
+      val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Not verified")
+      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck",
+        expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
     }
 
     "return bad request if telephone number is invalid" in new SetUp {
@@ -184,8 +240,8 @@ class VerifyServiceSpec extends AnyWordSpec
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
-      (contentAsJson(result) \ "code").as[String] shouldBe "DATABASE_OPERATION_FAIL"
-      (contentAsJson(result) \ "message").as[String] shouldBe "Database operation failed"
+      (contentAsJson(result) \ "code").as[String] shouldBe "PASSCODE_VERIFY_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server has experienced an issue"
       passcodeService.deletePasscode(phoneNumberAndOtp) wasNever called
       mockAuditService wasNever called
     }
@@ -202,12 +258,33 @@ class VerifyServiceSpec extends AnyWordSpec
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
-      (contentAsJson(result) \ "code").as[String] shouldBe "DATABASE_OPERATION_FAIL"
-      (contentAsJson(result) \ "message").as[String] shouldBe "Database operation failed"
+      (contentAsJson(result) \ "code").as[String] shouldBe "PASSCODE_VERIFY_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server has experienced an issue"
       passcodeService.deletePasscode(phoneNumberAndOtp) was called
       // check what is sent to the audit service
-      val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Verified")
-      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck", expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
+      val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredOtp", "Verified")
+      mockAuditService.sendExplicitAuditEvent("PhoneNumberVerificationCheck",
+        expectedVerificationCheckAuditEvent)(any[HeaderCarrier], any[Writes[VerificationCheckAuditEvent]]) was called
+    }
+
+    "return bad gateway when validation service returns 503" in new SetUp {
+      val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.successful(HttpResponse(SERVICE_UNAVAILABLE, "")))
+      val result = verifyService.verifyOtp(phoneNumberAndOtp)
+      status(result) shouldBe BAD_GATEWAY
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
+    }
+
+    "return bad gateway when validation service throws connection exception" in new SetUp {
+      val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
+      validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
+        .returns(Future.failed(new ConnectionException("")))
+      val result = verifyService.verifyOtp(phoneNumberAndOtp)
+      status(result) shouldBe BAD_GATEWAY
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
   }
 

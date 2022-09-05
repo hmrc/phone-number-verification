@@ -17,4 +17,3 @@
 package uk.gov.hmrc.cipphonenumberverification.audit
 
 abstract class AuditEvent(phoneNumber: String, passcode: String)
-

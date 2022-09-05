@@ -24,6 +24,7 @@ import play.api.mvc.Results.{NotFound, Ok}
 import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.audit.{AuditType, VerificationDeliveryResultRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
 import uk.gov.hmrc.cipphonenumberverification.models.govnotify.response.GovUkNotificationStatusResponse
 import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, NotificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.utils.GovNotifyUtils
@@ -54,7 +55,8 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
         case "temporary-failure" => (107, "Message was unable to be delivered by the network provider")
         case "technical-failure" => (108, "There is a problem with the notification vendor")
       }
-      auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST.toString, VerificationDeliveryResultRequestAuditEvent(phoneNumber, passcode, notificationId, deliveryStatus))
+      auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST.toString,
+        VerificationDeliveryResultRequestAuditEvent(phoneNumber, passcode, notificationId, deliveryStatus))
       Ok(Json.toJson(NotificationStatus(code, message)))
     }
 
@@ -62,8 +64,9 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
       err.statusCode match {
         case NOT_FOUND =>
           logger.warn("Notification ID not found")
-          auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST.toString, VerificationDeliveryResultRequestAuditEvent(NO_DATA_FOUND, NO_DATA_FOUND, notificationId, NO_DATA_FOUND))
-          NotFound(Json.toJson(ErrorResponse("NOT_FOUND", NO_DATA_FOUND)))
+          auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST.toString,
+            VerificationDeliveryResultRequestAuditEvent(NO_DATA_FOUND, NO_DATA_FOUND, notificationId, NO_DATA_FOUND))
+          NotFound(Json.toJson(ErrorResponse(Codes.NOT_FOUND, NO_DATA_FOUND)))
         case _ =>
           //TODO: Do we need a separate ticket to handle other errors?
           logger.error(err.message)
@@ -75,7 +78,5 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
       case Right(response) => success(response)
       case Left(err) => failure(err)
     }
-
   }
-
 }
