@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.http.HttpEntity
 import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, TOO_MANY_REQUESTS}
 import play.api.libs.json.Json
-import play.api.mvc.Results._
+import play.api.mvc.Results.{Accepted, BadGateway, BadRequest, InternalServerError, Ok, ServiceUnavailable, TooManyRequests}
 import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
@@ -104,7 +104,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
   } recover {
     case err =>
       logger.error(err.getMessage)
-      GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT, "External server timeout")))
+      ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
   }
 
   private def processValidOtp(validatedPhoneNumber: ValidatedPhoneNumber, otp: String)

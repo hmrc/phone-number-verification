@@ -18,7 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.BadGateway
+import play.api.mvc.Results.ServiceUnavailable
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
 import uk.gov.hmrc.cipphonenumberverification.models._
@@ -41,7 +41,7 @@ class VerifyService @Inject()(otpService: OtpService,
       case Success(httpResponse) => processResponse(httpResponse)
       case Failure(error) =>
         logger.error(error.getMessage)
-        Future.successful(BadGateway(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
+        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
     }
 
   def verifyOtp(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
@@ -49,7 +49,7 @@ class VerifyService @Inject()(otpService: OtpService,
       case Success(httpResponse) => processResponseForOtp(httpResponse, phoneNumberAndOtp)
       case Failure(error) =>
         logger.error(error.getMessage)
-        Future.successful(BadGateway(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
+        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
     }
   }
 }
