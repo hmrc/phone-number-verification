@@ -19,7 +19,8 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class OtpServiceSpec extends AnyWordSpec with Matchers{
+class OtpServiceSpec extends AnyWordSpec
+  with Matchers{
 
   private val otpService = new OtpService()
 

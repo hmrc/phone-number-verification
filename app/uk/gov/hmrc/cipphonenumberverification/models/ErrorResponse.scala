@@ -27,7 +27,14 @@ object ErrorResponse {
   object Codes extends Enumeration {
     type Code = Value
 
-    val VALIDATION_ERROR, NOT_FOUND, EXTERNAL_SERVICE_FAIL, PASSCODE_PERSISTING_FAIL, PASSCODE_VERIFY_FAIL = Value
+    val NOTIFICATION_NOT_FOUND    = Value
+    val VALIDATION_ERROR          = Value
+    val EXTERNAL_API_FAIL         = Value
+    val PASSCODE_VERIFY_FAIL      = Value
+    val EXTERNAL_SERVICE_FAIL     = Value
+    val MESSAGE_THROTTLED_OUT     = Value
+    val PASSCODE_PERSISTING_FAIL  = Value
+    val EXTERNAL_SERVICE_TIMEOUT  = Value
   }
 }
 

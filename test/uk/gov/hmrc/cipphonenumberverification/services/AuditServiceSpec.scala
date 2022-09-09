@@ -20,23 +20,22 @@ import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Json, OWrites}
-import uk.gov.hmrc.cipphonenumberverification.audit.{AuditType, VerificationRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.PhoneNumberVerificationRequest
+import uk.gov.hmrc.cipphonenumberverification.audit.VerificationRequestAuditEvent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.ExecutionContext
-
 
 class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
 
   "sendEvent" should {
     "send AuditEvent to audit service" in new SetUp {
       val auditEvent = VerificationRequestAuditEvent("myPhoneNumber", "myPasscode")
-      service.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_REQUEST.toString, auditEvent)
+      service.sendExplicitAuditEvent(PhoneNumberVerificationRequest, auditEvent)
 
-      mockAuditConnector.sendExplicitAudit[VerificationRequestAuditEvent](AuditType.PHONE_NUMBER_VERIFICATION_REQUEST.toString, auditEvent)(hc, ex, writes) was called
+      mockAuditConnector.sendExplicitAudit[VerificationRequestAuditEvent](PhoneNumberVerificationRequest.toString, auditEvent) was called
     }
-
   }
 
   trait SetUp {
@@ -46,5 +45,4 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
     val mockAuditConnector = mock[AuditConnector]
     val service: AuditService = new AuditService(mockAuditConnector)
   }
-
 }

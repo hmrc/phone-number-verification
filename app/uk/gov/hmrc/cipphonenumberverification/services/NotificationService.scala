@@ -18,13 +18,15 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
 import play.api.http.HttpEntity
-import play.api.http.Status.NOT_FOUND
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, NOT_FOUND}
 import play.api.libs.json.Json
-import play.api.mvc.Results.{NotFound, Ok}
+import play.api.mvc.Results.{BadRequest, GatewayTimeout, NotFound, Ok, ServiceUnavailable}
 import play.api.mvc.{ResponseHeader, Result}
-import uk.gov.hmrc.cipphonenumberverification.audit.{AuditType, VerificationDeliveryResultRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.PhoneNumberVerificationDeliveryResultRequest
+import uk.gov.hmrc.cipphonenumberverification.audit.VerificationDeliveryResultRequestAuditEvent
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.{EXTERNAL_API_FAIL, EXTERNAL_SERVICE_TIMEOUT, VALIDATION_ERROR}
 import uk.gov.hmrc.cipphonenumberverification.models.govnotify.response.GovUkNotificationStatusResponse
 import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, NotificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.utils.GovNotifyUtils
@@ -55,7 +57,7 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
         case "temporary-failure" => (107, "Message was unable to be delivered by the network provider")
         case "technical-failure" => (108, "There is a problem with the notification vendor")
       }
-      auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST.toString,
+      auditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest,
         VerificationDeliveryResultRequestAuditEvent(phoneNumber, passcode, notificationId, deliveryStatus))
       Ok(Json.toJson(NotificationStatus(code, message)))
     }
@@ -63,12 +65,17 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
     def failure(err: UpstreamErrorResponse) = {
       err.statusCode match {
         case NOT_FOUND =>
-          logger.warn("Notification ID not found")
-          auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_DELIVERY_RESULT_REQUEST.toString,
+          logger.warn("Notification Id not found")
+          auditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest,
             VerificationDeliveryResultRequestAuditEvent(NO_DATA_FOUND, NO_DATA_FOUND, notificationId, NO_DATA_FOUND))
-          NotFound(Json.toJson(ErrorResponse(Codes.NOT_FOUND, NO_DATA_FOUND)))
+          NotFound(Json.toJson(ErrorResponse(Codes.NOTIFICATION_NOT_FOUND, "Notification Id not found")))
+        case BAD_REQUEST =>
+          logger.warn("Notification Id not valid")
+          BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR, "Enter a valid notification Id")))
+        case FORBIDDEN =>
+          logger.warn(err.message)
+          ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, "External server currently unavailable")))
         case _ =>
-          //TODO: Do we need a separate ticket to handle other errors?
           logger.error(err.message)
           Result.apply(ResponseHeader(err.statusCode), HttpEntity.NoEntity)
       }
@@ -77,6 +84,10 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
     govUkConnector.notificationStatus(notificationId).map {
       case Right(response) => success(response)
       case Left(err) => failure(err)
+    } recover {
+      case err =>
+        logger.error(err.getMessage)
+        GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT, "External server timeout")))
     }
   }
 }

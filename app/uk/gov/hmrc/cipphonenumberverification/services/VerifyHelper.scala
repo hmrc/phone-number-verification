@@ -17,13 +17,15 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import play.api.http.Status.SERVICE_UNAVAILABLE
+import play.api.http.HttpEntity
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, TOO_MANY_REQUESTS}
 import play.api.libs.json.Json
-import play.api.mvc.Result
-import play.api.mvc.Results.{Accepted, BadGateway, BadRequest, InternalServerError, Ok}
-import uk.gov.hmrc.cipphonenumberverification.audit.{AuditType, VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import play.api.mvc.Results._
+import play.api.mvc.{ResponseHeader, Result}
+import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
+import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.{EXTERNAL_SERVICE_FAIL, PASSCODE_PERSISTING_FAIL, PASSCODE_VERIFY_FAIL}
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx, is5xx}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -71,7 +73,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
                                      (implicit hc: HeaderCarrier): Future[Result] = {
     val otp = otpService.otpGenerator()
     val phoneNumberAndOtp = PhoneNumberAndOtp(validatedPhoneNumber.phoneNumber, otp)
-    auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_REQUEST.toString,
+    auditService.sendExplicitAuditEvent(PhoneNumberVerificationRequest,
       VerificationRequestAuditEvent(phoneNumberAndOtp.phoneNumber, otp))
 
     passcodeService.persistPasscode(phoneNumberAndOtp) transformWith {
@@ -85,18 +87,24 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
   private def sendPasscode(phoneNumberAndOtp: PhoneNumberAndOtp)
                           (implicit hc: HeaderCarrier) = govUkConnector.sendPasscode(phoneNumberAndOtp) map {
     case Left(error) => error.statusCode match {
-      case SERVICE_UNAVAILABLE =>
-        logger.error(error.getMessage())
+      case INTERNAL_SERVER_ERROR =>
+        logger.error(error.getMessage)
         BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
+      case BAD_REQUEST | FORBIDDEN =>
+        logger.error(error.getMessage)
+        ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, "External server currently unavailable")))
+      case TOO_MANY_REQUESTS =>
+        logger.error(error.getMessage)
+        TooManyRequests(Json.toJson(ErrorResponse(MESSAGE_THROTTLED_OUT, "The request for the API is throttled as you have exceeded your quota")))
       case _ =>
-        logger.error(s"Gov Notify failure - to be covered by CAV-163")
-        InternalServerError(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "to be covered by CAV-163")))
+        logger.error(error.getMessage)
+        Result.apply(ResponseHeader(error.statusCode), HttpEntity.NoEntity)
     }
     case Right(response) if response.status == 201 => Accepted(Json.toJson(NotificationId(response.json.as[GovUkNotificationId].id)))
   } recover {
     case err =>
       logger.error(err.getMessage)
-      BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
+      GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT, "External server timeout")))
   }
 
   private def processValidOtp(validatedPhoneNumber: ValidatedPhoneNumber, otp: String)
@@ -115,7 +123,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
                               maybePhoneNumberAndOtp: Option[PhoneNumberAndOtp])(implicit hc: HeaderCarrier): Future[Result] =
     maybePhoneNumberAndOtp match {
       case Some(storedPhoneNumberAndOtp) => checkIfPasscodeMatches(enteredPhoneNumberAndOtp, storedPhoneNumberAndOtp)
-      case _ => auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_CHECK.toString,
+      case _ => auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, "Not verified"))
         Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
     }
@@ -124,17 +132,16 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
                                      maybePhoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
     passcodeMatches(enteredPhoneNumberAndOtp.otp, maybePhoneNumberAndOtp.otp) match {
       case true =>
-        auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_CHECK.toString,
+        auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
           VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, "Verified"))
-        passcodeService.deletePasscode(maybePhoneNumberAndOtp)
-          .transformWith {
-            case Success(_) => Future.successful(Ok(Json.toJson(VerificationStatus("Verified"))))
-            case Failure(exception) =>
-              logger.error(s"Database operation failed - ${exception.getMessage}")
-              Future.successful(InternalServerError(Json.toJson(ErrorResponse(PASSCODE_VERIFY_FAIL, "Server has experienced an issue"))))
-          }
+        passcodeService.deletePasscode(maybePhoneNumberAndOtp).transformWith {
+          case Success(_) => Future.successful(Ok(Json.toJson(VerificationStatus("Verified"))))
+          case Failure(exception) =>
+            logger.error(s"Database operation failed - ${exception.getMessage}")
+            Future.successful(InternalServerError(Json.toJson(ErrorResponse(PASSCODE_VERIFY_FAIL, "Server has experienced an issue"))))
+        }
 
-      case false => auditService.sendExplicitAuditEvent(AuditType.PHONE_NUMBER_VERIFICATION_CHECK.toString,
+      case false => auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, "Not verified"))
         Future.successful(Ok(Json.toJson(VerificationStatus("Not verified"))))
     }

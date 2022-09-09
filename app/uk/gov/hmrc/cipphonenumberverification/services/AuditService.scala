@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import play.api.Logging
 import play.api.libs.json.Writes
 import uk.gov.hmrc.cipphonenumberverification.audit.AuditEvent
+import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.Type
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -30,8 +31,8 @@ import scala.concurrent.ExecutionContext
 class AuditService @Inject()(auditConnector: AuditConnector
                             )(implicit ec: ExecutionContext) extends Logging {
 
-  def sendExplicitAuditEvent[T <: AuditEvent](auditType: String, auditEvent: T)(implicit hc: HeaderCarrier, writes: Writes[T]): Unit = {
+  def sendExplicitAuditEvent[T <: AuditEvent](auditType: Type, auditEvent: T)(implicit hc: HeaderCarrier, writes: Writes[T]): Unit = {
     logger.debug(s"Sending explicit audit event for $auditEvent")
-    auditConnector.sendExplicitAudit(auditType, auditEvent)
+    auditConnector.sendExplicitAudit(auditType.toString, auditEvent)
   }
 }
