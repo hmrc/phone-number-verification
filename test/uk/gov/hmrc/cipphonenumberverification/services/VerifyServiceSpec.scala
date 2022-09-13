@@ -120,17 +120,17 @@ class VerifyServiceSpec extends AnyWordSpec
       (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
 
-    "return bad gateway when validation service throws connection exception" in new SetUp {
+    "return service unavailable when validation service throws connection exception" in new SetUp {
       val phoneNumber = PhoneNumber("test")
       validateConnectorMock.callService(phoneNumber.phoneNumber)
         .returns(Future.failed(new ConnectionException("")))
       val result = verifyService.verifyPhoneNumber(phoneNumber)
-      status(result) shouldBe BAD_GATEWAY
+      status(result) shouldBe SERVICE_UNAVAILABLE
       (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
       (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
 
-    "return gateway timeout when govUk notify service throws connection exception" in new SetUp {
+    "return service unavailable when govUk notify service throws connection exception" in new SetUp {
       val enteredPhoneNumber = PhoneNumber("test")
       val normalisedPhoneNumberAndOtp = PhoneNumberAndOtp("normalisedPhoneNumber", otp)
       validateConnectorMock.callService(enteredPhoneNumber.phoneNumber)
@@ -140,9 +140,9 @@ class VerifyServiceSpec extends AnyWordSpec
       govUkConnectorMock.sendPasscode(any[PhoneNumberAndOtp])
         .returns(Future.failed(new ConnectionException("")))
       val result = verifyService.verifyPhoneNumber(PhoneNumber(enteredPhoneNumber.phoneNumber))
-      status(result) shouldBe GATEWAY_TIMEOUT
-      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_TIMEOUT"
-      (contentAsJson(result) \ "message").as[String] shouldBe "External server timeout"
+      status(result) shouldBe SERVICE_UNAVAILABLE
+      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
+      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
 
     "return BadGateway if gov-notify returns internal server error" in new SetUp {
@@ -363,12 +363,12 @@ class VerifyServiceSpec extends AnyWordSpec
       (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
 
-    "return bad gateway when validation service throws connection exception" in new SetUp {
+    "return service unavailable when validation service throws connection exception" in new SetUp {
       val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
       validateConnectorMock.callService(phoneNumberAndOtp.phoneNumber)
         .returns(Future.failed(new ConnectionException("")))
       val result = verifyService.verifyOtp(phoneNumberAndOtp)
-      status(result) shouldBe BAD_GATEWAY
+      status(result) shouldBe SERVICE_UNAVAILABLE
       (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_FAIL"
       (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }

@@ -36,7 +36,6 @@ class OtpControllerSpec
     with Matchers
     with IdiomaticMockito {
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
   private implicit val writes: OWrites[PhoneNumberAndOtp] = Json.writes[PhoneNumberAndOtp]
   private val fakeRequest = FakeRequest()
   private val mockVerifyService = mock[VerifyService]
