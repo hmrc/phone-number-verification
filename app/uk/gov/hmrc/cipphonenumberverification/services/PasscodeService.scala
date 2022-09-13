@@ -17,7 +17,7 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.DataKey
 
@@ -26,19 +26,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository)
                                (implicit ec: ExecutionContext) extends Logging {
-  def persistPasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[PhoneNumberAndOtp] = {
+  def persistPasscode(phoneNumberAndOtp: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
     logger.debug(s"Storing phoneNumberAndOtp in database for ${phoneNumberAndOtp.phoneNumber}")
     passcodeCacheRepository.put(phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtp)
       .map(_ => phoneNumberAndOtp)
   }
 
-  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndOtp]] = {
+  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberPasscodeData]] = {
     logger.debug(s"Retrieving phoneNumberAndOtp from database for $phoneNumber")
-    passcodeCacheRepository.get[PhoneNumberAndOtp](phoneNumber)(DataKey("cip-phone-number-verification"))
+    passcodeCacheRepository.get[PhoneNumberPasscodeData](phoneNumber)(DataKey("cip-phone-number-verification"))
   }
 
-  def deletePasscode(phoneNumberAndOtp: PhoneNumberAndOtp): Future[Unit] = {
-    logger.debug(s"Deleting phoneNumberAndOtp from database for ${phoneNumberAndOtp.phoneNumber}")
-    passcodeCacheRepository.delete(phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"))
-  }
 }

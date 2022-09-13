@@ -21,7 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsObject
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumber, PhoneNumberAndOtp}
+import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumber, PhoneNumberPasscodeData}
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
 
@@ -37,7 +37,8 @@ class PasscodeServiceSpec extends AnyWordSpec
     "return passcode" in new SetUp {
       val phoneNumber = PhoneNumber("test")
       val otp = "ABCDEF"
-      val phoneNumberAndOtpToPersist = PhoneNumberAndOtp(phoneNumber.phoneNumber, otp = otp)
+      val now = System.currentTimeMillis()
+      val phoneNumberAndOtpToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, otp = otp, now)
       passcodeCacheRepositoryMock.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtpToPersist)
         .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
@@ -49,21 +50,12 @@ class PasscodeServiceSpec extends AnyWordSpec
 
   "retrievePasscode" should {
     "return passcode" in new SetUp {
-      val phoneNumberAndOtp = PhoneNumberAndOtp("", "")
-      passcodeCacheRepositoryMock.get[PhoneNumberAndOtp](phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"))
-        .returns(Future.successful(Some(PhoneNumberAndOtp("", ""))))
-      val result = passcodeService.retrievePasscode(phoneNumberAndOtp.phoneNumber)
-      await(result) shouldBe Some(PhoneNumberAndOtp("", ""))
-    }
-  }
-
-  "deletePasscode" should {
-    "return unit" in new SetUp {
-      val passcode = PhoneNumberAndOtp("", "")
-      passcodeCacheRepositoryMock.delete(passcode.phoneNumber)(DataKey("cip-phone-number-verification"))
-        .returns(Future.unit)
-      val result = passcodeService.deletePasscode(passcode)
-      await(result) shouldBe()
+      val now = System.currentTimeMillis()
+      val dataFromDb = PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now)
+      passcodeCacheRepositoryMock.get[PhoneNumberPasscodeData]("thePhoneNumber")(DataKey("cip-phone-number-verification"))
+        .returns(Future.successful(Some(dataFromDb)))
+      val result = passcodeService.retrievePasscode("thePhoneNumber")
+      await(result) shouldBe Some(PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now))
     }
   }
 

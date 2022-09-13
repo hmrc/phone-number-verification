@@ -16,26 +16,12 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{Json, Reads, Writes}
 
-abstract class Status(status: String)
+case class PhoneNumberPasscodeData(phoneNumber: String, otp: String, createdAt: Long)
 
-case class VerificationStatus(status: String) extends Status(status)
+object PhoneNumberPasscodeData {
 
-object VerificationStatus {
-  implicit val writes: OWrites[VerificationStatus] = Json.writes[VerificationStatus]
-}
-
-case class Indeterminate(status: String, message: String) extends Status(status)
-
-object Indeterminate {
-  implicit val writes: OWrites[Indeterminate] = Json.writes[Indeterminate]
-}
-
-object StatusMessage extends Enumeration {
-  type StatusMessage = String
-
-  val VERIFIED = "Verified"
-  val NOT_VERIFIED = "Not verified"
-  val INDETERMINATE = "Indeterminate"
+  implicit val reads: Reads[PhoneNumberPasscodeData] = Json.reads[PhoneNumberPasscodeData]
+  implicit val writes: Writes[PhoneNumberPasscodeData] = Json.writes[PhoneNumberPasscodeData]
 }

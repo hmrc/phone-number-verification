@@ -19,10 +19,13 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.ServiceUnavailable
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Message.SERVER_CURRENTLY_UNAVAILABLE
 import uk.gov.hmrc.cipphonenumberverification.models._
+import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -34,9 +37,11 @@ class VerifyService @Inject()(otpService: OtpService,
                               passcodeService: PasscodeService,
                               validateConnector: ValidateConnector,
                               govUkConnector: GovUkConnector,
-                              metricsService: MetricsService)
+                              metricsService: MetricsService,
+                              dateTimeUtils: DateTimeUtils,
+                              config: AppConfig)
                              (implicit val executionContext: ExecutionContext)
-  extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector, metricsService) {
+  extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector, metricsService, dateTimeUtils, config) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     validateConnector.callService(phoneNumber.phoneNumber) transformWith {
@@ -45,7 +50,7 @@ class VerifyService @Inject()(otpService: OtpService,
         metricsService.recordMetric("CIP-Validation-HTTP-Failure")
         metricsService.recordMetric(error.toString.trim.dropRight(1))
         logger.error(error.getMessage)
-        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
+        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, SERVER_CURRENTLY_UNAVAILABLE))))
     }
 
   def verifyOtp(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
@@ -55,7 +60,7 @@ class VerifyService @Inject()(otpService: OtpService,
         metricsService.recordMetric("CIP-Validation-HTTP-Failure")
         metricsService.recordMetric(error.toString.trim.dropRight(1))
         logger.error(error.getMessage)
-        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
+        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, SERVER_CURRENTLY_UNAVAILABLE))))
     }
   }
 }
