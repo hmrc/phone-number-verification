@@ -43,14 +43,14 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
       .execute[Either[UpstreamErrorResponse, HttpResponse]]
   }
 
-  def sendPasscode(passcode: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
+  def sendPasscode(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     // TODO Build this elsewhere
     val passcodeRequest = Json.obj(
-      "phone_number" -> s"${passcode.phoneNumber}",
+      "phone_number" -> s"${phoneNumberAndOtp.phoneNumber}",
       "template_id" -> s"${config.templateId}",
       "personalisation" -> Json.obj(
         "clientServiceName" -> "cip-phone-service",
-        "passCode" -> s"${passcode.otp}",
+        "passcode" -> s"${phoneNumberAndOtp.otp}",
         "timeToLive" -> s"${config.cacheExpiry}")
     )
 

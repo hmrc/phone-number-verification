@@ -75,7 +75,7 @@ class GovUkConnectorSpec extends AnyWordSpec
               "template_id": "template-id-fake",
               "personalisation": {
                 "clientServiceName": "cip-phone-service",
-                "passCode": "test",
+                "passcode": "test",
                 "timeToLive": "1"
               }
             }
