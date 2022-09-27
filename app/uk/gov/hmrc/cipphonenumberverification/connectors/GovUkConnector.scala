@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
+import akka.stream.Materializer
 import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.{Jwts, SignatureAlgorithm}
+import play.api.Logging
 import play.api.libs.json.Json
+import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import play.api.libs.ws.writeableOf_JsValue
-import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig}
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -30,46 +33,60 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
-                              (implicit executionContext: ExecutionContext) {
+                              (implicit executionContext: ExecutionContext, protected val materializer: Materializer)
+  extends Logging with CircuitBreakerWrapper {
+
+  implicit val connectionFailure: Try[Either[UpstreamErrorResponse, HttpResponse]] => Boolean = {
+    case Success(_) => false
+    case Failure(_) => true
+  }
 
   def notificationStatus(notificationId: String)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
-    httpClient
-      .get(url"${config.govUkNotifyHost}/v2/notifications/$notificationId")
-      .addHeaders((s"Authorization", s"Bearer $jwtBearerToken"))
-      .withProxy
-      .execute[Either[UpstreamErrorResponse, HttpResponse]]
+    withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
+      httpClient
+        .get(url"${config.govNotifyConfig.host}/v2/notifications/$notificationId")
+        .setHeader((s"Authorization", s"Bearer $jwtBearerToken"))
+        .withProxy
+        .execute[Either[UpstreamErrorResponse, HttpResponse]]
+    )
   }
 
   def sendPasscode(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     // TODO Build this elsewhere
     val passcodeRequest = Json.obj(
       "phone_number" -> s"${phoneNumberAndOtp.phoneNumber}",
-      "template_id" -> s"${config.templateId}",
+      "template_id" -> s"${config.govNotifyConfig.templateId}",
       "personalisation" -> Json.obj(
         "clientServiceName" -> "cip-phone-service",
         "passcode" -> s"${phoneNumberAndOtp.otp}",
         "timeToLive" -> s"${config.cacheExpiry}")
     )
 
-    httpClient
-      .post(url"${config.govUkNotifyHost}/v2/notifications/sms")
-      .addHeaders((s"Authorization", s"Bearer $jwtBearerToken"))
-      .withBody(Json.toJson(passcodeRequest))
-      .withProxy
-      .execute[Either[UpstreamErrorResponse, HttpResponse]]
+    withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
+      httpClient
+        .post(url"${config.govNotifyConfig.host}/v2/notifications/sms")
+        .setHeader((s"Authorization", s"Bearer $jwtBearerToken"))
+        .transform(_.withRequestFilter(AhcCurlRequestLogger()))
+        .withBody(Json.toJson(passcodeRequest))
+        .withProxy
+        .execute[Either[UpstreamErrorResponse, HttpResponse]]
+    )
   }
 
   private def jwtBearerToken = {
-    val key = Keys.hmacShaKeyFor(config.govUkNotifyApiKeySecretKeyUuid.getBytes(StandardCharsets.UTF_8))
+    val key = Keys.hmacShaKeyFor(config.govNotifyConfig.govUkNotifyApiKeySecretKeyUuid.getBytes(StandardCharsets.UTF_8))
 
     val jwt = Jwts.builder()
-      .setIssuer(config.govUkNotifyApiKeyIssUuid)
+      .setIssuer(config.govNotifyConfig.govUkNotifyApiKeyIssUuid)
       .setIssuedAt(new Date())
       .signWith(SignatureAlgorithm.HS256, key)
 
     jwt.compact()
   }
+
+  override def configCB: CircuitBreakerConfig = config.govNotifyConfig.cbConfig
 }

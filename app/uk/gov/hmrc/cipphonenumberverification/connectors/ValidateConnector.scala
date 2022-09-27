@@ -16,25 +16,36 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
+import akka.stream.Materializer
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
-import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
-class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext) {
+class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext, val materializer: Materializer)
+  extends Logging with CircuitBreakerWrapper {
 
-  val validateUrl = s"${config.validateUrlProtocol}://${config.validateUrlHost}:${config.validateUrlPort}/customer-insight-platform/phone-number/validate"
+  implicit val connectionFailure: Try[HttpResponse] => Boolean = {
+    case Success(_) => false
+    case Failure(_) => true
+  }
 
   def callService(phoneNumber: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpClientV2
-      .post(url"$validateUrl")
-      .withBody(Json.obj("phoneNumber" -> s"${phoneNumber}"))
-      .execute[HttpResponse]
+    withCircuitBreaker[HttpResponse](
+      httpClientV2
+        .post(url"${config.validationConfig.url}/customer-insight-platform/phone-number/validate")
+        .withBody(Json.obj("phoneNumber" -> s"$phoneNumber"))
+        .execute[HttpResponse]
+    )
   }
+
+  override def configCB: CircuitBreakerConfig = config.validationConfig.cbConfig
 }
