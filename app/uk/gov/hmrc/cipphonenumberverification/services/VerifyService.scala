@@ -20,6 +20,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.ServiceUnavailable
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,14 +33,17 @@ class VerifyService @Inject()(otpService: OtpService,
                               auditService: AuditService,
                               passcodeService: PasscodeService,
                               validateConnector: ValidateConnector,
-                              govUkConnector: GovUkConnector)
+                              govUkConnector: GovUkConnector,
+                              metricsService: MetricsService)
                              (implicit val executionContext: ExecutionContext)
-  extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector) {
+  extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector, metricsService) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     validateConnector.callService(phoneNumber.phoneNumber) transformWith {
       case Success(httpResponse) => processResponse(httpResponse)
       case Failure(error) =>
+        metricsService.recordMetric("CIP-Validation-HTTP-Failure")
+        metricsService.recordMetric(error.toString.trim.dropRight(1))
         logger.error(error.getMessage)
         Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
     }
@@ -48,6 +52,8 @@ class VerifyService @Inject()(otpService: OtpService,
     validateConnector.callService(phoneNumberAndOtp.phoneNumber).transformWith {
       case Success(httpResponse) => processResponseForOtp(httpResponse, phoneNumberAndOtp)
       case Failure(error) =>
+        metricsService.recordMetric("CIP-Validation-HTTP-Failure")
+        metricsService.recordMetric(error.toString.trim.dropRight(1))
         logger.error(error.getMessage)
         Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, "Server currently unavailable"))))
     }

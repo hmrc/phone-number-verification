@@ -25,6 +25,7 @@ import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
+import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx, is5xx}
@@ -34,8 +35,11 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: AuditService,
-                                      passcodeService: PasscodeService, govUkConnector: GovUkConnector)
+abstract class VerifyHelper @Inject()(otpService: OtpService,
+                                      auditService: AuditService,
+                                      passcodeService: PasscodeService,
+                                      govUkConnector: GovUkConnector,
+                                      metricsService: MetricsService)
                                      (implicit ec: ExecutionContext) extends Logging {
 
   protected def processResponse(res: HttpResponse)(implicit hc: HeaderCarrier): Future[Result] = res match {
@@ -79,6 +83,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
     passcodeService.persistPasscode(phoneNumberAndOtp) transformWith {
       case Success(phoneNumberAndOtp) => sendPasscode(phoneNumberAndOtp)
       case Failure(err) =>
+        metricsService.recordMetric("mongo_cache_failure")
         logger.error(s"Database operation failed - ${err.getMessage}")
         Future.successful(InternalServerError(Json.toJson(ErrorResponse(PASSCODE_PERSISTING_FAIL, "Server has experienced an issue"))))
     }
@@ -88,22 +93,30 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
                           (implicit hc: HeaderCarrier) = govUkConnector.sendPasscode(phoneNumberAndOtp) map {
     case Left(error) => error.statusCode match {
       case INTERNAL_SERVER_ERROR =>
+        metricsService.recordMetric(s"UpstreamErrorResponse.${error.statusCode}")
         logger.error(error.getMessage)
         BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
       case BAD_REQUEST | FORBIDDEN =>
+        metricsService.recordMetric(s"UpstreamErrorResponse.${error.statusCode}")
         logger.error(error.getMessage)
         ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, "External server currently unavailable")))
       case TOO_MANY_REQUESTS =>
+        metricsService.recordMetric(s"UpstreamErrorResponse.${error.statusCode}")
         logger.error(error.getMessage)
         TooManyRequests(Json.toJson(ErrorResponse(MESSAGE_THROTTLED_OUT, "The request for the API is throttled as you have exceeded your quota")))
       case _ =>
+        metricsService.recordMetric(s"UpstreamErrorResponse.${error.statusCode}")
         logger.error(error.getMessage)
         Result.apply(ResponseHeader(error.statusCode), HttpEntity.NoEntity)
     }
-    case Right(response) if response.status == 201 => Accepted(Json.toJson(NotificationId(response.json.as[GovUkNotificationId].id)))
+    case Right(response) if response.status == 201 =>
+      metricsService.recordMetric("gov-notify_call_success")
+      Accepted(Json.toJson(NotificationId(response.json.as[GovUkNotificationId].id)))
   } recover {
     case err =>
       logger.error(err.getMessage)
+      metricsService.recordMetric(err.toString.trim.dropRight(1))
+      metricsService.recordMetric("gov-notify_connection_failure")
       ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
   }
 
@@ -114,6 +127,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
       result <- processPasscode(PhoneNumberAndOtp(validatedPhoneNumber.phoneNumber, otp), maybePhoneNumberAndOtp)
     } yield result).recover {
       case err =>
+        metricsService.recordMetric("mongo_cache_failure")
         logger.error(s"Database operation failed - ${err.getMessage}")
         InternalServerError(Json.toJson(ErrorResponse(PASSCODE_VERIFY_FAIL, "Server has experienced an issue")))
     }
@@ -132,6 +146,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
                                      maybePhoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
     passcodeMatches(enteredPhoneNumberAndOtp.otp, maybePhoneNumberAndOtp.otp) match {
       case true =>
+        metricsService.recordMetric("otp_verification_success")
         auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
           VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, "Verified"))
         passcodeService.deletePasscode(maybePhoneNumberAndOtp).transformWith {
