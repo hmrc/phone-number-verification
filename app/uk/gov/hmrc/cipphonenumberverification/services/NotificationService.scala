@@ -47,19 +47,19 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
       val phoneNumber = govNotifyResponse.phone_number
       val passcode = govNotifyUtils.extractPasscodeFromGovNotifyBody(govNotifyResponse.body)
       val deliveryStatus = govNotifyResponse.status
-      val (code, message) = deliveryStatus match {
-        case "created" => (101, "Message is in the process of being sent")
-        case "sending" => (102, "Message has been sent")
-        case "pending" => (103, "Message is in the process of being delivered")
-        case "sent" => (104, "Message was sent successfully")
-        case "delivered" => (105, "Message was delivered successfully")
-        case "permanent-failure" => (106, "Message was unable to be delivered by the network provider")
-        case "temporary-failure" => (107, "Message was unable to be delivered by the network provider")
-        case "technical-failure" => (108, "There is a problem with the notification vendor")
+      val (notificationStatus, message) = deliveryStatus match {
+        case "created" => ("CREATED", "Message is in the process of being sent")
+        case "sending" => ("SENDING", "Message has been sent")
+        case "pending" => ("PENDING", "Message is in the process of being delivered")
+        case "sent" => ("SENT", "Message was sent successfully")
+        case "delivered" => ("DELIVERED", "Message was delivered successfully")
+        case "permanent-failure" => ("PERMANENT_FAILURE", "Message was unable to be delivered by the network provider")
+        case "temporary-failure" => ("TEMPORARY_FAILURE", "Message was unable to be delivered by the network provider")
+        case "technical-failure" => ("TECHNICAL_FAILURE", "There is a problem with the notification vendor")
       }
       auditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest,
         VerificationDeliveryResultRequestAuditEvent(phoneNumber, passcode, notificationId, deliveryStatus))
-      Ok(Json.toJson(NotificationStatus(code, message)))
+      Ok(Json.toJson(NotificationStatus(notificationStatus, message)))
     }
 
     def failure(err: UpstreamErrorResponse) = {

@@ -51,7 +51,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 101
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "CREATED"
       (contentAsJson(result) \ "message").as[String] shouldBe "Message is in the process of being sent"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
       val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "created")
@@ -67,7 +67,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 102
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "SENDING"
       (contentAsJson(result) \ "message").as[String] shouldBe "Message has been sent"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
       val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "sending")
@@ -83,7 +83,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 103
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "PENDING"
       (contentAsJson(result) \ "message").as[String] shouldBe "Message is in the process of being delivered"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
       val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "pending")
@@ -99,7 +99,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 104
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "SENT"
       (contentAsJson(result) \ "message").as[String] shouldBe "Message was sent successfully"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
       val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "sent")
@@ -115,7 +115,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 105
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "DELIVERED"
       (contentAsJson(result) \ "message").as[String] shouldBe "Message was delivered successfully"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
       val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "delivered")
@@ -131,7 +131,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 106
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "PERMANENT_FAILURE"
       (contentAsJson(result) \ "message").as[String] shouldBe
         "Message was unable to be delivered by the network provider"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
@@ -148,7 +148,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 107
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "TEMPORARY_FAILURE"
       (contentAsJson(result) \ "message").as[String] shouldBe
         "Message was unable to be delivered by the network provider"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
@@ -165,7 +165,7 @@ class NotificationServiceSpec extends AnyWordSpec
       val result = service.status(notificationId)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 108
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "TECHNICAL_FAILURE"
       (contentAsJson(result) \ "message").as[String] shouldBe "There is a problem with the notification vendor"
       mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
       val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "technical-failure")

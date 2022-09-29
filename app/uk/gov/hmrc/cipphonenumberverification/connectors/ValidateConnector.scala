@@ -23,7 +23,7 @@ import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

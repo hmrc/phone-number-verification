@@ -44,12 +44,14 @@ class NotificationControllerSpec extends AnyWordSpec
     "delegate to notification service" in {
       val notificationId = "notificationId"
       mockNotificationsService.status(notificationId)(any[HeaderCarrier])
-        .returns(Future.successful(Ok(Json.toJson(NotificationStatus(1, "test message")))))
+        .returns(Future.successful(Ok(Json.toJson(NotificationStatus("test status", "test message")))))
 
       val result = controller.status(notificationId)(fakeRequest)
       status(result) shouldBe Status.OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe 1
+      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "test status"
       (contentAsJson(result) \ "message").as[String] shouldBe "test message"
+
+      mockNotificationsService.status(notificationId)(any[HeaderCarrier]) was called
     }
   }
 }
