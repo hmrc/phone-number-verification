@@ -100,7 +100,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService, auditService: Audi
         logger.error(error.getMessage)
         Result.apply(ResponseHeader(error.statusCode), HttpEntity.NoEntity)
     }
-    case Right(response) if response.status == 201 => Accepted(Json.toJson(NotificationId(response.json.as[GovUkNotificationId].id)))
+    case Right(response) if response.status == 201 => Accepted.withHeaders(("Location", s"/notifications/${response.json.as[GovUkNotificationId].id}"))
   } recover {
     case err =>
       logger.error(err.getMessage)
