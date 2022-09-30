@@ -111,7 +111,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
     }
     case Right(response) if response.status == 201 =>
       metricsService.recordMetric("gov-notify_call_success")
-      Accepted(Json.toJson(NotificationId(response.json.as[GovUkNotificationId].id)))
+      Accepted.withHeaders(("Location", s"/notifications/${response.json.as[GovUkNotificationId].id}"))
   } recover {
     case err =>
       logger.error(err.getMessage)

@@ -23,7 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status._
 import play.api.libs.json.{Json, OWrites}
-import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
+import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, header, status}
 import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
@@ -52,7 +52,7 @@ class VerifyServiceSpec extends AnyWordSpec
       val result = verifyService.verifyPhoneNumber(enteredPhoneNumber)
 
       status(result) shouldBe ACCEPTED
-      (contentAsJson(result) \ "notificationId").as[String] shouldBe "test-notification-id"
+      header("Location", result) shouldBe Some("/notifications/test-notification-id")
 
       // check what is sent to validation service
       validateConnectorMock.callService("test")(any[HeaderCarrier]) was called
