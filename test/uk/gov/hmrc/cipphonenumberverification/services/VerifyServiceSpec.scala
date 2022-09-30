@@ -27,6 +27,7 @@ import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, header, status
 import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.{GovUkNotificationId, PhoneNumber, PhoneNumberAndOtp, ValidatedPhoneNumber}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
@@ -55,6 +56,7 @@ class VerifyServiceSpec extends AnyWordSpec
 
       // check what is sent to validation service
       validateConnectorMock.callService("test")(any[HeaderCarrier]) was called
+      metricsServiceMock.recordMetric(any[String]) was called
       otpServiceMock.otpGenerator() was called
       // check what is sent to the audit service
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", otp)
@@ -102,7 +104,7 @@ class VerifyServiceSpec extends AnyWordSpec
       // check what is sent to the audit service
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", otp)
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationRequest,
-        expectedAuditEvent) was called
+          expectedAuditEvent) was called
       // check what is sent to DAO
       passcodeServiceMock.persistPasscode(normalisedPhoneNumberAndOtp) was called
 
@@ -168,6 +170,7 @@ class VerifyServiceSpec extends AnyWordSpec
         expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(normalisedPhoneNumberAndOtp) was called
       govUkConnectorMock.sendPasscode(normalisedPhoneNumberAndOtp)(any[HeaderCarrier]) was called
+      metricsServiceMock.recordMetric(any[String]) was called
     }
 
     "return Service unavailable if gov-notify returns BadRequestError" in new SetUp {
@@ -193,6 +196,7 @@ class VerifyServiceSpec extends AnyWordSpec
         expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(normalisedPhoneNumberAndOtp) was called
       govUkConnectorMock.sendPasscode(normalisedPhoneNumberAndOtp)(any[HeaderCarrier]) was called
+      metricsServiceMock.recordMetric(any[String]) was called
     }
 
     "return Service unavailable if gov-notify returns Forbidden error" in new SetUp {
@@ -218,6 +222,7 @@ class VerifyServiceSpec extends AnyWordSpec
         expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(normalisedPhoneNumberAndOtp) was called
       govUkConnectorMock.sendPasscode(normalisedPhoneNumberAndOtp)(any[HeaderCarrier]) was called
+      metricsServiceMock.recordMetric(any[String]) was called
     }
 
     "return Too Many Requests if gov-notify returns RateLimitError or TooManyRequestsError" in new SetUp {
@@ -243,6 +248,7 @@ class VerifyServiceSpec extends AnyWordSpec
         expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(normalisedPhoneNumberAndOtp) was called
       govUkConnectorMock.sendPasscode(normalisedPhoneNumberAndOtp)(any[HeaderCarrier]) was called
+      metricsServiceMock.recordMetric(any[String]) was called
     }
   }
 
@@ -383,8 +389,9 @@ class VerifyServiceSpec extends AnyWordSpec
     val govUkConnectorMock: GovUkConnector = mock[GovUkConnector]
     val auditServiceMock: AuditService = mock[AuditService]
     val otpServiceMock: OtpService = mock[OtpService]
+    val metricsServiceMock: MetricsService = mock[MetricsService]
     val otp = "ABCDEF"
     otpServiceMock.otpGenerator().returns(otp)
-    val verifyService = new VerifyService(otpServiceMock, auditServiceMock, passcodeServiceMock, validateConnectorMock, govUkConnectorMock)
+    val verifyService = new VerifyService(otpServiceMock, auditServiceMock, passcodeServiceMock, validateConnectorMock, govUkConnectorMock, metricsServiceMock)
   }
 }
