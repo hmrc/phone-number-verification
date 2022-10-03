@@ -32,16 +32,16 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class VerifyService @Inject()(otpService: OtpService,
+class VerifyService @Inject()(passcodeGenerator: PasscodeGenerator,
                               auditService: AuditService,
-                              passcodeService: PasscodeService,
+                              passcodeService: VerifyPasscodeService,
                               validateConnector: ValidateConnector,
                               govUkConnector: GovUkConnector,
                               metricsService: MetricsService,
                               dateTimeUtils: DateTimeUtils,
                               config: AppConfig)
                              (implicit val executionContext: ExecutionContext)
-  extends VerifyHelper(otpService, auditService, passcodeService, govUkConnector, metricsService, dateTimeUtils, config) {
+  extends VerifyHelper(passcodeGenerator, auditService, passcodeService, govUkConnector, metricsService, dateTimeUtils, config) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     validateConnector.callService(phoneNumber.phoneNumber) transformWith {
@@ -53,9 +53,9 @@ class VerifyService @Inject()(otpService: OtpService,
         Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL, SERVER_CURRENTLY_UNAVAILABLE))))
     }
 
-  def verifyOtp(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Result] = {
-    validateConnector.callService(phoneNumberAndOtp.phoneNumber).transformWith {
-      case Success(httpResponse) => processResponseForOtp(httpResponse, phoneNumberAndOtp)
+  def verifyPasscode(phoneNumberAndPasscode: PhoneNumberAndPasscode)(implicit hc: HeaderCarrier): Future[Result] = {
+    validateConnector.callService(phoneNumberAndPasscode.phoneNumber).transformWith {
+      case Success(httpResponse) => processResponseForPasscode(httpResponse, phoneNumberAndPasscode)
       case Failure(error) =>
         metricsService.recordMetric("CIP-Validation-HTTP-Failure")
         metricsService.recordMetric(error.toString.trim.dropRight(1))

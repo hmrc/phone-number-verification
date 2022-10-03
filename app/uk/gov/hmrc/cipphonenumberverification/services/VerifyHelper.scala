@@ -40,9 +40,9 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-abstract class VerifyHelper @Inject()(otpService: OtpService,
+abstract class VerifyHelper @Inject()(passcodeGenerator: PasscodeGenerator,
                                       auditService: AuditService,
-                                      passcodeService: PasscodeService,
+                                      passcodeService: VerifyPasscodeService,
                                       govUkConnector: GovUkConnector,
                                       metricsService: MetricsService,
                                       dateTimeUtils: DateTimeUtils,
@@ -59,9 +59,9 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
     ))
   }
 
-  protected def processResponseForOtp(res: HttpResponse, phoneNumberAndOtp: PhoneNumberAndOtp)
-                                     (implicit hc: HeaderCarrier): Future[Result] = res match {
-    case _ if is2xx(res.status) => processValidOtp(res.json.as[ValidatedPhoneNumber], phoneNumberAndOtp.otp)
+  protected def processResponseForPasscode(res: HttpResponse, phoneNumberAndPasscode: PhoneNumberAndPasscode)
+                                          (implicit hc: HeaderCarrier): Future[Result] = res match {
+    case _ if is2xx(res.status) => processValidPasscode(res.json.as[ValidatedPhoneNumber], phoneNumberAndPasscode.passcode)
     case _ if is4xx(res.status) => Future(BadRequest(res.json))
     case _ if is5xx(res.status) => Future(BadGateway(
       Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, SERVER_CURRENTLY_UNAVAILABLE))
@@ -84,11 +84,11 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
 
   private def processValidPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)
                                      (implicit hc: HeaderCarrier): Future[Result] = {
-    val otp = otpService.otpGenerator()
+    val passcode = passcodeGenerator.generatePasscode()
     val now = dateTimeUtils.getCurrentDateTime()
-    val dataToSave = new PhoneNumberPasscodeData(validatedPhoneNumber.phoneNumber, otp, now)
+    val dataToSave = new PhoneNumberPasscodeData(validatedPhoneNumber.phoneNumber, passcode, now)
     auditService.sendExplicitAuditEvent(PhoneNumberVerificationRequest,
-      VerificationRequestAuditEvent(dataToSave.phoneNumber, otp))
+      VerificationRequestAuditEvent(dataToSave.phoneNumber, passcode))
 
     passcodeService.persistPasscode(dataToSave) transformWith {
       case Success(savedPhoneNumberPasscodeData) => sendPasscode(savedPhoneNumberPasscodeData)
@@ -130,11 +130,11 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
       ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
   }
 
-  private def processValidOtp(validatedPhoneNumber: ValidatedPhoneNumber, otp: String)
+  private def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcode: String)
                              (implicit hc: HeaderCarrier) = {
     (for {
-      maybePhoneNumberAndOtpData <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
-      result <- processPasscode(PhoneNumberAndOtp(validatedPhoneNumber.phoneNumber, otp), maybePhoneNumberAndOtpData)
+      maybePhoneNumberAndPasscodeData <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
+      result <- processPasscode(PhoneNumberAndPasscode(validatedPhoneNumber.phoneNumber, passcode), maybePhoneNumberAndPasscodeData)
     } yield result).recover {
       case err =>
         metricsService.recordMetric("mongo_cache_failure")
@@ -143,22 +143,22 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
     }
   }
 
-  private def processPasscode(enteredPhoneNumberAndOtp: PhoneNumberAndOtp,
-                              maybePhoneNumberAndOtp: Option[PhoneNumberPasscodeData])(implicit hc: HeaderCarrier): Future[Result] =
-    maybePhoneNumberAndOtp match {
-      case Some(storedPhoneNumberAndOtp) => checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndOtp, storedPhoneNumberAndOtp, System.currentTimeMillis())
+  private def processPasscode(enteredPhoneNumberAndPasscode: PhoneNumberAndPasscode,
+                              maybePhoneNumberAndPasscode: Option[PhoneNumberPasscodeData])(implicit hc: HeaderCarrier): Future[Result] =
+    maybePhoneNumberAndPasscode match {
+      case Some(storedPhoneNumberAndPasscode) => checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndPasscode, storedPhoneNumberAndPasscode, System.currentTimeMillis())
       case _ => auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
-        VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, NOT_VERIFIED))
+        VerificationCheckAuditEvent(enteredPhoneNumberAndPasscode.phoneNumber, enteredPhoneNumberAndPasscode.passcode, NOT_VERIFIED))
         Future.successful(Ok(Json.toJson(ErrorResponse(VERIFICATION_ERROR, PASSCODE_STORED_TIME_ELAPSED))))
     }
 
-  private def checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndOtp: PhoneNumberAndOtp, foundPhoneNumberPasscodeData: PhoneNumberPasscodeData, now: Long)(implicit hc: HeaderCarrier): Future[Result] = {
+  private def checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndPasscode: PhoneNumberAndPasscode, foundPhoneNumberPasscodeData: PhoneNumberPasscodeData, now: Long)(implicit hc: HeaderCarrier): Future[Result] = {
     hasPasscodeExpired(foundPhoneNumberPasscodeData: PhoneNumberPasscodeData, now) match {
       case true =>
         auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
-          VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, NOT_VERIFIED))
+          VerificationCheckAuditEvent(enteredPhoneNumberAndPasscode.phoneNumber, enteredPhoneNumberAndPasscode.passcode, NOT_VERIFIED))
         Future.successful(Ok(Json.toJson(ErrorResponse(VERIFICATION_ERROR, PASSCODE_ALLOWED_TIME_ELAPSED))))
-      case false => checkIfPasscodeMatches(enteredPhoneNumberAndOtp, foundPhoneNumberPasscodeData)
+      case false => checkIfPasscodeMatches(enteredPhoneNumberAndPasscode, foundPhoneNumberPasscodeData)
     }
   }
 
@@ -168,17 +168,17 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
     elapsedTimeInMilliseconds > allowedTimeGapForPasscodeUsageInMilliseconds
   }
 
-  private def checkIfPasscodeMatches(enteredPhoneNumberAndOtp: PhoneNumberAndOtp,
-                                     maybePhoneNumberAndOtpData: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier): Future[Result] = {
-    passcodeMatches(enteredPhoneNumberAndOtp.otp, maybePhoneNumberAndOtpData.otp) match {
+  private def checkIfPasscodeMatches(enteredPhoneNumberAndPasscode: PhoneNumberAndPasscode,
+                                     maybePhoneNumberAndPasscodeData: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier): Future[Result] = {
+    passcodeMatches(enteredPhoneNumberAndPasscode.passcode, maybePhoneNumberAndPasscodeData.passcode) match {
       case true =>
-        metricsService.recordMetric("otp_verification_success")
+        metricsService.recordMetric("passcode_verification_success")
         auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
-          VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, VERIFIED))
+          VerificationCheckAuditEvent(enteredPhoneNumberAndPasscode.phoneNumber, enteredPhoneNumberAndPasscode.passcode, VERIFIED))
         Future.successful(Ok(Json.toJson(VerificationStatus(VERIFIED))))
 
       case false => auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
-        VerificationCheckAuditEvent(enteredPhoneNumberAndOtp.phoneNumber, enteredPhoneNumberAndOtp.otp, NOT_VERIFIED))
+        VerificationCheckAuditEvent(enteredPhoneNumberAndPasscode.phoneNumber, enteredPhoneNumberAndPasscode.passcode, NOT_VERIFIED))
         Future.successful(Ok(Json.toJson(VerificationStatus(NOT_VERIFIED))))
     }
   }

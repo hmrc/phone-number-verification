@@ -16,21 +16,20 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import java.security.SecureRandom
+import javax.inject.Singleton
+import scala.collection.mutable
 
-class OtpServiceSpec extends AnyWordSpec
-  with Matchers{
-
-  private val otpService = new OtpService()
-
-  "create 6 digit passcode" in {
-    otpService.otpGenerator.forall(y => y.isUpper) shouldBe true
-    otpService.otpGenerator.forall(y => y.isLetter) shouldBe true
-
-    val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(', ')', '-', '+')
-    otpService.otpGenerator.toList map (y => assertResult(illegalChars contains y)(false))
-
-    otpService.otpGenerator.length shouldBe 6
+@Singleton()
+class PasscodeGenerator {
+  def generatePasscode(): String = {
+    val sb = new mutable.StringBuilder()
+    val passcodeSize = 6
+    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val secureRandom = SecureRandom.getInstanceStrong
+    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
+      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
+      .forEach(x => sb.append(x))
+    sb.mkString
   }
 }

@@ -105,9 +105,11 @@ class GovUkConnectorSpec extends AnyWordSpec
     protected implicit val hc: HeaderCarrier = HeaderCarrier()
     protected val appConfigMock = mock[AppConfig]
     val cbConfigData = CircuitBreakerConfig("", 5, 5.toDuration, 30.toDuration, 5.toDuration, 1, 0)
+
     implicit class IntToDuration(timeout: Int) {
       def toDuration = Duration(timeout, java.util.concurrent.TimeUnit.SECONDS)
     }
+
     val govUkConnector = new GovUkConnector(
       httpClientV2,
       appConfigMock
