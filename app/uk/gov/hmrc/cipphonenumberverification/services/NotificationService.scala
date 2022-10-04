@@ -27,6 +27,7 @@ import uk.gov.hmrc.cipphonenumberverification.audit.VerificationDeliveryResultRe
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
 import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.{EXTERNAL_API_FAIL, EXTERNAL_SERVICE_TIMEOUT, VALIDATION_ERROR}
+import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Message.{EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE, EXTERNAL_SERVER_TIMEOUT}
 import uk.gov.hmrc.cipphonenumberverification.models.govnotify.response.GovUkNotificationStatusResponse
 import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, NotificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.utils.GovNotifyUtils
@@ -74,7 +75,7 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
           BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR, "Enter a valid notification Id")))
         case FORBIDDEN =>
           logger.warn(err.message)
-          ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, "External server currently unavailable")))
+          ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE)))
         case _ =>
           logger.error(err.message)
           Result.apply(ResponseHeader(err.statusCode), HttpEntity.NoEntity)
@@ -87,7 +88,7 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
     } recover {
       case err =>
         logger.error(err.getMessage)
-        GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT, "External server timeout")))
+        GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT, EXTERNAL_SERVER_TIMEOUT)))
     }
   }
 }

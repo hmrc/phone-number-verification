@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -55,15 +55,15 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
     )
   }
 
-  def sendPasscode(phoneNumberAndOtp: PhoneNumberAndOtp)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
+  def sendPasscode(phoneNumberPasscodeData: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     // TODO Build this elsewhere
     val passcodeRequest = Json.obj(
-      "phone_number" -> s"${phoneNumberAndOtp.phoneNumber}",
+      "phone_number" -> s"${phoneNumberPasscodeData.phoneNumber}",
       "template_id" -> s"${config.govNotifyConfig.templateId}",
       "personalisation" -> Json.obj(
         "clientServiceName" -> "cip-phone-service",
-        "passcode" -> s"${phoneNumberAndOtp.otp}",
-        "timeToLive" -> s"${config.cacheExpiry}")
+        "passcode" -> s"${phoneNumberPasscodeData.otp}",
+        "timeToLive" -> s"${config.passcodeExpiry}")
     )
 
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](

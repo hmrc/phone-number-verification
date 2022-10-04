@@ -16,18 +16,13 @@
 
 package uk.gov.hmrc.cipphonenumberverification.utils
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import javax.inject.Singleton
 
-class GovNotifyUtilsSpec extends AnyWordSpec with Matchers {
+@Singleton
+class DateTimeUtils {
 
-  private val govNotifyUtils = new GovNotifyUtils()
-
-  "should extract passcode from GovNotify Body property" in {
-    val input = "CIP Phone Number Verification Service: myTaxService needs to verify your telephone number.\n  Your telephone number verification code is ABCDEF.\n  Use this code within 10 minutes to verify your telephone number."
-
-    val actual = govNotifyUtils.extractPasscodeFromGovNotifyBody(input)
-
-    actual shouldBe "ABCDEF"
+  def getCurrentDateTime(): Long = {
+    System.currentTimeMillis()
   }
+
 }

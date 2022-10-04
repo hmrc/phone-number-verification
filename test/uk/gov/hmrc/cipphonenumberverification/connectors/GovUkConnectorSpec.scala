@@ -25,7 +25,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status.OK
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig, GovNotifyConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.utils.TestActorSystem
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
@@ -76,21 +76,24 @@ class GovUkConnectorSpec extends AnyWordSpec
       when(appConfigMock.govNotifyConfig).thenReturn(GovNotifyConfig(
         wireMockUrl, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
 
-      when(appConfigMock.cacheExpiry).thenReturn(1)
+      when(appConfigMock.passcodeExpiry).thenReturn(15)
 
-      val result = govUkConnector.sendPasscode(PhoneNumberAndOtp("test", "test"))
+      val now = System.currentTimeMillis()
+      val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode", now)
+
+      val result = govUkConnector.sendPasscode(phoneNumberPasscodeData)
       await(result).right.get.status shouldBe OK
 
       verify(
         postRequestedFor(urlEqualTo(smsUrl)).withRequestBody(equalToJson(
           """
             {
-              "phone_number": "test",
+              "phone_number": "testPhoneNumber",
               "template_id": "template-id-fake",
               "personalisation": {
                 "clientServiceName": "cip-phone-service",
-                "passcode": "test",
-                "timeToLive": "1"
+                "passcode": "testPasscode",
+                "timeToLive": "15"
               }
             }
             """))
