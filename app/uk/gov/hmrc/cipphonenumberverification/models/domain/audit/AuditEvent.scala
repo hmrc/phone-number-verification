@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.models.domain.audit
 
-import play.api.libs.json._
-
-case class PhoneNumber(phoneNumber: String)
-
-object PhoneNumber {
-  implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
-}
+abstract class AuditEvent(phoneNumber: String, passcode: String)

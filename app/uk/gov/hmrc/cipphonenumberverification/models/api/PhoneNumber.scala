@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models.govnotify.response
+package uk.gov.hmrc.cipphonenumberverification.models.api
 
-import play.api.libs.json.{Json, Reads}
+import play.api.libs.json._
 
-case class GovUkNotificationStatusResponse(phone_number: String, body: String, status: String)
+case class PhoneNumber(phoneNumber: String)
 
-object GovUkNotificationStatusResponse {
-  implicit val reads: Reads[GovUkNotificationStatusResponse] = Json.reads[GovUkNotificationStatusResponse]
+object PhoneNumber {
+  implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
 }

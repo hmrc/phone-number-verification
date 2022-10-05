@@ -19,7 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.utils
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
 import uk.gov.hmrc.mongo.cache.DataKey
 
 import scala.concurrent.Future

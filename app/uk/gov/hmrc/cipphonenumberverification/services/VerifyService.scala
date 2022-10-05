@@ -22,9 +22,10 @@ import play.api.mvc.Results.ServiceUnavailable
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Message.SERVER_CURRENTLY_UNAVAILABLE
-import uk.gov.hmrc.cipphonenumberverification.models._
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.SERVER_CURRENTLY_UNAVAILABLE
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 

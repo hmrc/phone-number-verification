@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.audit
+package uk.gov.hmrc.cipphonenumberverification.models.domain.audit
 
-import play.api.libs.json.{Json}
+import play.api.libs.json.Json
 
 case class VerificationRequestAuditEvent(phoneNumber: String, passcode: String) extends AuditEvent(phoneNumber, passcode)
 

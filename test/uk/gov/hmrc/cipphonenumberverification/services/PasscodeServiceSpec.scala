@@ -21,7 +21,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsObject
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumber, PhoneNumberPasscodeData}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
 

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.audit
+package uk.gov.hmrc.cipphonenumberverification.models.http.govnotify
 
-object AuditType extends Enumeration {
-  type Type = Value
-  
-  val PhoneNumberVerificationRequest, PhoneNumberVerificationDeliveryResultRequest, PhoneNumberVerificationCheck = Value
+import play.api.libs.json.{Json, Reads}
+
+case class GovUkNotificationStatusResponse(phone_number: String, body: String, status: String)
+
+object GovUkNotificationStatusResponse {
+  implicit val reads: Reads[GovUkNotificationStatusResponse] = Json.reads[GovUkNotificationStatusResponse]
 }

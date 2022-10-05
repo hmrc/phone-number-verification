@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.models.domain.audit
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.Json
 
-case class NotificationId(notificationId: String)
+case class VerificationDeliveryResultRequestAuditEvent(phoneNumber: String, passcode: String, notificationId: String,
+                                                                  notificationStatus: String) extends AuditEvent(phoneNumber, passcode)
 
-object NotificationId {
-  implicit val writes: OWrites[NotificationId] = Json.writes[NotificationId]
+object VerificationDeliveryResultRequestAuditEvent {
+  implicit val writes = Json.writes[VerificationDeliveryResultRequestAuditEvent]
 }

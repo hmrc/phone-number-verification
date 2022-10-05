@@ -18,19 +18,23 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
 import play.api.http.HttpEntity
-import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, TOO_MANY_REQUESTS}
+import play.api.http.Status._
 import play.api.libs.json.Json
-import play.api.mvc.Results.{Accepted, BadGateway, BadRequest, InternalServerError, Ok, ServiceUnavailable, TooManyRequests}
+import play.api.mvc.Results._
 import play.api.mvc.{ResponseHeader, Result}
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
-import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes._
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Message._
-import uk.gov.hmrc.cipphonenumberverification.models.StatusMessage.{INDETERMINATE, NOT_VERIFIED, VERIFIED}
+import uk.gov.hmrc.cipphonenumberverification.models.api.StatusMessage._
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, Indeterminate, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType._
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationId
+import uk.gov.hmrc.cipphonenumberverification.models.http.validation.ValidatedPhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models._
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message._
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
 import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx, is5xx}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -113,7 +117,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
       case TOO_MANY_REQUESTS =>
         metricsService.recordMetric(s"UpstreamErrorResponse.${error.statusCode}")
         logger.error(error.getMessage)
-        TooManyRequests(Json.toJson(ErrorResponse(MESSAGE_THROTTLED_OUT, "The request for the API is throttled as you have exceeded your quota")))
+        TooManyRequests(Json.toJson(api.ErrorResponse(MESSAGE_THROTTLED_OUT, "The request for the API is throttled as you have exceeded your quota")))
       case _ =>
         metricsService.recordMetric(s"UpstreamErrorResponse.${error.statusCode}")
         logger.error(error.getMessage)
@@ -127,7 +131,7 @@ abstract class VerifyHelper @Inject()(otpService: OtpService,
       logger.error(err.getMessage)
       metricsService.recordMetric(err.toString.trim.dropRight(1))
       metricsService.recordMetric("gov-notify_connection_failure")
-      ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
+      ServiceUnavailable(Json.toJson(api.ErrorResponse(EXTERNAL_SERVICE_FAIL, "Server currently unavailable")))
   }
 
   private def processValidOtp(validatedPhoneNumber: ValidatedPhoneNumber, otp: String)

@@ -24,14 +24,17 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{Json, OWrites}
-import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, header, status}
-import play.api.test.Helpers.contentAsString
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
-import uk.gov.hmrc.cipphonenumberverification.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, header, status}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.{GovUkNotificationId, PhoneNumber, PhoneNumberAndOtp, PhoneNumberPasscodeData, ValidatedPhoneNumber}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationId
+import uk.gov.hmrc.cipphonenumberverification.models.http.validation.ValidatedPhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 

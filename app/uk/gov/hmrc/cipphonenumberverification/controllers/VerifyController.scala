@@ -18,7 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

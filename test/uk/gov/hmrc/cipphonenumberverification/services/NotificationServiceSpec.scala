@@ -26,10 +26,10 @@ import play.api.http.Status.{BAD_REQUEST, GATEWAY_TIMEOUT, NOT_FOUND, OK, SERVIC
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
 import play.api.test.Helpers._
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.PhoneNumberVerificationDeliveryResultRequest
-import uk.gov.hmrc.cipphonenumberverification.audit.VerificationDeliveryResultRequestAuditEvent
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.PhoneNumberVerificationDeliveryResultRequest
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
-import uk.gov.hmrc.cipphonenumberverification.models.govnotify.response.GovUkNotificationStatusResponse
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.VerificationDeliveryResultRequestAuditEvent
+import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationStatusResponse
 import uk.gov.hmrc.cipphonenumberverification.utils.GovNotifyUtils
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 

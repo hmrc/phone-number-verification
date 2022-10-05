@@ -19,8 +19,9 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, PhoneNumberAndOtp}
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

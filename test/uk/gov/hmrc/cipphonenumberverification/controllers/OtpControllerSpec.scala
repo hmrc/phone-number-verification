@@ -25,7 +25,8 @@ import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumberAndOtp, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.api.VerificationStatus
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
 
