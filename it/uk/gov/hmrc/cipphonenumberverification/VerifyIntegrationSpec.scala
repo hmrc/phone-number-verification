@@ -23,6 +23,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 
 class VerifyIntegrationSpec extends AnyWordSpec
   with Matchers
@@ -58,7 +59,7 @@ class VerifyIntegrationSpec extends AnyWordSpec
           .futureValue
 
       response.status shouldBe 400
-      (response.json \ "code").as[String] shouldBe "VALIDATION_ERROR"
+      (response.json \ "code").as[Int] shouldBe VALIDATION_ERROR.id
       (response.json \ "message").as[String] shouldBe "Enter a valid telephone number"
     }
   }

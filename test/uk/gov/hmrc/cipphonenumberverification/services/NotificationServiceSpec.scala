@@ -28,6 +28,7 @@ import play.api.libs.json._
 import play.api.test.Helpers._
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.PhoneNumberVerificationDeliveryResultRequest
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.VerificationDeliveryResultRequestAuditEvent
 import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationStatusResponse
 import uk.gov.hmrc.cipphonenumberverification.utils.GovNotifyUtils
@@ -139,94 +140,97 @@ class NotificationServiceSpec extends AnyWordSpec
       mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
     }
 
-    "return NotificationStatus for temporary-failure status" in new SetUp {
-      val govUkNotificationStatus = buildGovNotifyResponseWithStatus("temporary-failure")
-      val httpResponse = HttpResponse(Status.OK, Json.toJson(govUkNotificationStatus), Map.empty[String, Seq[String]])
-      mockGovUkConnector.notificationStatus(notificationId)
-        .returns(Future.successful(Right(httpResponse)))
 
-      val result = service.status(notificationId)
 
-      status(result) shouldBe OK
-      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "TEMPORARY_FAILURE"
-      (contentAsJson(result) \ "message").as[String] shouldBe
-        "Message was unable to be delivered by the network provider"
-      mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
-      val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "temporary-failure")
-      mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
-    }
+   "return NotificationStatus for temporary-failure status" in new SetUp {
+     val govUkNotificationStatus = buildGovNotifyResponseWithStatus("temporary-failure")
+     val httpResponse = HttpResponse(Status.OK, Json.toJson(govUkNotificationStatus), Map.empty[String, Seq[String]])
+     mockGovUkConnector.notificationStatus(notificationId)
+       .returns(Future.successful(Right(httpResponse)))
 
-    "return NotificationStatus for technical-failure status" in new SetUp {
-      val govUkNotificationStatus = buildGovNotifyResponseWithStatus("technical-failure")
-      val httpResponse = HttpResponse(Status.OK, Json.toJson(govUkNotificationStatus), Map.empty[String, Seq[String]])
-      mockGovUkConnector.notificationStatus(notificationId)
-        .returns(Future.successful(Right(httpResponse)))
+     val result = service.status(notificationId)
 
-      val result = service.status(notificationId)
+     status(result) shouldBe OK
+     (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "TEMPORARY_FAILURE"
+     (contentAsJson(result) \ "message").as[String] shouldBe
+       "Message was unable to be delivered by the network provider"
+     mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
+     val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "temporary-failure")
+     mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
+   }
 
-      status(result) shouldBe OK
-      (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "TECHNICAL_FAILURE"
-      (contentAsJson(result) \ "message").as[String] shouldBe "There is a problem with the notification vendor"
-      mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
-      val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "technical-failure")
-      mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
-    }
+   "return NotificationStatus for technical-failure status" in new SetUp {
+     val govUkNotificationStatus = buildGovNotifyResponseWithStatus("technical-failure")
+     val httpResponse = HttpResponse(Status.OK, Json.toJson(govUkNotificationStatus), Map.empty[String, Seq[String]])
+     mockGovUkConnector.notificationStatus(notificationId)
+       .returns(Future.successful(Right(httpResponse)))
 
-    "return NotificationStatus when notification id not found" in new SetUp {
-      val httpResponse = UpstreamErrorResponse("", Status.NOT_FOUND)
-      mockGovUkConnector.notificationStatus(notificationId)
-        .returns(Future.successful(Left(httpResponse)))
+     val result = service.status(notificationId)
 
-      val result = service.status(notificationId)
+     status(result) shouldBe OK
+     (contentAsJson(result) \ "notificationStatus").as[String] shouldBe "TECHNICAL_FAILURE"
+     (contentAsJson(result) \ "message").as[String] shouldBe "There is a problem with the notification vendor"
+     mockGovNotifyUtils.extractPasscodeFromGovNotifyBody(expectedGovNotifyResponseBody) was called
+     val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent(expectedPhoneNumber, passcode, notificationId, "technical-failure")
+     mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
+   }
 
-      status(result) shouldBe NOT_FOUND
-      (contentAsJson(result) \ "code").as[String] shouldBe "NOTIFICATION_NOT_FOUND"
-      (contentAsJson(result) \ "message").as[String] shouldBe "Notification Id not found"
-      mockGovNotifyUtils wasNever called
-      val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent("No_data_found", "No_data_found", notificationId, "No_data_found")
-      mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
-    }
+   "return NotificationStatus when notification id not found" in new SetUp {
+     val httpResponse = UpstreamErrorResponse("", Status.NOT_FOUND)
+     mockGovUkConnector.notificationStatus(notificationId)
+       .returns(Future.successful(Left(httpResponse)))
 
-    "return ErrorResponse when notification id is not valid uuid" in new SetUp {
-      val httpResponse = UpstreamErrorResponse("", Status.BAD_REQUEST)
-      mockGovUkConnector.notificationStatus(notificationId)
-        .returns(Future.successful(Left(httpResponse)))
+     val result = service.status(notificationId)
 
-      val result = service.status(notificationId)
+     status(result) shouldBe NOT_FOUND
+     (contentAsJson(result) \ "code").as[Int] shouldBe NOTIFICATION_NOT_FOUND.id
+     (contentAsJson(result) \ "message").as[String] shouldBe "Notification Id not found"
+     mockGovNotifyUtils wasNever called
+     val expectedAuditEvent = VerificationDeliveryResultRequestAuditEvent("No_data_found", "No_data_found", notificationId, "No_data_found")
+     mockAuditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest, expectedAuditEvent) was called
+   }
 
-      status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "VALIDATION_ERROR"
-      (contentAsJson(result) \ "message").as[String] shouldBe "Enter a valid notification Id"
-      mockGovNotifyUtils wasNever called
-      mockAuditService wasNever called
-    }
+   "return ErrorResponse when notification id is not valid uuid" in new SetUp {
+     val httpResponse = UpstreamErrorResponse("", Status.BAD_REQUEST)
+     mockGovUkConnector.notificationStatus(notificationId)
+       .returns(Future.successful(Left(httpResponse)))
 
-    "return ErrorResponse when gov uk notify returns 403" in new SetUp {
-      val httpResponse = UpstreamErrorResponse("", Status.FORBIDDEN)
-      mockGovUkConnector.notificationStatus(notificationId)
-        .returns(Future.successful(Left(httpResponse)))
+     val result = service.status(notificationId)
 
-      val result = service.status(notificationId)
+     status(result) shouldBe BAD_REQUEST
+     (contentAsJson(result) \ "code").as[Int] shouldBe VALIDATION_ERROR.id
+     (contentAsJson(result) \ "message").as[String] shouldBe "Enter a valid notification Id"
+     mockGovNotifyUtils wasNever called
+     mockAuditService wasNever called
+   }
 
-      status(result) shouldBe SERVICE_UNAVAILABLE
-      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_API_FAIL"
-      (contentAsJson(result) \ "message").as[String] shouldBe "External server currently unavailable"
-      mockGovNotifyUtils wasNever called
-      mockAuditService wasNever called
-    }
+   "return ErrorResponse when gov uk notify returns 403" in new SetUp {
+     val httpResponse = UpstreamErrorResponse("", Status.FORBIDDEN)
+     mockGovUkConnector.notificationStatus(notificationId)
+       .returns(Future.successful(Left(httpResponse)))
 
-    "return Gateway timeout if gov-notify connection times-out" in new SetUp {
-      mockGovUkConnector.notificationStatus(notificationId)
-        .returns(Future.failed(new ConnectionException("")))
+     val result = service.status(notificationId)
 
-      val result = service.status(notificationId)
+     status(result) shouldBe SERVICE_UNAVAILABLE
+     (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_API_FAIL.id
+     (contentAsJson(result) \ "message").as[String] shouldBe "External server currently unavailable"
+     mockGovNotifyUtils wasNever called
+     mockAuditService wasNever called
+   }
 
-      status(result) shouldBe GATEWAY_TIMEOUT
-      (contentAsJson(result) \ "code").as[String] shouldBe "EXTERNAL_SERVICE_TIMEOUT"
-      (contentAsJson(result) \ "message").as[String] shouldBe "External server timeout"
-      mockGovNotifyUtils wasNever called
-      mockAuditService wasNever called
-    }
+   "return Gateway timeout if gov-notify connection times-out" in new SetUp {
+     mockGovUkConnector.notificationStatus(notificationId)
+       .returns(Future.failed(new ConnectionException("")))
+
+     val result = service.status(notificationId)
+
+     status(result) shouldBe GATEWAY_TIMEOUT
+     (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_SERVICE_TIMEOUT.id
+     (contentAsJson(result) \ "message").as[String] shouldBe "External server timeout"
+     mockGovNotifyUtils wasNever called
+     mockAuditService wasNever called
+   }
+
   }
 
   trait SetUp {

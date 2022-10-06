@@ -26,14 +26,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository)
                                (implicit ec: ExecutionContext) extends Logging {
-  def persistPasscode(phoneNumberAndOtp: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
-    logger.debug(s"Storing phoneNumberAndOtp in database for ${phoneNumberAndOtp.phoneNumber}")
-    passcodeCacheRepository.put(phoneNumberAndOtp.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtp)
-      .map(_ => phoneNumberAndOtp)
+  def persistPasscode(phoneNumberAndPasscode: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
+    logger.debug(s"Storing phoneNumberAndPasscode in database")
+    passcodeCacheRepository.put(phoneNumberAndPasscode.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscode)
+      .map(_ => phoneNumberAndPasscode)
   }
 
   def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberPasscodeData]] = {
-    logger.debug(s"Retrieving phoneNumberAndOtp from database for $phoneNumber")
+    logger.debug(s"Retrieving phoneNumberAndPasscode from database")
     passcodeCacheRepository.get[PhoneNumberPasscodeData](phoneNumber)(DataKey("cip-phone-number-verification"))
   }
 

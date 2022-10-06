@@ -20,16 +20,16 @@ import play.api.libs.functional.syntax.{toApplicativeOps, toFunctionalBuilderOps
 import play.api.libs.json.Reads.{maxLength, minLength}
 import play.api.libs.json.{JsPath, Json, Reads, Writes}
 
-case class PhoneNumberAndOtp(phoneNumber: String, otp: String)
+case class PhoneNumberAndPasscode(phoneNumber: String, passcode: String)
 
-object PhoneNumberAndOtp {
+object PhoneNumberAndPasscode {
   val MIN_LENGTH_PASSCODE = 6
   val MAX_LENGTH_PASSCODE = 6
 
-  implicit val reads: Reads[PhoneNumberAndOtp] = (
+  implicit val reads: Reads[PhoneNumberAndPasscode] = (
     (JsPath \ "phoneNumber").read[String] and
-      (JsPath \ "otp").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
-    ) (PhoneNumberAndOtp.apply _)
+      (JsPath \ "passcode").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
+    ) (PhoneNumberAndPasscode.apply _)
 
-  implicit val writes: Writes[PhoneNumberAndOtp] = Json.writes[PhoneNumberAndOtp]
+  implicit val writes: Writes[PhoneNumberAndPasscode] = Json.writes[PhoneNumberAndPasscode]
 }

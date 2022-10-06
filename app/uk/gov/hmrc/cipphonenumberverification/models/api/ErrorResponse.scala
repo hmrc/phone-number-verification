@@ -17,10 +17,9 @@
 package uk.gov.hmrc.cipphonenumberverification.models.api
 
 import play.api.libs.json.{Json, OWrites}
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.Code
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.Message
 
-case class ErrorResponse(code: Code, message: Message)
+case class ErrorResponse(code: Int, message: Message)
 
 object ErrorResponse {
   implicit val writes: OWrites[ErrorResponse] = Json.writes[ErrorResponse]
@@ -28,15 +27,15 @@ object ErrorResponse {
   object Codes extends Enumeration {
     type Code = Value
 
-    val NOTIFICATION_NOT_FOUND    = Value
-    val VALIDATION_ERROR          = Value
-    val VERIFICATION_ERROR        = Value
-    val EXTERNAL_API_FAIL         = Value
-    val PASSCODE_VERIFY_FAIL      = Value
-    val EXTERNAL_SERVICE_FAIL     = Value
-    val MESSAGE_THROTTLED_OUT     = Value
-    val PASSCODE_PERSISTING_FAIL  = Value
-    val EXTERNAL_SERVICE_TIMEOUT  = Value
+    val NOTIFICATION_NOT_FOUND    = Value(1001)
+    val VALIDATION_ERROR          = Value(1002)
+    val VERIFICATION_ERROR        = Value(1003)
+    val EXTERNAL_API_FAIL         = Value(1004)
+    val PASSCODE_VERIFY_FAIL      = Value(1005)
+    val EXTERNAL_SERVICE_FAIL     = Value(1006)
+    val MESSAGE_THROTTLED_OUT     = Value(1007)
+    val PASSCODE_PERSISTING_FAIL  = Value(1008)
+    val EXTERNAL_SERVICE_TIMEOUT  = Value(1009)
   }
 
   object Message extends Enumeration {

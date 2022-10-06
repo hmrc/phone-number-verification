@@ -70,13 +70,13 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
           logger.warn("Notification Id not found")
           auditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest,
             VerificationDeliveryResultRequestAuditEvent(NO_DATA_FOUND, NO_DATA_FOUND, notificationId, NO_DATA_FOUND))
-          NotFound(Json.toJson(ErrorResponse(Codes.NOTIFICATION_NOT_FOUND, "Notification Id not found")))
+          NotFound(Json.toJson(ErrorResponse(Codes.NOTIFICATION_NOT_FOUND.id, "Notification Id not found")))
         case BAD_REQUEST =>
           logger.warn("Notification Id not valid")
-          BadRequest(Json.toJson(api.ErrorResponse(VALIDATION_ERROR, "Enter a valid notification Id")))
+          BadRequest(Json.toJson(api.ErrorResponse(VALIDATION_ERROR.id, "Enter a valid notification Id")))
         case FORBIDDEN =>
           logger.warn(err.message)
-          ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE)))
+          ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL.id, EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE)))
         case _ =>
           logger.error(err.message)
           Result.apply(ResponseHeader(err.statusCode), HttpEntity.NoEntity)
@@ -89,7 +89,7 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
     } recover {
       case err =>
         logger.error(err.getMessage)
-        GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT, EXTERNAL_SERVER_TIMEOUT)))
+        GatewayTimeout(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_TIMEOUT.id, EXTERNAL_SERVER_TIMEOUT)))
     }
   }
 }
