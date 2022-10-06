@@ -1,5 +1,5 @@
 ### Correct-number
-POST http://localhost:6083/customer-insight-platform/phone-number/verify
+POST http://localhost:6081/customer-insight-platform/phone-number/verify
 content-type: application/json
 
 {
@@ -51,7 +51,7 @@ content-type: application/json
 }
 
 ###
-POST http://localhost:6083/customer-insight-platform/phone-number/verify/passcode
+POST http://localhost:6083/customer-insight-platform/phone-number/verify/otp
 content-type: application/json
 
 {

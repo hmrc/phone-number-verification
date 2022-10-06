@@ -20,8 +20,8 @@ import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Json, OWrites}
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.PhoneNumberVerificationRequest
-import uk.gov.hmrc.cipphonenumberverification.audit.VerificationRequestAuditEvent
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.PhoneNumberVerificationRequest
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.VerificationRequestAuditEvent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 

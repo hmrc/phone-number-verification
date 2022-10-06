@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.models.api
 
 import play.api.libs.json.{Json, OWrites}
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.Code
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Message.Message
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.Code
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.Message
 
 case class ErrorResponse(code: Code, message: Message)
 

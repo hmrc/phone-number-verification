@@ -14,28 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.models.api
 
 import play.api.libs.json.{Json, OWrites}
 
-abstract class Status(status: String)
+case class NotificationId(notificationId: String)
 
-case class VerificationStatus(status: String) extends Status(status)
-
-object VerificationStatus {
-  implicit val writes: OWrites[VerificationStatus] = Json.writes[VerificationStatus]
-}
-
-case class Indeterminate(status: String, message: String) extends Status(status)
-
-object Indeterminate {
-  implicit val writes: OWrites[Indeterminate] = Json.writes[Indeterminate]
-}
-
-object StatusMessage extends Enumeration {
-  type StatusMessage = String
-
-  val VERIFIED = "Verified"
-  val NOT_VERIFIED = "Not verified"
-  val INDETERMINATE = "Indeterminate"
+object NotificationId {
+  implicit val writes: OWrites[NotificationId] = Json.writes[NotificationId]
 }

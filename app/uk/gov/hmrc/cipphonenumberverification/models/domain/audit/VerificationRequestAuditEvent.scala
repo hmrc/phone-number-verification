@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.services
+package uk.gov.hmrc.cipphonenumberverification.models.domain.audit
 
-import java.security.SecureRandom
-import javax.inject.Singleton
-import scala.collection.mutable
+import play.api.libs.json.Json
 
-@Singleton()
-class PasscodeGenerator {
-  def generatePasscode(): String = {
-    val sb = new mutable.StringBuilder()
-    val passcodeSize = 6
-    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    val secureRandom = SecureRandom.getInstanceStrong
-    secureRandom.ints(passcodeSize, 0, chrsToChooseFrom.length)
-      .mapToObj((i: Int) => chrsToChooseFrom.charAt(i))
-      .forEach(x => sb.append(x))
-    sb.mkString
-  }
+case class VerificationRequestAuditEvent(phoneNumber: String, passcode: String) extends AuditEvent(phoneNumber, passcode)
+
+object VerificationRequestAuditEvent {
+  implicit val writes = Json.writes[VerificationRequestAuditEvent]
 }

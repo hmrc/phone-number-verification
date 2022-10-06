@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads, Writes}
 
-case class PhoneNumberPasscodeData(phoneNumber: String, passcode: String, createdAt: Long)
+case class PhoneNumberPasscodeData(phoneNumber: String, otp: String, createdAt: Long)
 
 object PhoneNumberPasscodeData {
 
-  implicit val format = Json.format[PhoneNumberPasscodeData]
+  implicit val reads: Reads[PhoneNumberPasscodeData] = Json.reads[PhoneNumberPasscodeData]
+  implicit val writes: Writes[PhoneNumberPasscodeData] = Json.writes[PhoneNumberPasscodeData]
 }

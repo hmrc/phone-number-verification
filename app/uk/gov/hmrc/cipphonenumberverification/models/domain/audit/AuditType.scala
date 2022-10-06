@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.models.domain.audit
 
-import play.api.libs.json.{Json, OWrites}
+object AuditType extends Enumeration {
+  type Type = Value
 
-case class NotificationStatus(notificationStatus: String, message: String)
-
-object NotificationStatus {
-  implicit val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
+  val PhoneNumberVerificationRequest, PhoneNumberVerificationDeliveryResultRequest, PhoneNumberVerificationCheck = Value
 }

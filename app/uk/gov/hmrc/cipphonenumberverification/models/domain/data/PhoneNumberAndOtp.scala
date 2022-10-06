@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models
+package uk.gov.hmrc.cipphonenumberverification.models.domain.data
 
 import play.api.libs.functional.syntax.{toApplicativeOps, toFunctionalBuilderOps}
 import play.api.libs.json.Reads.{maxLength, minLength}
 import play.api.libs.json.{JsPath, Json, Reads, Writes}
 
-case class PhoneNumberAndPasscode(phoneNumber: String, passcode: String)
+case class PhoneNumberAndOtp(phoneNumber: String, otp: String)
 
-object PhoneNumberAndPasscode {
+object PhoneNumberAndOtp {
   val MIN_LENGTH_PASSCODE = 6
   val MAX_LENGTH_PASSCODE = 6
 
-  implicit val reads: Reads[PhoneNumberAndPasscode] = (
+  implicit val reads: Reads[PhoneNumberAndOtp] = (
     (JsPath \ "phoneNumber").read[String] and
-      (JsPath \ "passcode").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
-    ) (PhoneNumberAndPasscode.apply _)
+      (JsPath \ "otp").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
+    ) (PhoneNumberAndOtp.apply _)
 
-  implicit val writes: Writes[PhoneNumberAndPasscode] = Json.writes[PhoneNumberAndPasscode]
+  implicit val writes: Writes[PhoneNumberAndOtp] = Json.writes[PhoneNumberAndOtp]
 }

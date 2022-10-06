@@ -21,7 +21,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsObject
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.cipphonenumberverification.models.{PhoneNumber, PhoneNumberPasscodeData}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
 
@@ -29,22 +30,22 @@ import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class VerifyPasscodeServiceSpec extends AnyWordSpec
+class PasscodeServiceSpec extends AnyWordSpec
   with Matchers
   with IdiomaticMockito {
 
   "persistPasscode" should {
     "return passcode" in new SetUp {
       val phoneNumber = PhoneNumber("test")
-      val passcode = "ABCDEF"
+      val otp = "ABCDEF"
       val now = System.currentTimeMillis()
-      val phoneNumberAndPasscodeToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, passcode = passcode, now)
-      passcodeCacheRepositoryMock.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscodeToPersist)
+      val phoneNumberAndOtpToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, otp = otp, now)
+      passcodeCacheRepositoryMock.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndOtpToPersist)
         .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
-      val result = passcodeService.persistPasscode(phoneNumberAndPasscodeToPersist)
+      val result = passcodeService.persistPasscode(phoneNumberAndOtpToPersist)
 
-      await(result) shouldBe phoneNumberAndPasscodeToPersist
+      await(result) shouldBe phoneNumberAndOtpToPersist
     }
   }
 
@@ -61,6 +62,6 @@ class VerifyPasscodeServiceSpec extends AnyWordSpec
 
   trait SetUp {
     val passcodeCacheRepositoryMock = mock[PasscodeCacheRepository]
-    val passcodeService: VerifyPasscodeService = new VerifyPasscodeService(passcodeCacheRepositoryMock)
+    val passcodeService: PasscodeService = new PasscodeService(passcodeCacheRepositoryMock)
   }
 }
