@@ -25,7 +25,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
-class VerifyPasscodeIntegrationSpec
+class OtpIntegrationSpec
   extends AnyWordSpec
     with Matchers
     with ScalaFutures
@@ -33,25 +33,25 @@ class VerifyPasscodeIntegrationSpec
     with GuiceOneServerPerSuite
     with DataSteps {
 
-  "/verify/passcode" should {
-    "respond with 200 verified status with valid phone number and passcode" in {
+  "/verify/otp" should {
+    "respond with 200 verified status with valid phone number and otp" in {
       val phoneNumber = "07811123456"
 
-      //generate PhoneNumberAndPasscode
+      //generate PhoneNumberAndOtp
       verify(phoneNumber).futureValue
 
-      //retrieve PhoneNumberAndPasscode
-      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123456").futureValue
+      //retrieve PhoneNumberAndOtp
+      val maybePhoneNumberAndOtp = retrieveOtp("+447811123456").futureValue
 
-      //verify PhoneNumberAndPasscode (sut)
+      //verify PhoneNumberAndOtp (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
-               "passcode": "${maybePhoneNumberAndPasscode.get.passcode}"
+               "otp": "${maybePhoneNumberAndOtp.get.otp}"
                }""".stripMargin
           })
           .futureValue
@@ -61,15 +61,15 @@ class VerifyPasscodeIntegrationSpec
     }
 
     "respond with 200 not verified status with non existent phone number" in {
-      //verify PhoneNumberAndPasscode (sut)
+      //verify PhoneNumberAndOtp (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
                "phoneNumber": "07811654321",
-               "passcode": "123456"
+               "otp": "123456"
                }""".stripMargin
           })
           .futureValue
@@ -82,12 +82,12 @@ class VerifyPasscodeIntegrationSpec
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/otp")
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
                "phoneNumber": "07811654321",
-               "passcode": ""
+               "otp": ""
                }""".stripMargin
           })
           .futureValue

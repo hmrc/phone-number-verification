@@ -18,18 +18,19 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
 import play.api.http.HttpEntity
-import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, NOT_FOUND}
+import play.api.http.Status._
 import play.api.libs.json.Json
-import play.api.mvc.Results.{BadRequest, GatewayTimeout, NotFound, Ok, ServiceUnavailable}
+import play.api.mvc.Results._
 import play.api.mvc.{ResponseHeader, Result}
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.PhoneNumberVerificationDeliveryResultRequest
-import uk.gov.hmrc.cipphonenumberverification.audit.VerificationDeliveryResultRequestAuditEvent
 import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Codes.{EXTERNAL_API_FAIL, EXTERNAL_SERVICE_TIMEOUT, VALIDATION_ERROR}
-import uk.gov.hmrc.cipphonenumberverification.models.ErrorResponse.Message.{EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE, EXTERNAL_SERVER_TIMEOUT}
-import uk.gov.hmrc.cipphonenumberverification.models.govnotify.response.GovUkNotificationStatusResponse
-import uk.gov.hmrc.cipphonenumberverification.models.{ErrorResponse, NotificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.api
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message._
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, NotificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.PhoneNumberVerificationDeliveryResultRequest
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.VerificationDeliveryResultRequestAuditEvent
+import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationStatusResponse
 import uk.gov.hmrc.cipphonenumberverification.utils.GovNotifyUtils
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
@@ -72,7 +73,7 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
           NotFound(Json.toJson(ErrorResponse(Codes.NOTIFICATION_NOT_FOUND, "Notification Id not found")))
         case BAD_REQUEST =>
           logger.warn("Notification Id not valid")
-          BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR, "Enter a valid notification Id")))
+          BadRequest(Json.toJson(api.ErrorResponse(VALIDATION_ERROR, "Enter a valid notification Id")))
         case FORBIDDEN =>
           logger.warn(err.message)
           ServiceUnavailable(Json.toJson(ErrorResponse(EXTERNAL_API_FAIL, EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE)))

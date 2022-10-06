@@ -41,7 +41,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status.OK
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CipValidationConfig, CircuitBreakerConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.utils.TestActorSystem
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}

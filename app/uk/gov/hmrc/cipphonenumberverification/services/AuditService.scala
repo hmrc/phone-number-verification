@@ -19,8 +19,8 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import com.google.inject.Inject
 import play.api.Logging
 import play.api.libs.json.Writes
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditEvent
-import uk.gov.hmrc.cipphonenumberverification.audit.AuditType.Type
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.Type
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditEvent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
