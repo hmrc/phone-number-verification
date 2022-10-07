@@ -21,8 +21,8 @@ import javax.inject.Singleton
 import scala.collection.mutable
 
 @Singleton()
-class OtpService {
-  def otpGenerator(): String = {
+class PasscodeGenerator {
+  def passcodeGenerator(): String = {
     val sb = new mutable.StringBuilder()
     val passcodeSize = 6
     val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

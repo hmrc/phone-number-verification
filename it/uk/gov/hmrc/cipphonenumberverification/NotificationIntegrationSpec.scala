@@ -21,6 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
 class NotificationIntegrationSpec
@@ -58,7 +59,7 @@ class NotificationIntegrationSpec
           .futureValue
 
       response.status shouldBe 404
-      (response.json \ "code").as[String] shouldBe "NOTIFICATION_NOT_FOUND"
+      (response.json \ "code").as[Int] shouldBe NOTIFICATION_NOT_FOUND.id
       (response.json \ "message").as[String] shouldBe "Notification Id not found"
     }
 
@@ -71,7 +72,7 @@ class NotificationIntegrationSpec
           .futureValue
 
       response.status shouldBe 503
-      (response.json \ "code").as[String] shouldBe "EXTERNAL_API_FAIL"
+      (response.json \ "code").as[Int] shouldBe EXTERNAL_API_FAIL.id
       (response.json \ "message").as[String] shouldBe "External server currently unavailable"
     }
   }

@@ -58,12 +58,12 @@ For reference here are the details for running each of the services individually
     -XGET -H "Content-type: application/json"
     'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/notifications/<notificationId>'
 
-#### Verify OTP
+#### Verify Passcode
 
     -XPOST -H "Content-type: application/json" -d '{
 	    "phoneNumber": "<phone-number>",
-        "otp": "<otp>"
-    }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/otp'
+        "passcode": "<passcode>"
+    }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/passcode'
 
 ### License
 

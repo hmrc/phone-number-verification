@@ -21,7 +21,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndOtp
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -29,13 +29,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class OtpController @Inject()(cc: ControllerComponents, service: VerifyService)
+class PasscodeController @Inject()(cc: ControllerComponents, service: VerifyService)
   extends BackendController(cc)
     with Logging {
 
-  def verifyOtp: Action[JsValue] = Action(parse.json).async { implicit request =>
-    withJsonBody[PhoneNumberAndOtp] {
-      service.verifyOtp
+  def verifyPasscode: Action[JsValue] = Action(parse.json).async { implicit request =>
+    withJsonBody[PhoneNumberAndPasscode] {
+      service.verifyPasscode
     }
   }
 
@@ -44,6 +44,6 @@ class OtpController @Inject()(cc: ControllerComponents, service: VerifyService)
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR, "Enter a valid passcode"))))
+        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR.id, "Enter a valid passcode"))))
     }
 }
