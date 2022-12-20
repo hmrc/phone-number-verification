@@ -48,7 +48,7 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
   def notificationStatus(notificationId: String)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
       httpClient
-        .get(url"${config.govNotifyConfig.host}/v2/notifications/$notificationId")
+        .get(url"${config.govNotifyConfig.url}/v2/notifications/$notificationId")
         .setHeader((s"Authorization", s"Bearer $jwtBearerToken"))
         .withProxy
         .execute[Either[UpstreamErrorResponse, HttpResponse]]
@@ -68,7 +68,7 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
 
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
       httpClient
-        .post(url"${config.govNotifyConfig.host}/v2/notifications/sms")
+        .post(url"${config.govNotifyConfig.url}/v2/notifications/sms")
         .setHeader((s"Authorization", s"Bearer $jwtBearerToken"))
         .transform(_.withRequestFilter(AhcCurlRequestLogger()))
         .withBody(Json.toJson(passcodeRequest))

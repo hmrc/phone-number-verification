@@ -24,20 +24,21 @@ case class CipValidationConfig(
                                 port: Int,
                                 cbConfig: CircuitBreakerConfig
                               ) {
-  lazy val url: String =  s"$protocol://$host:$port"
+  lazy val url: String = s"$protocol://$host:$port"
 }
 
 object CipValidationConfig {
   implicit lazy val configLoader: ConfigLoader[CipValidationConfig] =
     ConfigLoader {
-      rootConfig => path =>
-        val config = Configuration(rootConfig.getConfig(path))
-        CipValidationConfig(
-          config.get[String]("protocol"),
-          config.get[String]("host"),
-          config.get[Int]("port"),
-          config.get[CircuitBreakerConfig]("circuit-breaker")
-        )
+      rootConfig =>
+        path =>
+          val config = Configuration(rootConfig.getConfig(path))
+          CipValidationConfig(
+            config.get[String]("protocol"),
+            config.get[String]("host"),
+            config.get[Int]("port"),
+            config.get[CircuitBreakerConfig]("circuit-breaker")
+          )
     }
 }
 

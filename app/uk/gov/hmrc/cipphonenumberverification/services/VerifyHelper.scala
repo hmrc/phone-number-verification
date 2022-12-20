@@ -151,7 +151,8 @@ abstract class VerifyHelper @Inject()(passcodeGenerator: PasscodeGenerator,
                               maybePhoneNumberAndpasscode: Option[PhoneNumberPasscodeData])(implicit hc: HeaderCarrier): Future[Result] =
     maybePhoneNumberAndpasscode match {
       case Some(storedPhoneNumberAndpasscode) => checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndpasscode, storedPhoneNumberAndpasscode, System.currentTimeMillis())
-      case _ => auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
+      case _ =>
+        auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, NOT_VERIFIED))
         Future.successful(Ok(Json.toJson(ErrorResponse(VERIFICATION_ERROR.id, PASSCODE_STORED_TIME_ELAPSED))))
     }
@@ -181,7 +182,8 @@ abstract class VerifyHelper @Inject()(passcodeGenerator: PasscodeGenerator,
           VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, VERIFIED))
         Future.successful(Ok(Json.toJson(VerificationStatus(VERIFIED))))
 
-      case false => auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
+      case false =>
+        auditService.sendExplicitAuditEvent(PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, NOT_VERIFIED))
         Future.successful(Ok(Json.toJson(VerificationStatus(NOT_VERIFIED))))
     }
