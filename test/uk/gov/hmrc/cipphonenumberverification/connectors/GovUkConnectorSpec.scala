@@ -53,7 +53,7 @@ class GovUkConnectorSpec extends AnyWordSpec
       )
 
       when(appConfigMock.govNotifyConfig).thenReturn(GovNotifyConfig(
-        wireMockUrl, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
+        "http", wireMockHost, wireMockPort, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
 
       when(appConfigMock.cacheExpiry).thenReturn(1)
 
@@ -74,7 +74,7 @@ class GovUkConnectorSpec extends AnyWordSpec
       )
 
       when(appConfigMock.govNotifyConfig).thenReturn(GovNotifyConfig(
-        wireMockUrl, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
+        "http", wireMockHost, wireMockPort, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
 
       when(appConfigMock.passcodeExpiry).thenReturn(15)
 

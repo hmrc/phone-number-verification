@@ -45,6 +45,9 @@ For reference here are the details for running each of the services individually
     cd cip-phone-number-verification
     sbt run
 
+    cd cip-phone-number-stubs
+    sbt run
+
 ### Curl microservice (for curl microservice build jobs)
 
 #### Verify
