@@ -65,7 +65,7 @@ class ValidateConnectorSpec extends AnyWordSpec
 
       stubFor(post(urlEqualTo(url)).willReturn(aResponse()))
       when(appConfigMock.validationConfig).thenReturn(CipValidationConfig(
-        "http", wireMockHost, wireMockPort, cbConfigData))
+        "http", wireMockHost, wireMockPort, "fake-token", cbConfigData))
       when(appConfigMock.cacheExpiry).thenReturn(1)
 
       val result = validateConnector.callService(phoneNumber.phoneNumber)

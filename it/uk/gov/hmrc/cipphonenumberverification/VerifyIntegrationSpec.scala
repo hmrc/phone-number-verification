@@ -35,7 +35,7 @@ class VerifyIntegrationSpec extends AnyWordSpec
   private val baseUrl = s"http://localhost:$port"
 
   "/verify" should {
-    "return 200 with valid telephone number" in {
+    "return 202 with valid telephone number" in {
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
