@@ -43,6 +43,7 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
       httpClientV2
         .post(url"${config.validationConfig.url}/customer-insight-platform/phone-number/validate")
         .withBody(Json.obj("phoneNumber" -> s"$phoneNumber"))
+        .setHeader(("Authorization", config.validationConfig.authToken))
         .execute[HttpResponse]
     )
   }
