@@ -52,18 +52,18 @@ For reference here are the details for running each of the services individually
 
 #### Verify
 
-    -XPOST -H "Content-type: application/json" -d '{
+    -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
 	    "phoneNumber": "<phone-number>"
     }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify'
 
 #### Check notification status
 
-    -XGET -H "Content-type: application/json"
+    -XGET -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ"
     'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/notifications/<notificationId>'
 
 #### Verify Passcode
 
-    -XPOST -H "Content-type: application/json" -d '{
+    -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
 	    "phoneNumber": "<phone-number>",
         "passcode": "<passcode>"
     }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/passcode'

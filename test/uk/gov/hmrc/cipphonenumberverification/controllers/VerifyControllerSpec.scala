@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,14 @@ import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
-import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.services.{NotificationService, VerifyService}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.internalauth.client.Predicate.Permission
+import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Resource, ResourceLocation, ResourceType, Retrieval}
+import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 
+import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
 
 class VerifyControllerSpec
@@ -36,13 +41,8 @@ class VerifyControllerSpec
     with Matchers
     with IdiomaticMockito {
 
-  private implicit val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
-  private val fakeRequest = FakeRequest()
-  private val mockVerifyService = mock[VerifyService]
-  private val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService)
-
   "verify" should {
-    "delegate to verify service" in {
+    "delegate to verify service" in new SetUp {
       val phoneNumber = PhoneNumber("")
       mockVerifyService.verifyPhoneNumber(phoneNumber)(any[HeaderCarrier])
         .returns(Future.successful(Ok))
@@ -51,5 +51,20 @@ class VerifyControllerSpec
       )
       status(result) shouldBe OK
     }
+  }
+
+  trait SetUp {
+    protected implicit val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
+    protected val mockVerifyService = mock[VerifyService]
+    protected val fakeRequest = FakeRequest().withHeaders("Authorization" -> "fake-token")
+    private val expectedPredicate = {
+      Permission(Resource(ResourceType("cip-phone-number-verification"), ResourceLocation("*")), IAAction("*"))
+    }
+    protected val mockNotificationsService = mock[NotificationService]
+    protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
+    mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
+    protected val backendAuthComponentsStub: BackendAuthComponents =
+      BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
+    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, backendAuthComponentsStub)
   }
 }

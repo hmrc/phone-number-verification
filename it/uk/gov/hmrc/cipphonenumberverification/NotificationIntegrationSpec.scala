@@ -41,6 +41,7 @@ class NotificationIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number$notificationPath")
+          .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .get
           .futureValue
@@ -54,6 +55,7 @@ class NotificationIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/notifications/noresult-d385-4b17-a0b4-23a85c0c5b1a")
+          .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .get
           .futureValue
@@ -67,6 +69,7 @@ class NotificationIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/notifications/systemclock-d385-4b17-a0b4-23a85c0c5b1a")
+          .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .get
           .futureValue

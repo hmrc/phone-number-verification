@@ -1,6 +1,7 @@
 ### Correct-number
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
+Authorization: fake-token
 
 {
   "phoneNumber" : "+447430001000"
@@ -9,6 +10,7 @@ content-type: application/json
 ###
 POST http://localhost:6083/customer-insight-platform/phone-number/verify/passcode
 content-type: application/json
+Authorization: fake-token
 
 {
 "phoneNumber" : "+447430001000",
@@ -17,19 +19,24 @@ content-type: application/json
 
 ### Notification Status
 GET http://localhost:6083/customer-insight-platform/phone-number/notifications/ecf20f0a-86af-4ebf-9012-e48bc6a31174
+Authorization: fake-token
 
 ### Notification Status
 GET http://localhost:6083/customer-insight-platform/phone-number/notifications/noresult-d385-4b17-a0b4-23a85c0c5b1a
+Authorization: fake-token
 
 ### Notification Status
 GET http://localhost:6083/customer-insight-platform/phone-number/notifications/systemclock-d385-4b17-a0b4-23a85c0c5b1a
+Authorization: fake-token
 
 ### Notification Status
 GET http://localhost:6083/customer-insight-platform/phone-number/notifications/validation-d385-4b17-a0b4-23a85c0c5b1a
+Authorization: fake-token
 
 ### Fixed_line
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
+Authorization: fake-token
 
 {
   "phoneNumber" : "02088207098"
@@ -38,6 +45,7 @@ content-type: application/json
 ### Mobile
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
+Authorization: fake-token
 
 {
   "phoneNumber" : "07843274331"
@@ -46,6 +54,7 @@ content-type: application/json
 ### Toll_free
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
+Authorization: fake-token
 
 {
   "phoneNumber" : "0845 46 41"
@@ -54,6 +63,7 @@ content-type: application/json
 ###
 POST http://localhost:6083/customer-insight-platform/phone-number/verify
 content-type: application/json
+Authorization: fake-token
 
 {
   "phoneNumber" : "dfsdsfs"
@@ -62,6 +72,7 @@ content-type: application/json
 ###
 POST http://localhost:6083/customer-insight-platform/phone-number/verify/passcode
 content-type: application/json
+Authorization: fake-token
 
 {
   "phoneNumber": "07843274331",

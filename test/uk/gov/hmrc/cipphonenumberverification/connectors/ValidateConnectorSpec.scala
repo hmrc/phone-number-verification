@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ class ValidateConnectorSpec extends AnyWordSpec
 
       stubFor(post(urlEqualTo(url)).willReturn(aResponse()))
       when(appConfigMock.validationConfig).thenReturn(CipValidationConfig(
-        "http", wireMockHost, wireMockPort, cbConfigData))
+        "http", wireMockHost, wireMockPort, "fake-token", cbConfigData))
       when(appConfigMock.cacheExpiry).thenReturn(1)
 
       val result = validateConnector.callService(phoneNumber.phoneNumber)

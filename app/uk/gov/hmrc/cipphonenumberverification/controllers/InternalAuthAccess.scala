@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models.api
+package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import play.api.libs.json.{Json, OWrites}
+import uk.gov.hmrc.internalauth.client.{IAAction, Predicate, Resource, ResourceLocation, ResourceType}
 
-case class NotificationId(notificationId: String)
-
-object NotificationId {
-  implicit val writes: OWrites[NotificationId] = Json.writes[NotificationId]
+trait InternalAuthAccess {
+  val permission: Predicate.Permission = Predicate.Permission(Resource(
+    ResourceType("cip-phone-number-verification"),
+    ResourceLocation("*")),
+    IAAction("*"))
 }

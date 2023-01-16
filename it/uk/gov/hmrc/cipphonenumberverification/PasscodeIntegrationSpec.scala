@@ -48,6 +48,7 @@ class PasscodeIntegrationSpec
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{

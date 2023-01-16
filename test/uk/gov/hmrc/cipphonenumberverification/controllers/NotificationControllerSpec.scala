@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,20 +28,19 @@ import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.models.api.NotificationStatus
 import uk.gov.hmrc.cipphonenumberverification.services.NotificationService
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.internalauth.client.Predicate.Permission
+import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Resource, ResourceLocation, ResourceType, Retrieval}
+import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 
+import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
 
 class NotificationControllerSpec extends AnyWordSpec
   with Matchers
   with IdiomaticMockito {
 
-  private implicit val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
-  private val fakeRequest = FakeRequest()
-  private val mockNotificationsService = mock[NotificationService]
-  private val controller = new NotificationController(Helpers.stubControllerComponents(), mockNotificationsService)
-
   "status" should {
-    "delegate to notification service" in {
+    "delegate to notification service" in new SetUp {
       val notificationId = "notificationId"
       mockNotificationsService.status(notificationId)(any[HeaderCarrier])
         .returns(Future.successful(Ok(Json.toJson(NotificationStatus("test status", "test message")))))
@@ -53,5 +52,19 @@ class NotificationControllerSpec extends AnyWordSpec
 
       mockNotificationsService.status(notificationId)(any[HeaderCarrier]) was called
     }
+  }
+
+  trait SetUp {
+    protected implicit val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
+    protected val fakeRequest = FakeRequest().withHeaders("Authorization" -> "fake-token")
+    private val expectedPredicate = {
+      Permission(Resource(ResourceType("cip-phone-number-verification"), ResourceLocation("*")), IAAction("*"))
+    }
+    protected val mockNotificationsService = mock[NotificationService]
+    protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
+    mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
+    protected val backendAuthComponentsStub: BackendAuthComponents =
+      BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
+    protected val controller = new NotificationController(Helpers.stubControllerComponents(), mockNotificationsService, backendAuthComponentsStub)
   }
 }
