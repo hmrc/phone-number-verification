@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,17 @@ import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.internalauth.client.BackendAuthComponents
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyController @Inject()(cc: ControllerComponents, service: VerifyService)
-  extends BackendController(cc) {
+class VerifyController @Inject()(cc: ControllerComponents, service: VerifyService, auth: BackendAuthComponents )
+  extends BackendController(cc) with InternalAuthAccess {
 
-  def verify: Action[JsValue] = Action(parse.json).async { implicit request =>
+  def verify: Action[JsValue] = auth.authorizedAction[Unit](permission).compose(Action(parse.json)).async { implicit request =>
     // TODO create some form of response builder
     withJsonBody[PhoneNumber] {
       service.verifyPhoneNumber

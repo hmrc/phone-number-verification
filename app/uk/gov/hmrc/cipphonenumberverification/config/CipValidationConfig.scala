@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ case class CipValidationConfig(
                                 protocol: String,
                                 host: String,
                                 port: Int,
+                                authToken: String,
                                 cbConfig: CircuitBreakerConfig
                               ) {
   lazy val url: String = s"$protocol://$host:$port"
@@ -37,6 +38,7 @@ object CipValidationConfig {
             config.get[String]("protocol"),
             config.get[String]("host"),
             config.get[Int]("port"),
+            config.get[String]("auth-token"),
             config.get[CircuitBreakerConfig]("circuit-breaker")
           )
     }
