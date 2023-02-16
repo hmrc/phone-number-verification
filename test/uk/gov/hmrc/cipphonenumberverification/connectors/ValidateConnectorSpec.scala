@@ -49,12 +49,7 @@ import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-class ValidateConnectorSpec extends AnyWordSpec
-  with Matchers
-  with WireMockSupport
-  with ScalaFutures
-  with HttpClientV2Support
-  with TestActorSystem {
+class ValidateConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport with ScalaFutures with HttpClientV2Support with TestActorSystem {
 
   val url: String = "/customer-insight-platform/phone-number/validate"
 
@@ -64,8 +59,7 @@ class ValidateConnectorSpec extends AnyWordSpec
       val phoneNumber = PhoneNumber("test")
 
       stubFor(post(urlEqualTo(url)).willReturn(aResponse()))
-      when(appConfigMock.validationConfig).thenReturn(CipValidationConfig(
-        "http", wireMockHost, wireMockPort, "fake-token", cbConfigData))
+      when(appConfigMock.validationConfig).thenReturn(CipValidationConfig("http", wireMockHost, wireMockPort, "fake-token", cbConfigData))
       when(appConfigMock.cacheExpiry).thenReturn(1)
 
       val result = validateConnector.callService(phoneNumber.phoneNumber)
@@ -81,10 +75,11 @@ class ValidateConnectorSpec extends AnyWordSpec
 
   trait SetUp {
 
-    protected implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit protected val hc: HeaderCarrier = HeaderCarrier()
 
     protected val appConfigMock = mock[AppConfig]
-    val cbConfigData = CircuitBreakerConfig("", 5, 5.toDuration, 30.toDuration, 5.toDuration, 1, 0)
+    val cbConfigData            = CircuitBreakerConfig("", 5, 5.toDuration, 30.toDuration, 5.toDuration, 1, 0)
+
     implicit class IntToDuration(timeout: Int) {
       def toDuration = Duration(timeout, java.util.concurrent.TimeUnit.SECONDS)
     }

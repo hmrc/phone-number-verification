@@ -22,6 +22,6 @@ case class PhoneNumberPasscodeData(phoneNumber: String, passcode: String, create
 
 object PhoneNumberPasscodeData {
 
-  implicit val reads: Reads[PhoneNumberPasscodeData] = Json.reads[PhoneNumberPasscodeData]
+  implicit val reads: Reads[PhoneNumberPasscodeData]   = Json.reads[PhoneNumberPasscodeData]
   implicit val writes: Writes[PhoneNumberPasscodeData] = Json.writes[PhoneNumberPasscodeData]
 }

@@ -35,14 +35,13 @@ import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBeha
 import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
 
-class NotificationControllerSpec extends AnyWordSpec
-  with Matchers
-  with IdiomaticMockito {
+class NotificationControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
 
   "status" should {
     "delegate to notification service" in new SetUp {
       val notificationId = "notificationId"
-      mockNotificationsService.status(notificationId)(any[HeaderCarrier])
+      mockNotificationsService
+        .status(notificationId)(any[HeaderCarrier])
         .returns(Future.successful(Ok(Json.toJson(NotificationStatus("test status", "test message")))))
 
       val result = controller.status(notificationId)(fakeRequest)
@@ -55,14 +54,15 @@ class NotificationControllerSpec extends AnyWordSpec
   }
 
   trait SetUp {
-    protected implicit val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
-    protected val fakeRequest = FakeRequest().withHeaders("Authorization" -> "fake-token")
-    private val expectedPredicate = {
+    implicit protected val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
+    protected val fakeRequest                                  = FakeRequest().withHeaders("Authorization" -> "fake-token")
+
+    private val expectedPredicate =
       Permission(Resource(ResourceType("cip-phone-number-verification"), ResourceLocation("*")), IAAction("*"))
-    }
-    protected val mockNotificationsService = mock[NotificationService]
+    protected val mockNotificationsService         = mock[NotificationService]
     protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
+
     protected val backendAuthComponentsStub: BackendAuthComponents =
       BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
     protected val controller = new NotificationController(Helpers.stubControllerComponents(), mockNotificationsService, backendAuthComponentsStub)

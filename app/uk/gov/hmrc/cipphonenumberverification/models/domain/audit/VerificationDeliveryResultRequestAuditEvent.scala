@@ -18,8 +18,8 @@ package uk.gov.hmrc.cipphonenumberverification.models.domain.audit
 
 import play.api.libs.json.Json
 
-case class VerificationDeliveryResultRequestAuditEvent(phoneNumber: String, passcode: String, notificationId: String,
-                                                                  notificationStatus: String) extends AuditEvent(phoneNumber, passcode)
+case class VerificationDeliveryResultRequestAuditEvent(phoneNumber: String, passcode: String, notificationId: String, notificationStatus: String)
+    extends AuditEvent(phoneNumber, passcode)
 
 object VerificationDeliveryResultRequestAuditEvent {
   implicit val writes = Json.writes[VerificationDeliveryResultRequestAuditEvent]

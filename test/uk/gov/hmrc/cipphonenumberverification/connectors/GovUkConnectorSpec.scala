@@ -34,16 +34,11 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-class GovUkConnectorSpec extends AnyWordSpec
-  with Matchers
-  with WireMockSupport
-  with ScalaFutures
-  with HttpClientV2Support
-  with TestActorSystem {
+class GovUkConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport with ScalaFutures with HttpClientV2Support with TestActorSystem {
 
-  val notificationId = "test-notification-id"
+  val notificationId           = "test-notification-id"
   val notificationsUrl: String = s"/v2/notifications/$notificationId"
-  val smsUrl: String = "/v2/notifications/sms"
+  val smsUrl: String           = "/v2/notifications/sms"
 
   "notificationStatus" should {
     "delegate to http client" in new SetUp {
@@ -52,8 +47,9 @@ class GovUkConnectorSpec extends AnyWordSpec
           .willReturn(aResponse())
       )
 
-      when(appConfigMock.govNotifyConfig).thenReturn(GovNotifyConfig(
-        "http", wireMockHost, wireMockPort, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
+      when(appConfigMock.govNotifyConfig).thenReturn(
+        GovNotifyConfig("http", wireMockHost, wireMockPort, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData)
+      )
 
       when(appConfigMock.cacheExpiry).thenReturn(1)
 
@@ -73,20 +69,20 @@ class GovUkConnectorSpec extends AnyWordSpec
           .willReturn(aResponse())
       )
 
-      when(appConfigMock.govNotifyConfig).thenReturn(GovNotifyConfig(
-        "http", wireMockHost, wireMockPort, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData))
+      when(appConfigMock.govNotifyConfig).thenReturn(
+        GovNotifyConfig("http", wireMockHost, wireMockPort, "template-id-fake", "", UUID.randomUUID().toString, cbConfigData)
+      )
 
       when(appConfigMock.passcodeExpiry).thenReturn(15)
 
-      val now = System.currentTimeMillis()
+      val now                     = System.currentTimeMillis()
       val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode", now)
 
       val result = govUkConnector.sendPasscode(phoneNumberPasscodeData)
       await(result).right.get.status shouldBe OK
 
       verify(
-        postRequestedFor(urlEqualTo(smsUrl)).withRequestBody(equalToJson(
-          """
+        postRequestedFor(urlEqualTo(smsUrl)).withRequestBody(equalToJson("""
             {
               "phone_number": "testPhoneNumber",
               "template_id": "template-id-fake",
@@ -102,12 +98,14 @@ class GovUkConnectorSpec extends AnyWordSpec
   }
 
   trait SetUp {
-    protected implicit val hc: HeaderCarrier = HeaderCarrier()
-    protected val appConfigMock = mock[AppConfig]
-    val cbConfigData = CircuitBreakerConfig("", 5, 5.toDuration, 30.toDuration, 5.toDuration, 1, 0)
+    implicit protected val hc: HeaderCarrier = HeaderCarrier()
+    protected val appConfigMock              = mock[AppConfig]
+    val cbConfigData                         = CircuitBreakerConfig("", 5, 5.toDuration, 30.toDuration, 5.toDuration, 1, 0)
+
     implicit class IntToDuration(timeout: Int) {
       def toDuration = Duration(timeout, java.util.concurrent.TimeUnit.SECONDS)
     }
+
     val govUkConnector = new GovUkConnector(
       httpClientV2,
       appConfigMock

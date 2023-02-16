@@ -19,17 +19,22 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class PasscodeGeneratorSpec extends AnyWordSpec
-  with Matchers{
+class PasscodeGeneratorSpec extends AnyWordSpec with Matchers {
 
   private val passcodeGenerator = new PasscodeGenerator()
 
   "create 6 digit passcode" in {
-    passcodeGenerator.passcodeGenerator.forall(y => y.isUpper) shouldBe true
-    passcodeGenerator.passcodeGenerator.forall(y => y.isLetter) shouldBe true
+    passcodeGenerator.passcodeGenerator.forall(
+      y => y.isUpper
+    ) shouldBe true
+    passcodeGenerator.passcodeGenerator.forall(
+      y => y.isLetter
+    ) shouldBe true
 
     val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(', ')', '-', '+')
-    passcodeGenerator.passcodeGenerator.toList map (y => assertResult(illegalChars contains y)(false))
+    passcodeGenerator.passcodeGenerator.toList map (
+      y => assertResult(illegalChars contains y)(false)
+    )
 
     passcodeGenerator.passcodeGenerator.length shouldBe 6
   }

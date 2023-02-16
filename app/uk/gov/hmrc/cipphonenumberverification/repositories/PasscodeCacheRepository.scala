@@ -24,10 +24,10 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
-class PasscodeCacheRepository @Inject()(mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
-  extends MongoCacheRepository(
-    mongoComponent = mongoComponent,
-    collectionName = "cip-phone-number-verification",
-    ttl = config.cacheExpiry.minutes,
-    timestampSupport = timestampSupport,
-    cacheIdType = CacheIdType.SimpleCacheId)
+class PasscodeCacheRepository @Inject() (mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
+    extends MongoCacheRepository(mongoComponent = mongoComponent,
+                                 collectionName = "cip-phone-number-verification",
+                                 ttl = config.cacheExpiry.minutes,
+                                 timestampSupport = timestampSupport,
+                                 cacheIdType = CacheIdType.SimpleCacheId
+    )

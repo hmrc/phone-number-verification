@@ -22,9 +22,9 @@ import javax.inject.Singleton
 class GovNotifyUtils {
 
   def extractPasscodeFromGovNotifyBody(body: String): String = {
-    val sentences: Array[String] = body.split(" ")
+    val sentences: Array[String]                   = body.split(" ")
     val thePasscodeAndFullStopAndLineSpace: String = sentences(19)
-    val thePasscode = thePasscodeAndFullStopAndLineSpace.substring(0, 6)
+    val thePasscode                                = thePasscodeAndFullStopAndLineSpace.substring(0, 6)
     thePasscode
   }
 }

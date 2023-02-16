@@ -30,19 +30,17 @@ trait DataSteps {
   private val repository = app.injector.instanceOf[PasscodeCacheRepository]
 
   val wsClient: WSClient = app.injector.instanceOf[WSClient]
-  val baseUrl = s"http://localhost:$port"
+  val baseUrl            = s"http://localhost:$port"
 
   //mimics user reading text message
-  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndPasscode]] = {
+  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndPasscode]] =
     repository.get[PhoneNumberAndPasscode](phoneNumber)(DataKey("cip-phone-number-verification"))
-  }
 
-  def verify(phoneNumber: String): Future[WSResponse] = {
+  def verify(phoneNumber: String): Future[WSResponse] =
     wsClient
       .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
       .withHttpHeaders(("Authorization", "fake-token"))
       .post(Json.parse {
         s"""{"phoneNumber": "$phoneNumber"}""".stripMargin
       })
-  }
 }

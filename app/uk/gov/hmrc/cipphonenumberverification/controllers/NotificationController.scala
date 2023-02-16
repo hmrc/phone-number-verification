@@ -24,10 +24,12 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class NotificationController @Inject()(cc: ControllerComponents, notificationsService: NotificationService, auth: BackendAuthComponents)
-  extends BackendController(cc) with InternalAuthAccess {
+class NotificationController @Inject() (cc: ControllerComponents, notificationsService: NotificationService, auth: BackendAuthComponents)
+    extends BackendController(cc)
+    with InternalAuthAccess {
 
-  def status(notificationId: String): Action[AnyContent] = auth.authorizedAction[Unit](permission).compose(Action).async { implicit request =>
-    notificationsService.status(notificationId)
+  def status(notificationId: String): Action[AnyContent] = auth.authorizedAction[Unit](permission).compose(Action).async {
+    implicit request =>
+      notificationsService.status(notificationId)
   }
 }

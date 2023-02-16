@@ -40,9 +40,9 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
 
   trait SetUp {
     implicit val writes: OWrites[VerificationRequestAuditEvent] = Json.writes[VerificationRequestAuditEvent]
-    implicit val ex: ExecutionContext = ExecutionContext.global
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-    val mockAuditConnector = mock[AuditConnector]
-    val service: AuditService = new AuditService(mockAuditConnector)
+    implicit val ex: ExecutionContext                           = ExecutionContext.global
+    implicit val hc: HeaderCarrier                              = HeaderCarrier()
+    val mockAuditConnector                                      = mock[AuditConnector]
+    val service: AuditService                                   = new AuditService(mockAuditConnector)
   }
 }

@@ -30,13 +30,16 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyPasscodeController @Inject()(cc: ControllerComponents, service: VerifyService, auth: BackendAuthComponents)
-  extends BackendController(cc) with InternalAuthAccess with Logging {
+class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: VerifyService, auth: BackendAuthComponents)
+    extends BackendController(cc)
+    with InternalAuthAccess
+    with Logging {
 
-  def verifyPasscode: Action[JsValue] = auth.authorizedAction[Unit](permission).compose(Action(parse.json)).async { implicit request =>
-    withJsonBody[PhoneNumberAndPasscode] {
-      service.verifyPasscode
-    }
+  def verifyPasscode: Action[JsValue] = auth.authorizedAction[Unit](permission).compose(Action(parse.json)).async {
+    implicit request =>
+      withJsonBody[PhoneNumberAndPasscode] {
+        service.verifyPasscode
+      }
   }
 
   override protected def withJsonBody[T](f: T => Future[Result])(implicit request: Request[JsValue], m: Manifest[T], reads: Reads[T]): Future[Result] =

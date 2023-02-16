@@ -30,15 +30,16 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext, val materializer: Materializer)
-  extends Logging with CircuitBreakerWrapper {
+class ValidateConnector @Inject() (httpClientV2: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext, val materializer: Materializer)
+    extends Logging
+    with CircuitBreakerWrapper {
 
   implicit val connectionFailure: Try[HttpResponse] => Boolean = {
     case Success(_) => false
     case Failure(_) => true
   }
 
-  def callService(phoneNumber: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def callService(phoneNumber: String)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     withCircuitBreaker[HttpResponse](
       httpClientV2
         .post(url"${config.validationConfig.url}/customer-insight-platform/phone-number/validate")
@@ -46,7 +47,6 @@ class ValidateConnector @Inject()(httpClientV2: HttpClientV2, config: AppConfig)
         .setHeader(("Authorization", config.validationConfig.authToken))
         .execute[HttpResponse]
     )
-  }
 
   override def configCB: CircuitBreakerConfig = config.validationConfig.cbConfig
 }

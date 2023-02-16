@@ -21,8 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class DateTimeUtils {
 
-  def getCurrentDateTime(): Long = {
+  def getCurrentDateTime(): Long =
     System.currentTimeMillis()
-  }
 
 }

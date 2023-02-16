@@ -25,14 +25,10 @@ import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 
-class VerifyIntegrationSpec extends AnyWordSpec
-  with Matchers
-  with ScalaFutures
-  with IntegrationPatience
-  with GuiceOneServerPerSuite {
+class VerifyIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite {
 
   private val wsClient = app.injector.instanceOf[WSClient]
-  private val baseUrl = s"http://localhost:$port"
+  private val baseUrl  = s"http://localhost:$port"
 
   "/verify" should {
     "return 202 with valid telephone number" in {

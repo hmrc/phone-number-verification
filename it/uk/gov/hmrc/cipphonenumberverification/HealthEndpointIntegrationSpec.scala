@@ -23,15 +23,10 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 
-class HealthEndpointIntegrationSpec
-  extends AnyWordSpec
-    with Matchers
-    with ScalaFutures
-    with IntegrationPatience
-    with GuiceOneServerPerSuite {
+class HealthEndpointIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite {
 
   private val wsClient = app.injector.instanceOf[WSClient]
-  private val baseUrl = s"http://localhost:$port"
+  private val baseUrl  = s"http://localhost:$port"
 
   "service health endpoint" should {
     "respond with 200 status" in {
