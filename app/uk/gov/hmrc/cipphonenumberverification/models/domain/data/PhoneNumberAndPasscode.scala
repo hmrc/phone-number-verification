@@ -26,10 +26,8 @@ object PhoneNumberAndPasscode {
   val MIN_LENGTH_PASSCODE = 6
   val MAX_LENGTH_PASSCODE = 6
 
-  implicit val reads: Reads[PhoneNumberAndPasscode] = (
-    (JsPath \ "phoneNumber").read[String] and
-      (JsPath \ "passcode").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE)))
-  )(PhoneNumberAndPasscode.apply _)
+  implicit val reads: Reads[PhoneNumberAndPasscode] = ((JsPath \ "phoneNumber").read[String] and
+    (JsPath \ "passcode").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE))))(PhoneNumberAndPasscode.apply _)
 
   implicit val writes: Writes[PhoneNumberAndPasscode] = Json.writes[PhoneNumberAndPasscode]
 }

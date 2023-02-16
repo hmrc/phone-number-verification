@@ -60,11 +60,7 @@ abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
     case _ if is2xx(res.status) => processPhoneNumber(res.json.as[ValidatedPhoneNumber])
     case _ if is4xx(res.status) => Future(BadRequest(res.json))
     case _ if is5xx(res.status) =>
-      Future(
-        BadGateway(
-          Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))
-        )
-      )
+      Future(BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
   }
 
   protected def processResponseForPasscode(res: HttpResponse, phoneNumberAndpasscode: PhoneNumberAndPasscode)(implicit hc: HeaderCarrier): Future[Result] =
@@ -72,11 +68,7 @@ abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
       case _ if is2xx(res.status) => processValidPasscode(res.json.as[ValidatedPhoneNumber], phoneNumberAndpasscode.passcode)
       case _ if is4xx(res.status) => Future(BadRequest(res.json))
       case _ if is5xx(res.status) =>
-        Future(
-          BadGateway(
-            Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))
-          )
-        )
+        Future(BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
     }
 
   private def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =

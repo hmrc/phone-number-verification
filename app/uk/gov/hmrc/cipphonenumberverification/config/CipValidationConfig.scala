@@ -18,13 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.config
 
 import play.api.{ConfigLoader, Configuration}
 
-case class CipValidationConfig(
-  protocol: String,
-  host: String,
-  port: Int,
-  authToken: String,
-  cbConfig: CircuitBreakerConfig
-) {
+case class CipValidationConfig(protocol: String, host: String, port: Int, authToken: String, cbConfig: CircuitBreakerConfig) {
   lazy val url: String = s"$protocol://$host:$port"
 }
 

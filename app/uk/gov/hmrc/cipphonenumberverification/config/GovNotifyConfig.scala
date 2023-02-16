@@ -18,14 +18,13 @@ package uk.gov.hmrc.cipphonenumberverification.config
 
 import play.api.{ConfigLoader, Configuration}
 
-case class GovNotifyConfig(
-  protocol: String,
-  host: String,
-  port: Int,
-  templateId: String,
-  govUkNotifyApiKeyIssUuid: String,
-  govUkNotifyApiKeySecretKeyUuid: String,
-  cbConfig: CircuitBreakerConfig
+case class GovNotifyConfig(protocol: String,
+                           host: String,
+                           port: Int,
+                           templateId: String,
+                           govUkNotifyApiKeyIssUuid: String,
+                           govUkNotifyApiKeySecretKeyUuid: String,
+                           cbConfig: CircuitBreakerConfig
 ) {
   lazy val url: String = s"$protocol://$host:$port"
 }
