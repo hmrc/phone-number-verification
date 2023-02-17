@@ -33,14 +33,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-class CircuitBreakerWrapperSpec extends AnyWordSpec
-  with Matchers
-  with WireMockSupport
-  with ScalaFutures
-  with HttpClientV2Support
-  with TestActorSystem {
+class CircuitBreakerWrapperSpec extends AnyWordSpec with Matchers with WireMockSupport with ScalaFutures with HttpClientV2Support with TestActorSystem {
 
-  val validationUrl: String = "/customer-insight-platform/phone-number/validate"
+  val validationUrl: String    = "/customer-insight-platform/phone-number/validate"
   val notificationsUrl: String = s"/v2/notifications/test-test"
 
   "Circuit Breakers" should {
@@ -63,7 +58,8 @@ class CircuitBreakerWrapperSpec extends AnyWordSpec
   }
 
   trait SetUp {
-    protected implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit protected val hc: HeaderCarrier = HeaderCarrier()
+
     val circuitBreakers = new CircuitBreakerWrapper {
       override def configCB: CircuitBreakerConfig = CircuitBreakerConfig("Cip Validation", 2, 60.toDuration, 60.toDuration, 60.toDuration, 1, 0)
 

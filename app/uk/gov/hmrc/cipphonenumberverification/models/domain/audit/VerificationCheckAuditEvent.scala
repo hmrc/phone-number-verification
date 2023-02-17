@@ -24,4 +24,3 @@ object VerificationCheckAuditEvent {
 
   implicit val writes = Json.writes[VerificationCheckAuditEvent]
 }
-

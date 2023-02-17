@@ -35,7 +35,7 @@ object Indeterminate {
 object StatusMessage extends Enumeration {
   type StatusMessage = String
 
-  val VERIFIED = "Verified"
-  val NOT_VERIFIED = "Not verified"
+  val VERIFIED      = "Verified"
+  val NOT_VERIFIED  = "Not verified"
   val INDETERMINATE = "Indeterminate"
 }

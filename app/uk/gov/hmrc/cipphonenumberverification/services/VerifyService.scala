@@ -33,16 +33,16 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class VerifyService @Inject()(passcodeGenerator: PasscodeGenerator,
-                              auditService: AuditService,
-                              passcodeService: PasscodeService,
-                              validateConnector: ValidateConnector,
-                              govUkConnector: GovUkConnector,
-                              metricsService: MetricsService,
-                              dateTimeUtils: DateTimeUtils,
-                              config: AppConfig)
-                             (implicit val executionContext: ExecutionContext)
-  extends VerifyHelper(passcodeGenerator, auditService, passcodeService, govUkConnector, metricsService, dateTimeUtils, config) {
+class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
+                               auditService: AuditService,
+                               passcodeService: PasscodeService,
+                               validateConnector: ValidateConnector,
+                               govUkConnector: GovUkConnector,
+                               metricsService: MetricsService,
+                               dateTimeUtils: DateTimeUtils,
+                               config: AppConfig
+)(implicit val executionContext: ExecutionContext)
+    extends VerifyHelper(passcodeGenerator, auditService, passcodeService, govUkConnector, metricsService, dateTimeUtils, config) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     validateConnector.callService(phoneNumber.phoneNumber) transformWith {
@@ -54,7 +54,7 @@ class VerifyService @Inject()(passcodeGenerator: PasscodeGenerator,
         Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
     }
 
-  def verifyPasscode(phoneNumberAndpasscode: PhoneNumberAndPasscode)(implicit hc: HeaderCarrier): Future[Result] = {
+  def verifyPasscode(phoneNumberAndpasscode: PhoneNumberAndPasscode)(implicit hc: HeaderCarrier): Future[Result] =
     validateConnector.callService(phoneNumberAndpasscode.phoneNumber).transformWith {
       case Success(httpResponse) =>
         processResponseForPasscode(httpResponse, phoneNumberAndpasscode)
@@ -64,5 +64,4 @@ class VerifyService @Inject()(passcodeGenerator: PasscodeGenerator,
         logger.error(error.getMessage)
         Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
     }
-  }
 }

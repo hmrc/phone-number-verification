@@ -23,7 +23,7 @@ import com.kenshoo.play.metrics.Metrics
 import javax.inject.Singleton
 
 @Singleton
-class MetricsService @Inject() (metrics: Metrics){
+class MetricsService @Inject() (metrics: Metrics) {
 
   def recordMetric(metricName: String) = getCounter(metricName).inc()
 

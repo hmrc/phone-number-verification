@@ -36,15 +36,13 @@ import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBeha
 import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
 
-class VerifyControllerSpec
-  extends AnyWordSpec
-    with Matchers
-    with IdiomaticMockito {
+class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
 
   "verify" should {
     "delegate to verify service" in new SetUp {
       val phoneNumber = PhoneNumber("")
-      mockVerifyService.verifyPhoneNumber(phoneNumber)(any[HeaderCarrier])
+      mockVerifyService
+        .verifyPhoneNumber(phoneNumber)(any[HeaderCarrier])
         .returns(Future.successful(Ok))
       val result = controller.verify(
         fakeRequest.withBody(Json.toJson(phoneNumber))
@@ -54,15 +52,16 @@ class VerifyControllerSpec
   }
 
   trait SetUp {
-    protected implicit val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
-    protected val mockVerifyService = mock[VerifyService]
-    protected val fakeRequest = FakeRequest().withHeaders("Authorization" -> "fake-token")
-    private val expectedPredicate = {
+    implicit protected val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
+    protected val mockVerifyService                     = mock[VerifyService]
+    protected val fakeRequest                           = FakeRequest().withHeaders("Authorization" -> "fake-token")
+
+    private val expectedPredicate =
       Permission(Resource(ResourceType("cip-phone-number-verification"), ResourceLocation("*")), IAAction("*"))
-    }
-    protected val mockNotificationsService = mock[NotificationService]
+    protected val mockNotificationsService         = mock[NotificationService]
     protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
+
     protected val backendAuthComponentsStub: BackendAuthComponents =
       BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
     protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, backendAuthComponentsStub)

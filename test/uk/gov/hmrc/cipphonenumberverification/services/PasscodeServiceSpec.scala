@@ -30,17 +30,16 @@ import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class PasscodeServiceSpec extends AnyWordSpec
-  with Matchers
-  with IdiomaticMockito {
+class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
 
   "persistPasscode" should {
     "return passcode" in new SetUp {
-      val phoneNumber = PhoneNumber("test")
-      val passcode = "ABCDEF"
-      val now = System.currentTimeMillis()
+      val phoneNumber                     = PhoneNumber("test")
+      val passcode                        = "ABCDEF"
+      val now                             = System.currentTimeMillis()
       val phoneNumberAndPasscodeToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, passcode = passcode, now)
-      passcodeCacheRepositoryMock.put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscodeToPersist)
+      passcodeCacheRepositoryMock
+        .put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscodeToPersist)
         .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
       val result = passcodeService.persistPasscode(phoneNumberAndPasscodeToPersist)
@@ -51,9 +50,10 @@ class PasscodeServiceSpec extends AnyWordSpec
 
   "retrievePasscode" should {
     "return passcode" in new SetUp {
-      val now = System.currentTimeMillis()
+      val now        = System.currentTimeMillis()
       val dataFromDb = PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now)
-      passcodeCacheRepositoryMock.get[PhoneNumberPasscodeData]("thePhoneNumber")(DataKey("cip-phone-number-verification"))
+      passcodeCacheRepositoryMock
+        .get[PhoneNumberPasscodeData]("thePhoneNumber")(DataKey("cip-phone-number-verification"))
         .returns(Future.successful(Some(dataFromDb)))
       val result = passcodeService.retrievePasscode("thePhoneNumber")
       await(result) shouldBe Some(PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now))
@@ -61,7 +61,7 @@ class PasscodeServiceSpec extends AnyWordSpec
   }
 
   trait SetUp {
-    val passcodeCacheRepositoryMock = mock[PasscodeCacheRepository]
+    val passcodeCacheRepositoryMock      = mock[PasscodeCacheRepository]
     val passcodeService: PasscodeService = new PasscodeService(passcodeCacheRepositoryMock)
   }
 }

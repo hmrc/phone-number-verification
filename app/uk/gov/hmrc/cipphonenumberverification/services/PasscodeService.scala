@@ -24,12 +24,15 @@ import uk.gov.hmrc.mongo.cache.DataKey
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PasscodeService @Inject()(passcodeCacheRepository: PasscodeCacheRepository)
-                               (implicit ec: ExecutionContext) extends Logging {
+class PasscodeService @Inject() (passcodeCacheRepository: PasscodeCacheRepository)(implicit ec: ExecutionContext) extends Logging {
+
   def persistPasscode(phoneNumberAndPasscode: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
     logger.debug(s"Storing phoneNumberAndPasscode in database")
-    passcodeCacheRepository.put(phoneNumberAndPasscode.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscode)
-      .map(_ => phoneNumberAndPasscode)
+    passcodeCacheRepository
+      .put(phoneNumberAndPasscode.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscode)
+      .map(
+        _ => phoneNumberAndPasscode
+      )
   }
 
   def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberPasscodeData]] = {

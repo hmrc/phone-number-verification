@@ -24,7 +24,8 @@ class GovNotifyUtilsSpec extends AnyWordSpec with Matchers {
   private val govNotifyUtils = new GovNotifyUtils()
 
   "should extract passcode from GovNotify Body property" in {
-    val input = "CIP Phone Number Verification Service: myTaxService needs to verify your telephone number.\n  Your telephone number verification code is ABCDEF.\n  Use this code within 10 minutes to verify your telephone number."
+    val input =
+      "CIP Phone Number Verification Service: myTaxService needs to verify your telephone number.\n  Your telephone number verification code is ABCDEF.\n  Use this code within 10 minutes to verify your telephone number."
 
     val actual = govNotifyUtils.extractPasscodeFromGovNotifyBody(input)
 

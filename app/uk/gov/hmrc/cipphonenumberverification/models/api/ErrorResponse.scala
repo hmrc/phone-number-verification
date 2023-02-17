@@ -27,26 +27,25 @@ object ErrorResponse {
   object Codes extends Enumeration {
     type Code = Value
 
-    val NOTIFICATION_NOT_FOUND    = Value(1001)
-    val VALIDATION_ERROR          = Value(1002)
-    val VERIFICATION_ERROR        = Value(1003)
-    val EXTERNAL_API_FAIL         = Value(1004)
-    val PASSCODE_VERIFY_FAIL      = Value(1005)
-    val EXTERNAL_SERVICE_FAIL     = Value(1006)
-    val MESSAGE_THROTTLED_OUT     = Value(1007)
-    val PASSCODE_PERSISTING_FAIL  = Value(1008)
-    val EXTERNAL_SERVICE_TIMEOUT  = Value(1009)
+    val NOTIFICATION_NOT_FOUND   = Value(1001)
+    val VALIDATION_ERROR         = Value(1002)
+    val VERIFICATION_ERROR       = Value(1003)
+    val EXTERNAL_API_FAIL        = Value(1004)
+    val PASSCODE_VERIFY_FAIL     = Value(1005)
+    val EXTERNAL_SERVICE_FAIL    = Value(1006)
+    val MESSAGE_THROTTLED_OUT    = Value(1007)
+    val PASSCODE_PERSISTING_FAIL = Value(1008)
+    val EXTERNAL_SERVICE_TIMEOUT = Value(1009)
   }
 
   object Message extends Enumeration {
     type Message = String
 
-    val SERVER_CURRENTLY_UNAVAILABLE = "Server currently unavailable"
-    val SERVER_EXPERIENCED_AN_ISSUE = "Server has experienced an issue"
+    val SERVER_CURRENTLY_UNAVAILABLE          = "Server currently unavailable"
+    val SERVER_EXPERIENCED_AN_ISSUE           = "Server has experienced an issue"
     val EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE = "External server currently unavailable"
-    val PASSCODE_ALLOWED_TIME_ELAPSED = "The passcode has expired. Request a new passcode"
-    val PASSCODE_STORED_TIME_ELAPSED = "Enter a correct passcode"
-    val EXTERNAL_SERVER_TIMEOUT = "External server timeout"
+    val PASSCODE_ALLOWED_TIME_ELAPSED         = "The passcode has expired. Request a new passcode"
+    val PASSCODE_STORED_TIME_ELAPSED          = "Enter a correct passcode"
+    val EXTERNAL_SERVER_TIMEOUT               = "External server timeout"
   }
 }
-

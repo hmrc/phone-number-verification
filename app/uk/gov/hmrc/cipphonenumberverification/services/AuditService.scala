@@ -28,8 +28,7 @@ import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class AuditService @Inject()(auditConnector: AuditConnector
-                            )(implicit ec: ExecutionContext) extends Logging {
+class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: ExecutionContext) extends Logging {
 
   def sendExplicitAuditEvent[T <: AuditEvent](auditType: Type, auditEvent: T)(implicit hc: HeaderCarrier, writes: Writes[T]): Unit = {
     logger.debug(s"Sending explicit audit event for $auditEvent")

@@ -36,16 +36,18 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
-                              (implicit executionContext: ExecutionContext, protected val materializer: Materializer)
-  extends Logging with CircuitBreakerWrapper {
+class GovUkConnector @Inject() (httpClient: HttpClientV2, config: AppConfig)(implicit
+  executionContext: ExecutionContext,
+  protected val materializer: Materializer
+) extends Logging
+    with CircuitBreakerWrapper {
 
   implicit val connectionFailure: Try[Either[UpstreamErrorResponse, HttpResponse]] => Boolean = {
     case Success(_) => false
     case Failure(_) => true
   }
 
-  def notificationStatus(notificationId: String)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
+  def notificationStatus(notificationId: String)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] =
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
       httpClient
         .get(url"${config.govNotifyConfig.url}/v2/notifications/$notificationId")
@@ -53,17 +55,16 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
         .withProxy
         .execute[Either[UpstreamErrorResponse, HttpResponse]]
     )
-  }
 
   def sendPasscode(phoneNumberPasscodeData: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     // TODO Build this elsewhere
     val passcodeRequest = Json.obj(
       "phone_number" -> s"${phoneNumberPasscodeData.phoneNumber}",
-      "template_id" -> s"${config.govNotifyConfig.templateId}",
-      "personalisation" -> Json.obj(
-        "clientServiceName" -> "cip-phone-service",
-        "passcode" -> s"${phoneNumberPasscodeData.passcode}",
-        "timeToLive" -> s"${config.passcodeExpiry}")
+      "template_id"  -> s"${config.govNotifyConfig.templateId}",
+      "personalisation" -> Json.obj("clientServiceName" -> "cip-phone-service",
+                                    "passcode"   -> s"${phoneNumberPasscodeData.passcode}",
+                                    "timeToLive" -> s"${config.passcodeExpiry}"
+      )
     )
 
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
@@ -80,7 +81,8 @@ class GovUkConnector @Inject()(httpClient: HttpClientV2, config: AppConfig)
   private def jwtBearerToken = {
     val key = Keys.hmacShaKeyFor(config.govNotifyConfig.govUkNotifyApiKeySecretKeyUuid.getBytes(StandardCharsets.UTF_8))
 
-    val jwt = Jwts.builder()
+    val jwt = Jwts
+      .builder()
       .setIssuer(config.govNotifyConfig.govUkNotifyApiKeyIssUuid)
       .setIssuedAt(new Date())
       .signWith(SignatureAlgorithm.HS256, key)

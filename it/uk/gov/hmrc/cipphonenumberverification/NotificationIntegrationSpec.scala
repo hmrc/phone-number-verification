@@ -24,13 +24,7 @@ import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
-class NotificationIntegrationSpec
-  extends AnyWordSpec
-    with Matchers
-    with ScalaFutures
-    with IntegrationPatience
-    with GuiceOneServerPerSuite
-    with DataSteps {
+class NotificationIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with DataSteps {
 
   "/notifications" should {
     "respond with 200 status with valid notification id" in {

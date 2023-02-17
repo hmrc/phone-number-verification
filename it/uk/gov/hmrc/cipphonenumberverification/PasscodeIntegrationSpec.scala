@@ -26,13 +26,7 @@ import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
-class PasscodeIntegrationSpec
-  extends AnyWordSpec
-    with Matchers
-    with ScalaFutures
-    with IntegrationPatience
-    with GuiceOneServerPerSuite
-    with DataSteps {
+class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with DataSteps {
 
   "/verify/passcode" should {
     "respond with 200 verified status with valid phone number and passcode" in {

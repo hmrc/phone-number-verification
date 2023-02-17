@@ -38,38 +38,41 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService: AuditService, govUkConnector: GovUkConnector)
-                                   (implicit val executionContext: ExecutionContext) extends Logging {
+class NotificationService @Inject() (govNotifyUtils: GovNotifyUtils, auditService: AuditService, govUkConnector: GovUkConnector)(implicit
+  val executionContext: ExecutionContext
+) extends Logging {
 
   private val NO_DATA_FOUND = "No_data_found"
 
   def status(notificationId: String)(implicit hc: HeaderCarrier): Future[Result] = {
     def success(response: HttpResponse) = {
       val govNotifyResponse: GovUkNotificationStatusResponse = response.json.as[GovUkNotificationStatusResponse]
-      val phoneNumber = govNotifyResponse.phone_number
-      val passcode = govNotifyUtils.extractPasscodeFromGovNotifyBody(govNotifyResponse.body)
-      val deliveryStatus = govNotifyResponse.status
+      val phoneNumber                                        = govNotifyResponse.phone_number
+      val passcode                                           = govNotifyUtils.extractPasscodeFromGovNotifyBody(govNotifyResponse.body)
+      val deliveryStatus                                     = govNotifyResponse.status
       val (notificationStatus, message) = deliveryStatus match {
-        case "created" => ("CREATED", "Message is in the process of being sent")
-        case "sending" => ("SENDING", "Message has been sent")
-        case "pending" => ("PENDING", "Message is in the process of being delivered")
-        case "sent" => ("SENT", "Message was sent successfully")
-        case "delivered" => ("DELIVERED", "Message was delivered successfully")
+        case "created"           => ("CREATED", "Message is in the process of being sent")
+        case "sending"           => ("SENDING", "Message has been sent")
+        case "pending"           => ("PENDING", "Message is in the process of being delivered")
+        case "sent"              => ("SENT", "Message was sent successfully")
+        case "delivered"         => ("DELIVERED", "Message was delivered successfully")
         case "permanent-failure" => ("PERMANENT_FAILURE", "Message was unable to be delivered by the network provider")
         case "temporary-failure" => ("TEMPORARY_FAILURE", "Message was unable to be delivered by the network provider")
         case "technical-failure" => ("TECHNICAL_FAILURE", "There is a problem with the notification vendor")
       }
       auditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest,
-        VerificationDeliveryResultRequestAuditEvent(phoneNumber, passcode, notificationId, deliveryStatus))
+                                          VerificationDeliveryResultRequestAuditEvent(phoneNumber, passcode, notificationId, deliveryStatus)
+      )
       Ok(Json.toJson(NotificationStatus(notificationStatus, message)))
     }
 
-    def failure(err: UpstreamErrorResponse) = {
+    def failure(err: UpstreamErrorResponse) =
       err.statusCode match {
         case NOT_FOUND =>
           logger.warn("Notification Id not found")
           auditService.sendExplicitAuditEvent(PhoneNumberVerificationDeliveryResultRequest,
-            VerificationDeliveryResultRequestAuditEvent(NO_DATA_FOUND, NO_DATA_FOUND, notificationId, NO_DATA_FOUND))
+                                              VerificationDeliveryResultRequestAuditEvent(NO_DATA_FOUND, NO_DATA_FOUND, notificationId, NO_DATA_FOUND)
+          )
           NotFound(Json.toJson(ErrorResponse(Codes.NOTIFICATION_NOT_FOUND.id, "Notification Id not found")))
         case BAD_REQUEST =>
           logger.warn("Notification Id not valid")
@@ -81,11 +84,10 @@ class NotificationService @Inject()(govNotifyUtils: GovNotifyUtils, auditService
           logger.error(err.message)
           Result.apply(ResponseHeader(err.statusCode), HttpEntity.NoEntity)
       }
-    }
 
     govUkConnector.notificationStatus(notificationId).map {
       case Right(response) => success(response)
-      case Left(err) => failure(err)
+      case Left(err)       => failure(err)
     } recover {
       case err =>
         logger.error(err.getMessage)
