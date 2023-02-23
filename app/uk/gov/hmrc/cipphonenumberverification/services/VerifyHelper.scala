@@ -23,14 +23,13 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.connectors.GovUkConnector
+import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.StatusMessage._
 import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, Indeterminate, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType._
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
-import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationId
 import uk.gov.hmrc.cipphonenumberverification.models.http.validation.ValidatedPhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
@@ -47,7 +46,7 @@ import scala.util.{Failure, Success}
 abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
                                        auditService: AuditService,
                                        passcodeService: PasscodeService,
-                                       govUkConnector: GovUkConnector,
+                                       userNotificationsConnector: UserNotificationsConnector,
                                        metricsService: MetricsService,
                                        dateTimeUtils: DateTimeUtils,
                                        config: AppConfig
@@ -98,7 +97,7 @@ abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
     }
   }
 
-  private def sendPasscode(data: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier) = govUkConnector.sendPasscode(data) map {
+  private def sendPasscode(data: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier) = userNotificationsConnector.sendPasscode(data) map {
     case Left(error) =>
       error.statusCode match {
         case INTERNAL_SERVER_ERROR =>
@@ -118,14 +117,16 @@ abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
           logger.error(error.getMessage)
           Result.apply(ResponseHeader(error.statusCode), HttpEntity.NoEntity)
       }
-    case Right(response) if response.status == 201 =>
-      metricsService.recordMetric("gov-notify_call_success")
-      Accepted.withHeaders(("Location", s"/notifications/${response.json.as[GovUkNotificationId].id}"))
+    case Right(response) if response.status == 200 =>
+      metricsService.recordMetric("UserNotifications_success")
+      logger.info(response.body)
+      Ok(response.body)
+    //.withHeaders(("Location", s"/notifications/${response.json.as[GovUkNotificationId].id}"))
   } recover {
     case err =>
       logger.error(err.getMessage)
       metricsService.recordMetric(err.toString.trim.dropRight(1))
-      metricsService.recordMetric("gov-notify_connection_failure")
+      metricsService.recordMetric("UserNotifications_failure")
       ServiceUnavailable(Json.toJson(api.ErrorResponse(EXTERNAL_SERVICE_FAIL.id, "Server currently unavailable")))
   }
 

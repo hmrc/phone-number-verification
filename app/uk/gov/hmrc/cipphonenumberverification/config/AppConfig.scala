@@ -22,8 +22,10 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
-  lazy val cacheExpiry: Long                     = config.get[Long]("cache.expiry")
-  lazy val validationConfig: CipValidationConfig = config.get[CipValidationConfig]("microservice.services.cipphonenumber.validation")
-  lazy val govNotifyConfig: GovNotifyConfig      = config.get[GovNotifyConfig]("microservice.services.govuk-notify")
-  lazy val passcodeExpiry: Long                  = config.get[Long]("passcode.expiry")
+  lazy val cacheExpiry: Long                            = config.get[Long]("cache.expiry")
+  lazy val validationConfig: CipValidationConfig        = config.get[CipValidationConfig]("microservice.services.cipphonenumber.validation")
+  lazy val govNotifyConfig: GovNotifyConfig             = config.get[GovNotifyConfig]("microservice.services.govuk-notify")
+  lazy val phoneNotificationConfig: NotificationsConfig = config.get[NotificationsConfig]("microservice.services.user-notifications.phone")
+
+  lazy val passcodeExpiry: Long = config.get[Long]("passcode.expiry")
 }

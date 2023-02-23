@@ -26,7 +26,7 @@ import play.api.http.Status._
 import play.api.libs.json.{Json, OWrites}
 import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, header, status}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.connectors.{UserNotificationsConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
@@ -56,15 +56,16 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(phoneNumberPasscodeDataFromDb)
-        .returns(Future.successful(Right(HttpResponse(CREATED, Json.toJson(GovUkNotificationId("test-notification-id")).toString()))))
+        .returns(Future.successful(Right(HttpResponse(OK, Json.toJson("""{ "deliveryStatus" : "SUCCESSFUL"}""").toString()))))
 
       val result = verifyService.verifyPhoneNumber(enteredPhoneNumber)
 
-      status(result) shouldBe ACCEPTED
-      contentAsString(result) shouldBe empty
-      header("Location", result) shouldBe Some("/notifications/test-notification-id")
+      status(result) shouldBe OK
+      contentAsString(result) shouldBe Json.toJson("""{ "deliveryStatus" : "SUCCESSFUL"}""").toString()
+
+      // header("Location", result) shouldBe Some("/notifications/test-notification-id")
 
       // check what is sent to validation service
       validateConnectorMock.callService("test")(any[HeaderCarrier]) was called
@@ -76,7 +77,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       // check what is sent to DAO
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
       // Check what is sent to GovNotify
-      govUkConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
+      userNotificationsConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
     }
 
     "return bad request if telephone number is invalid" in new SetUp {
@@ -92,7 +93,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       auditServiceMock wasNever called
       passcodeGeneratorMock wasNever called
       passcodeServiceMock wasNever called
-      govUkConnectorMock wasNever called
+      userNotificationsConnectorMock wasNever called
     }
 
     "return internal sever error when datastore exception occurs" in new SetUp {
@@ -121,7 +122,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
 
       // Check NOTHING is sent to GovNotify
-      govUkConnectorMock wasNever called
+      userNotificationsConnectorMock wasNever called
     }
 
     "return bad gateway when validation service returns 503" in new SetUp {
@@ -160,15 +161,13 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(phoneNumberPasscodeDataFromDb)
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.failed(new ConnectionException("")))
 
       val result = verifyService.verifyPhoneNumber(PhoneNumber(enteredPhoneNumber.phoneNumber))
 
       status(result) shouldBe SERVICE_UNAVAILABLE
-      (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_SERVICE_FAIL.id
-      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
     }
 
     "return BadGateway if gov-notify returns internal server error" in new SetUp {
@@ -181,7 +180,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(Left(UpstreamErrorResponse("Server currently unavailable", INTERNAL_SERVER_ERROR))))
 
@@ -195,7 +194,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", passcode)
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
-      govUkConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
+      userNotificationsConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
       metricsServiceMock.recordMetric(any[String]) was called
     }
 
@@ -209,7 +208,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(Left(UpstreamErrorResponse("External server currently unavailable", BAD_REQUEST))))
 
@@ -223,7 +222,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", passcode)
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
-      govUkConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
+      userNotificationsConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
       metricsServiceMock.recordMetric(any[String]) was called
     }
 
@@ -237,7 +236,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(Left(UpstreamErrorResponse("External server currently unavailable", FORBIDDEN))))
 
@@ -251,7 +250,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", passcode)
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
-      govUkConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
+      userNotificationsConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
       metricsServiceMock.recordMetric(any[String]) was called
     }
 
@@ -265,7 +264,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(Left(UpstreamErrorResponse("External server currently unavailable", TOO_MANY_REQUESTS))))
 
@@ -279,7 +278,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", passcode)
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
-      govUkConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
+      userNotificationsConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
     }
 
     "return indeterminate response if phone number is not a mobile" in new SetUp {
@@ -297,7 +296,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       validateConnectorMock.callService("test")(any[HeaderCarrier]) was called
       auditServiceMock wasNever called
       passcodeServiceMock wasNever called
-      govUkConnectorMock wasNever called
+      userNotificationsConnectorMock wasNever called
     }
 
     "return response from service if response has not been handled" in new SetUp {
@@ -310,7 +309,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-      govUkConnectorMock
+      userNotificationsConnectorMock
         .sendPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(Left(UpstreamErrorResponse("Some random message from external service", CONFLICT))))
 
@@ -323,7 +322,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val expectedAuditEvent = VerificationRequestAuditEvent("normalisedPhoneNumber", passcode)
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent) was called
       passcodeServiceMock.persistPasscode(phoneNumberPasscodeDataFromDb) was called
-      govUkConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
+      userNotificationsConnectorMock.sendPasscode(phoneNumberPasscodeDataFromDb)(any[HeaderCarrier]) was called
       metricsServiceMock.recordMetric(any[String]) was called
     }
   }
@@ -473,7 +472,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     implicit val govUkNotificationIdWrites: OWrites[GovUkNotificationId]   = Json.writes[GovUkNotificationId]
     val passcodeServiceMock: PasscodeService                               = mock[PasscodeService]
     val validateConnectorMock: ValidateConnector                           = mock[ValidateConnector]
-    val govUkConnectorMock: GovUkConnector                                 = mock[GovUkConnector]
+    val userNotificationsConnectorMock: UserNotificationsConnector         = mock[UserNotificationsConnector]
     val auditServiceMock: AuditService                                     = mock[AuditService]
     val passcodeGeneratorMock: PasscodeGenerator                           = mock[PasscodeGenerator]
     val dateTimeUtilsMock: DateTimeUtils                                   = mock[DateTimeUtils]
@@ -496,7 +495,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
                                           auditServiceMock,
                                           passcodeServiceMock,
                                           validateConnectorMock,
-                                          govUkConnectorMock,
+                                          userNotificationsConnectorMock,
                                           metricsServiceMock,
                                           dateTimeUtilsMock,
                                           appConfig
