@@ -31,7 +31,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures 
   private val baseUrl  = s"http://localhost:$port"
 
   "/verify" should {
-    "return 202 with valid telephone number" in {
+    "return 200 with valid telephone number" in {
       val response =
         wsClient
           .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
@@ -42,7 +42,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures 
           })
           .futureValue
 
-      response.status shouldBe 202
+      response.status shouldBe 200
     }
 
     "respond with 400 status for invalid request" in {

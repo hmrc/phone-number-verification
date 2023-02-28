@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.ServiceUnavailable
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.connectors.{GovUkConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.connectors.{UserNotificationsConnector, ValidateConnector}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.SERVER_CURRENTLY_UNAVAILABLE
@@ -37,12 +37,12 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
                                auditService: AuditService,
                                passcodeService: PasscodeService,
                                validateConnector: ValidateConnector,
-                               govUkConnector: GovUkConnector,
+                               userNotificationsConnector: UserNotificationsConnector,
                                metricsService: MetricsService,
                                dateTimeUtils: DateTimeUtils,
                                config: AppConfig
 )(implicit val executionContext: ExecutionContext)
-    extends VerifyHelper(passcodeGenerator, auditService, passcodeService, govUkConnector, metricsService, dateTimeUtils, config) {
+    extends VerifyHelper(passcodeGenerator, auditService, passcodeService, userNotificationsConnector, metricsService, dateTimeUtils, config) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     validateConnector.callService(phoneNumber.phoneNumber) transformWith {
