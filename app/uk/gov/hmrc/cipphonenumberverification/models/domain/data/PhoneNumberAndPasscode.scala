@@ -31,3 +31,13 @@ object PhoneNumberAndPasscode {
 
   implicit val writes: Writes[PhoneNumberAndPasscode] = Json.writes[PhoneNumberAndPasscode]
 }
+
+object testOnly {
+  case class PhoneNumber(phoneNumber: String)
+
+  object PhoneNumber {
+    implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
+
+    implicit val writes: Writes[PhoneNumber] = Json.writes[PhoneNumber]
+  }
+}
