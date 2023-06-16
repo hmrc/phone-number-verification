@@ -47,5 +47,6 @@ object ErrorResponse {
     val PASSCODE_ALLOWED_TIME_ELAPSED         = "The passcode has expired. Request a new passcode"
     val PASSCODE_STORED_TIME_ELAPSED          = "Enter a correct passcode"
     val EXTERNAL_SERVER_TIMEOUT               = "External server timeout"
+    val INVALID_TELEPHONE_NUMBER              = "Enter a valid telephone number"
   }
 }

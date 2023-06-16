@@ -8,10 +8,11 @@ object AppDependencies {
   val hmrcBootstrapVersion = "7.2.0"
   val hmrcMongoPlayVersion = "0.71.0"
   val compile = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-backend-play-28"    % hmrcBootstrapVersion,
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"           % hmrcMongoPlayVersion,
-    "uk.gov.hmrc"             %% "internal-auth-client-play-28" % "1.2.0",
-    "io.jsonwebtoken"         %  "jjwt-api"                     % "0.10.8"
+    "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"    % hmrcBootstrapVersion,
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-28"           % hmrcMongoPlayVersion,
+    "uk.gov.hmrc"                   %% "internal-auth-client-play-28" % "1.2.0",
+    "io.jsonwebtoken"               %  "jjwt-api"                     % "0.10.8",
+    "com.googlecode.libphonenumber" %  "libphonenumber"               % "8.9.9"
   )
 
   val test = Seq(
