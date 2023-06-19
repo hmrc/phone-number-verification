@@ -53,7 +53,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           .futureValue
 
       response.status shouldBe 200
-      (response.json \ "status").as[String] shouldBe "Verified"
+      (response.json \ "code").as[String] shouldBe "Verified"
     }
 
     "respond with 200 not verified status with non existent phone number" in {

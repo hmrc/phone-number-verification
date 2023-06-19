@@ -294,7 +294,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val result = verifyService.verifyPhoneNumber(enteredPhoneNumber)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[String] shouldBe "Indeterminate"
+      (contentAsJson(result) \ "code").as[String] shouldBe "Indeterminate"
       (contentAsJson(result) \ "message").as[String] shouldBe "Only mobile numbers can be verified"
       validateServiceMock.validate("test") was called
       auditServiceMock wasNever called
@@ -368,7 +368,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val result = verifyService.verifyPasscode(phoneNumberAndPasscode)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[String] shouldBe "Verified"
+      (contentAsJson(result) \ "code").as[String] shouldBe "Verified"
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", "Verified")
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent) was called
@@ -406,7 +406,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       val result = verifyService.verifyPasscode(phoneNumberAndPasscode)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[String] shouldBe "Not verified"
+      (contentAsJson(result) \ "code").as[String] shouldBe "Not verified"
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", "Not verified")
       auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent) was called

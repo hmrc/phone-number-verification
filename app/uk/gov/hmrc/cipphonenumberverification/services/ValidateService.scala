@@ -41,16 +41,16 @@ class ValidateService @Inject() (phoneNumberUtil: PhoneNumberUtil, metricsServic
         case _
             if phoneNumber.isEmpty || existsLetter(phoneNumber) || containsChars(phoneNumber) ||
               !mandatoryFirstChars.contains(phoneNumber.charAt(0)) =>
-          false
+          None
         case _ if isValidPhoneNumber(phoneNumber) =>
           val telephoneNumberType = getPhoneNumberType(phoneNumber).name.toLowerCase
           metricsService.recordMetric(s"${telephoneNumberType}_validation_count")
-          ValidatedPhoneNumber(formatInE164(parsePhoneNumber(phoneNumber)), telephoneNumberType.capitalize)
+          Some(ValidatedPhoneNumber(formatInE164(parsePhoneNumber(phoneNumber)), telephoneNumberType.capitalize))
       }
     } match {
-      case Success(phoneNumberResponse: ValidatedPhoneNumber) =>
-        Right(phoneNumberResponse)
-      case Success(false) | Failure(_) =>
+      case Success(phoneNumberResponse: Some[ValidatedPhoneNumber]) =>
+        Right(phoneNumberResponse.get)
+      case Success(None) | Failure(_) =>
         metricsService.recordMetric("telephone_number_validation_failure")
         logger.warn("Failed to validate phone number")
         Left(ErrorResponse(VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))
