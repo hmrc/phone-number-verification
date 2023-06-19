@@ -21,15 +21,14 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
-import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.services.ValidateService
 import uk.gov.hmrc.internalauth.client.Predicate.Permission
-import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 import uk.gov.hmrc.internalauth.client._
+import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 
 import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
@@ -42,7 +41,7 @@ class ValidateControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       val phoneNumber = "1234567"
       mockValidateService
         .validate(phoneNumber)
-        .returns(Future.successful(Ok))
+        .returns(Right[ErrorResponse, ValidatedPhoneNumber](ValidatedPhoneNumber(phoneNumber, "Mobile")))
       val result = controller.validate()(fakeRequest.withBody(Json.toJson(PhoneNumber(phoneNumber))))
       status(result) shouldBe OK
       mockValidateService.validate(phoneNumber) was called

@@ -20,10 +20,11 @@ import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.INVALID_TELEPHONE_NUMBER
-import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber}
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message._
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse._
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber.validation._
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.services.ValidateService
 import uk.gov.hmrc.internalauth.client._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -41,7 +42,11 @@ class ValidateController @Inject() (cc: ControllerComponents, service: ValidateS
   def validate: Action[JsValue] = auth.authorizedAction[Unit](permission).compose(Action(parse.json)).async {
     implicit request =>
       withJsonBody[PhoneNumber] {
-        phoneNumber => service.validate(phoneNumber.phoneNumber)
+        phoneNumber =>
+          service.validate(phoneNumber.phoneNumber) match {
+            case Left(errorResponse: ErrorResponse)                => Future.successful(BadRequest(Json.toJson(errorResponse)))
+            case Right(validatedPhoneNumber: ValidatedPhoneNumber) => Future.successful(Ok(Json.toJson(validatedPhoneNumber)))
+          }
       }
   }
 

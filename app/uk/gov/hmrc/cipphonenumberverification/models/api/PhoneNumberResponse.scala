@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models.http.validation
+package uk.gov.hmrc.cipphonenumberverification.models.api
 
 import play.api.libs.json.{Json, OWrites}
 
-case class PhoneNumberResponse(phoneNumber: String, phoneNumberType: String)
-
-object PhoneNumberResponse {
-  implicit val writes: OWrites[PhoneNumberResponse] = Json.writes[PhoneNumberResponse]
-}
+//case class PhoneNumberResponse(phoneNumber: String, phoneNumberType: String)
+//
+//object PhoneNumberResponse {
+//  implicit val writes: OWrites[PhoneNumberResponse] = Json.writes[PhoneNumberResponse]
+//}

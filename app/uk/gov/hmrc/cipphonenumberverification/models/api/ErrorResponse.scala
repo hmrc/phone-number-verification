@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models.api
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.Message
 
 case class ErrorResponse(code: Int, message: Message)
 
 object ErrorResponse {
-  implicit val writes: OWrites[ErrorResponse] = Json.writes[ErrorResponse]
+  implicit val errorResponseFormat: Format[ErrorResponse] = Json.format[ErrorResponse]
 
   object Codes extends Enumeration {
     type Code = Value

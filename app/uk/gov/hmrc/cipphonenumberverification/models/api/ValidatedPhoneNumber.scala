@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models.http.validation
+package uk.gov.hmrc.cipphonenumberverification.models.api
 
 import play.api.libs.json._
 
 case class ValidatedPhoneNumber(phoneNumber: String, phoneNumberType: String)
 
 object ValidatedPhoneNumber {
-  implicit val reads: Reads[ValidatedPhoneNumber] = Json.reads[ValidatedPhoneNumber]
+  implicit val validatedPhoneNumberFormat: Format[ValidatedPhoneNumber] = Json.format[ValidatedPhoneNumber]
 }

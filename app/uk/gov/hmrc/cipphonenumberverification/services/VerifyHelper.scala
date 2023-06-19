@@ -25,18 +25,16 @@ import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.api.StatusMessage._
-import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, Indeterminate, VerificationStatus}
-import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType._
-import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
-import uk.gov.hmrc.cipphonenumberverification.models.http.validation.ValidatedPhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models._
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message._
+import uk.gov.hmrc.cipphonenumberverification.models.api.StatusMessage._
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, Indeterminate, ValidatedPhoneNumber, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType._
+import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
-import uk.gov.hmrc.http.HttpReads.{is2xx, is4xx, is5xx}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.Duration
 import javax.inject.Inject
@@ -55,22 +53,7 @@ abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
 
   private val passcodeExpiry = config.passcodeExpiry
 
-  protected def processResponse(res: HttpResponse)(implicit hc: HeaderCarrier): Future[Result] = res match {
-    case _ if is2xx(res.status) => processPhoneNumber(res.json.as[ValidatedPhoneNumber])
-    case _ if is4xx(res.status) => Future(BadRequest(res.json))
-    case _ if is5xx(res.status) =>
-      Future(BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
-  }
-
-  protected def processResponseForPasscode(res: HttpResponse, phoneNumberAndpasscode: PhoneNumberAndPasscode)(implicit hc: HeaderCarrier): Future[Result] =
-    res match {
-      case _ if is2xx(res.status) => processValidPasscode(res.json.as[ValidatedPhoneNumber], phoneNumberAndpasscode.passcode)
-      case _ if is4xx(res.status) => Future(BadRequest(res.json))
-      case _ if is5xx(res.status) =>
-        Future(BadGateway(Json.toJson(ErrorResponse(EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
-    }
-
-  private def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
+  def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     isPhoneTypeValid(validatedPhoneNumber) match {
       case true => processValidPhoneNumber(validatedPhoneNumber)
       case _    => Future(Ok(Json.toJson(Indeterminate(INDETERMINATE, "Only mobile numbers can be verified"))))
@@ -130,7 +113,7 @@ abstract class VerifyHelper @Inject() (passcodeGenerator: PasscodeGenerator,
       ServiceUnavailable(Json.toJson(api.ErrorResponse(EXTERNAL_SERVICE_FAIL.id, "Server currently unavailable")))
   }
 
-  private def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcode: String)(implicit hc: HeaderCarrier) =
+  def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcode: String)(implicit hc: HeaderCarrier): Future[Result] =
     (for {
       maybePhoneNumberAndPasscodeData <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
       result                          <- processPasscode(PhoneNumberAndPasscode(validatedPhoneNumber.phoneNumber, passcode), maybePhoneNumberAndPasscodeData)

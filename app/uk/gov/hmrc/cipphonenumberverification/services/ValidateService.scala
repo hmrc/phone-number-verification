@@ -21,17 +21,12 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat
 import com.google.i18n.phonenumbers.Phonenumber.{PhoneNumber => GPhoneNumber}
 import org.apache.commons.lang3.StringUtils
 import play.api.Logging
-import play.api.libs.json.Json
-import play.api.mvc.Result
-import play.api.mvc.Results.{BadRequest, Ok}
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.INVALID_TELEPHONE_NUMBER
-import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse}
-import uk.gov.hmrc.cipphonenumberverification.models.http.validation.PhoneNumberResponse
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, ValidatedPhoneNumber}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 @Singleton()
@@ -39,7 +34,7 @@ class ValidateService @Inject() (phoneNumberUtil: PhoneNumberUtil, metricsServic
 
   private val formatInE164 = (x: GPhoneNumber) => phoneNumberUtil.format(x, PhoneNumberFormat.E164)
 
-  def validate(phoneNumber: String)(implicit defaultRegion: String = "GB"): Future[Result] =
+  def validate(phoneNumber: String)(implicit defaultRegion: String = "GB"): Either[ErrorResponse, ValidatedPhoneNumber] =
     Try {
       val mandatoryFirstChars = "+0"
       phoneNumber match {
@@ -50,14 +45,15 @@ class ValidateService @Inject() (phoneNumberUtil: PhoneNumberUtil, metricsServic
         case _ if isValidPhoneNumber(phoneNumber) =>
           val telephoneNumberType = getPhoneNumberType(phoneNumber).name.toLowerCase
           metricsService.recordMetric(s"${telephoneNumberType}_validation_count")
-          PhoneNumberResponse(formatInE164(parsePhoneNumber(phoneNumber)), telephoneNumberType.capitalize)
+          ValidatedPhoneNumber(formatInE164(parsePhoneNumber(phoneNumber)), telephoneNumberType.capitalize)
       }
     } match {
-      case Success(phoneNumberResponse: PhoneNumberResponse) => Future.successful(Ok(Json.toJson(phoneNumberResponse)))
+      case Success(phoneNumberResponse: ValidatedPhoneNumber) =>
+        Right(phoneNumberResponse)
       case Success(false) | Failure(_) =>
         metricsService.recordMetric("telephone_number_validation_failure")
         logger.warn("Failed to validate phone number")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))))
+        Left(ErrorResponse(VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))
     }
 
   private def isValidPhoneNumber(phoneNumber: String)(implicit defaultRegion: String) = phoneNumberUtil.isValidNumber(parsePhoneNumber(phoneNumber))

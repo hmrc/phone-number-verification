@@ -18,12 +18,12 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.mvc.Results.ServiceUnavailable
+import play.api.mvc.Results.{BadRequest, ServiceUnavailable}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.connectors.{UserNotificationsConnector, ValidateConnector}
+import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.SERVER_CURRENTLY_UNAVAILABLE
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.{INVALID_TELEPHONE_NUMBER, SERVER_CURRENTLY_UNAVAILABLE}
 import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
@@ -31,12 +31,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
                                auditService: AuditService,
                                passcodeService: PasscodeService,
-                               validateConnector: ValidateConnector,
+                               validateService: ValidateService,
                                userNotificationsConnector: UserNotificationsConnector,
                                metricsService: MetricsService,
                                dateTimeUtils: DateTimeUtils,
@@ -45,23 +44,23 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
     extends VerifyHelper(passcodeGenerator, auditService, passcodeService, userNotificationsConnector, metricsService, dateTimeUtils, config) {
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
-    validateConnector.callService(phoneNumber.phoneNumber) transformWith {
-      case Success(httpResponse) => processResponse(httpResponse)
-      case Failure(error) =>
+    validateService.validate(phoneNumber.phoneNumber) match {
+      case Right(validatedPhoneNumber) => processPhoneNumber(validatedPhoneNumber)
+      case Left(error) =>
         metricsService.recordMetric("CIP-Validation-HTTP-Failure")
         metricsService.recordMetric(error.toString.trim.dropRight(1))
-        logger.error(error.getMessage)
-        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
+        logger.error(error.message)
+        Future.successful(BadRequest(Json.toJson(ErrorResponse(Codes.VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))))
     }
 
   def verifyPasscode(phoneNumberAndpasscode: PhoneNumberAndPasscode)(implicit hc: HeaderCarrier): Future[Result] =
-    validateConnector.callService(phoneNumberAndpasscode.phoneNumber).transformWith {
-      case Success(httpResponse) =>
-        processResponseForPasscode(httpResponse, phoneNumberAndpasscode)
-      case Failure(error) =>
+    validateService.validate(phoneNumberAndpasscode.phoneNumber) match {
+      case Right(validatedPhoneNumber) =>
+        processValidPasscode(validatedPhoneNumber, phoneNumberAndpasscode.passcode)
+      case Left(error) =>
         metricsService.recordMetric("CIP-Validation-HTTP-Failure")
         metricsService.recordMetric(error.toString.trim.dropRight(1))
-        logger.error(error.getMessage)
-        Future.successful(ServiceUnavailable(Json.toJson(ErrorResponse(Codes.EXTERNAL_SERVICE_FAIL.id, SERVER_CURRENTLY_UNAVAILABLE))))
+        logger.error(error.message)
+        Future.successful(BadRequest(Json.toJson(ErrorResponse(Codes.VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))))
     }
 }
