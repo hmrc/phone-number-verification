@@ -16,10 +16,28 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models.api
 
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads.{maxLength, minLength}
 import play.api.libs.json._
 
 case class PhoneNumber(phoneNumber: String)
 
 object PhoneNumber {
-  implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
+
+  object verification {
+    implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
+  }
+
+  object validation {
+    val MIN_LENGTH = 7
+    val MAX_LENGTH = 20
+
+    implicit val phoneNumberReads: Reads[PhoneNumber] =
+      (JsPath \ "phoneNumber")
+        .read[String](
+          minLength[String](MIN_LENGTH)
+            .keepAnd(maxLength[String](MAX_LENGTH))
+        )
+        .map(PhoneNumber.apply)
+  }
 }

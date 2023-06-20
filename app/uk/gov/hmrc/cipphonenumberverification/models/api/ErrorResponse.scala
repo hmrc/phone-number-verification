@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models.api
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.Message
 
 case class ErrorResponse(code: Int, message: Message)
 
 object ErrorResponse {
-  implicit val writes: OWrites[ErrorResponse] = Json.writes[ErrorResponse]
+  implicit val errorResponseFormat: Format[ErrorResponse] = Json.format[ErrorResponse]
 
   object Codes extends Enumeration {
     type Code = Value
@@ -47,5 +47,6 @@ object ErrorResponse {
     val PASSCODE_ALLOWED_TIME_ELAPSED         = "The passcode has expired. Request a new passcode"
     val PASSCODE_STORED_TIME_ELAPSED          = "Enter a correct passcode"
     val EXTERNAL_SERVER_TIMEOUT               = "External server timeout"
+    val INVALID_TELEPHONE_NUMBER              = "Enter a valid telephone number"
   }
 }

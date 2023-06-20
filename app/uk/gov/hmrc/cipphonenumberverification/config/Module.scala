@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models.http.validation
+package uk.gov.hmrc.cipphonenumberverification.config
 
-import play.api.libs.json._
+import com.google.i18n.phonenumbers.PhoneNumberUtil
+import com.google.inject.AbstractModule
 
-case class ValidatedPhoneNumber(phoneNumber: String, phoneNumberType: String)
+class Module extends AbstractModule {
 
-object ValidatedPhoneNumber {
-  implicit val reads: Reads[ValidatedPhoneNumber] = Json.reads[ValidatedPhoneNumber]
+  override def configure(): Unit =
+    bind(classOf[PhoneNumberUtil]).toInstance(PhoneNumberUtil.getInstance())
 }

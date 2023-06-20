@@ -26,7 +26,7 @@ import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.api.{NotificationStatus, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.models.api.{NotificationStatus, Verified}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -44,12 +44,12 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       val passcode = PhoneNumberAndPasscode("07123456789", "123456")
       mockVerifyService
         .verifyPasscode(passcode)(any[HeaderCarrier])
-        .returns(Future.successful(Ok(Json.toJson(VerificationStatus("test")))))
+        .returns(Future.successful(Ok(Json.toJson(Verified("test")))))
       val result = controller.verifyPasscode(
         fakeRequest.withBody(Json.toJson(passcode))
       )
       status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[String] shouldBe "test"
+      (contentAsJson(result) \ "code").as[String] shouldBe "test"
     }
 
     "return 400 for invalid request" in new SetUp {
