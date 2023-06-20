@@ -420,7 +420,8 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       Configuration.from(
         Map(
           "passcode.expiry" -> 15,
-          "cache.expiry"    -> 120
+          "cache.expiry"    -> 120,
+          "appName"         -> "cip-phone-number-verification"
         )
       )
     )

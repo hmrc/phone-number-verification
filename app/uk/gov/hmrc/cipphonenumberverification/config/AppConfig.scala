@@ -18,14 +18,27 @@ package uk.gov.hmrc.cipphonenumberverification.config
 
 import play.api.Configuration
 
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
+  lazy val appName: String                              = config.get[String]("appName")
   lazy val cacheExpiry: Long                            = config.get[Long]("cache.expiry")
   lazy val validationConfig: CipValidationConfig        = config.get[CipValidationConfig]("microservice.services.cipphonenumber.validation")
-  lazy val govNotifyConfig: GovNotifyConfig             = config.get[GovNotifyConfig]("microservice.services.govuk-notify")
   lazy val phoneNotificationConfig: NotificationsConfig = config.get[NotificationsConfig]("microservice.services.user-notifications.phone")
 
   lazy val passcodeExpiry: Long = config.get[Long]("passcode.expiry")
+
+  lazy val phoneNotificationAuthHeader = s"Basic $createAuth"
+
+  private def createAuth = AppConfig.createAuth(appName, phoneNotificationConfig.authToken)
+}
+
+object AppConfig {
+
+  def createAuth(appName: String, authToken: String): String = Base64.getEncoder.encodeToString(
+    s"$appName:$authToken".getBytes(StandardCharsets.UTF_8)
+  )
 }
