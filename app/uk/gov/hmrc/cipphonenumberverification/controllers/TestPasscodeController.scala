@@ -38,10 +38,10 @@ class TestPasscodeController @Inject() (cc: ControllerComponents, service: Passc
         phoneNumber =>
           service.retrievePasscode(phoneNumber.phoneNumber).map {
             case Some(phoneNumberPasscodeData) =>
-              println(s"PassCode found for phone number: ${phoneNumber.phoneNumber}")
+              logger.info(s"PassCode found for phone number: ${phoneNumber.phoneNumber}")
               Ok(Json.toJson(phoneNumberPasscodeData))
             case None =>
-              println(s"No passcode found for phone number: ${phoneNumber.phoneNumber}")
+              logger.info(s"No passcode found for phone number: ${phoneNumber.phoneNumber}")
               NoContent
           }
       }

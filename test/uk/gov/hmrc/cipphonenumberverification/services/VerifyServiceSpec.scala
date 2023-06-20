@@ -128,51 +128,6 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       userNotificationsConnectorMock wasNever called
     }
 
-//    "return bad gateway when validation service returns 503" in new SetUp {
-//      val phoneNumber = PhoneNumber("test")
-//      validateServiceMock
-//        .validate(phoneNumber.phoneNumber)
-//        .returns(Future.successful(HttpResponse(SERVICE_UNAVAILABLE, "")))
-//
-//      val result = verifyService.verifyPhoneNumber(phoneNumber)
-//
-//      status(result) shouldBe BAD_GATEWAY
-//      (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_SERVICE_FAIL.id
-//      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
-//    }
-
-//    "return service unavailable when validation service throws connection exception" in new SetUp {
-//      val phoneNumber = PhoneNumber("test")
-//      validateServiceMock
-//        .validate(phoneNumber.phoneNumber)
-//        .returns(Future.failed(new ConnectionException("")))
-//
-//      val result = verifyService.verifyPhoneNumber(phoneNumber)
-//
-//      status(result) shouldBe SERVICE_UNAVAILABLE
-//      (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_SERVICE_FAIL.id
-//      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
-//    }
-
-//    "return service unavailable when govUk notify service throws connection exception" in new SetUp {
-//      val enteredPhoneNumber               = PhoneNumber("test")
-//      val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-//      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
-//      validateServiceMock
-//        .validate(enteredPhoneNumber.phoneNumber)
-//        .returns(Future.successful(HttpResponse(OK, Json.toJson(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")).toString())))
-//      passcodeServiceMock
-//        .persistPasscode(phoneNumberPasscodeDataFromDb)
-//        .returns(Future.successful(phoneNumberPasscodeDataFromDb))
-//      userNotificationsConnectorMock
-//        .sendPasscode(any[PhoneNumberPasscodeData])
-//        .returns(Future.failed(new ConnectionException("")))
-//
-//      val result = verifyService.verifyPhoneNumber(PhoneNumber(enteredPhoneNumber.phoneNumber))
-//
-//      status(result) shouldBe SERVICE_UNAVAILABLE
-//    }
-
     "return BadGateway if gov-notify returns internal server error" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
@@ -443,32 +398,6 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       (contentAsJson(result) \ "message").as[String] shouldBe "Server has experienced an issue"
       auditServiceMock wasNever called
     }
-
-//    "return bad gateway when validation service returns 503" in new SetUp {
-//      val phoneNumberAndPasscode = PhoneNumberAndPasscode("enteredPhoneNumber", "enteredPasscode")
-//      validateServiceMock
-//        .validate(phoneNumberAndPasscode.phoneNumber)
-//        .returns(Future.successful(HttpResponse(SERVICE_UNAVAILABLE, "")))
-//
-//      val result = verifyService.verifyPasscode(phoneNumberAndPasscode)
-//
-//      status(result) shouldBe BAD_GATEWAY
-//      (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_SERVICE_FAIL.id
-//      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
-//    }
-
-//    "return service unavailable when validation service throws connection exception" in new SetUp {
-//      val phoneNumberAndPasscode = PhoneNumberAndPasscode("enteredPhoneNumber", "enteredPasscode")
-//      validateServiceMock
-//        .validate(phoneNumberAndPasscode.phoneNumber)
-//        .returns(Future.failed(new ConnectionException("")))
-//
-//      val result = verifyService.verifyPasscode(phoneNumberAndPasscode)
-//
-//      status(result) shouldBe SERVICE_UNAVAILABLE
-//      (contentAsJson(result) \ "code").as[Int] shouldBe EXTERNAL_SERVICE_FAIL.id
-//      (contentAsJson(result) \ "message").as[String] shouldBe "Server currently unavailable"
-//    }
   }
 
   trait SetUp {
