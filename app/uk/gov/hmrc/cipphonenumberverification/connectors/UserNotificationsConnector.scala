@@ -18,8 +18,8 @@ package uk.gov.hmrc.cipphonenumberverification.connectors
 
 import akka.stream.Materializer
 import play.api.Logging
+import play.api.http.HeaderNames
 import play.api.libs.json.Json
-import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig}
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
@@ -52,7 +52,7 @@ class UserNotificationsConnector @Inject() (httpClient: HttpClientV2, config: Ap
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
       httpClient
         .post(url"${config.phoneNotificationConfig.url}/notifications/sms")
-        .transform(_.withRequestFilter(AhcCurlRequestLogger())) //TODO This should be removed
+        .setHeader(HeaderNames.AUTHORIZATION -> config.phoneNotificationAuthHeader)
         .withBody(Json.toJson(passcodeNotificationRequest))
         .execute[Either[UpstreamErrorResponse, HttpResponse]]
     )
