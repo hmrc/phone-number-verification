@@ -34,7 +34,6 @@ import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNu
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
-import uk.gov.hmrc.cipphonenumberverification.models.http.govnotify.GovUkNotificationId
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
@@ -403,7 +402,6 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
   trait SetUp {
     implicit val hc: HeaderCarrier                                         = new HeaderCarrier()
     implicit val validatedPhoneNumberWrites: OWrites[ValidatedPhoneNumber] = Json.writes[ValidatedPhoneNumber]
-    implicit val govUkNotificationIdWrites: OWrites[GovUkNotificationId]   = Json.writes[GovUkNotificationId]
     val passcodeServiceMock: PasscodeService                               = mock[PasscodeService]
     val validateServiceMock: ValidateService                               = mock[ValidateService]
     val userNotificationsConnectorMock: UserNotificationsConnector         = mock[UserNotificationsConnector]
