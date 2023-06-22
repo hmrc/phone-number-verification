@@ -72,8 +72,6 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
     protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
 
-    protected val backendAuthComponentsStub: BackendAuthComponents =
-      BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
-    protected val controller = new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService, backendAuthComponentsStub)
+    protected val controller = new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService)
   }
 }

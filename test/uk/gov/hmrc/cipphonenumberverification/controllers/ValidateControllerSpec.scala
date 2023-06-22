@@ -73,8 +73,7 @@ class ValidateControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       Permission(Resource(ResourceType("cip-phone-number-validation"), ResourceLocation("*")), IAAction("*"))
     private val mockStubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
-    private val backendAuthComponentsStub               = BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
-    protected val controller                            = new ValidateController(Helpers.stubControllerComponents(), mockValidateService, mockMetricsService, backendAuthComponentsStub)
+    protected val controller                            = new ValidateController(Helpers.stubControllerComponents(), mockValidateService, mockMetricsService)
     implicit protected val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
   }
 }
