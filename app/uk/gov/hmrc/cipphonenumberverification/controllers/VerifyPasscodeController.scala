@@ -23,19 +23,15 @@ import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
-import uk.gov.hmrc.internalauth.client.BackendAuthComponents
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: VerifyService, auth: BackendAuthComponents)
-    extends BackendController(cc)
-    with InternalAuthAccess
-    with Logging {
+class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: VerifyService) extends BackendController(cc) with Logging {
 
-  def verifyPasscode: Action[JsValue] = auth.authorizedAction[Unit](permission).compose(Action(parse.json)).async {
+  def verifyPasscode: Action[JsValue] = Action(parse.json).async {
     implicit request =>
       withJsonBody[PhoneNumberAndPasscode] {
         service.verifyPasscode

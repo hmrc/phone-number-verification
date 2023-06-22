@@ -61,8 +61,6 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
     protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
 
-    protected val backendAuthComponentsStub: BackendAuthComponents =
-      BackendAuthComponentsStub(mockStubBehaviour)(Helpers.stubControllerComponents(), Implicits.global)
-    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, backendAuthComponentsStub)
+    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService)
   }
 }
