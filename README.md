@@ -1,14 +1,14 @@
-## cip-phone-number-verification
+## phone-number-verification
 
 ### Summary
 
 Backend server for validating and verifying a given phone number
 
-The default port for cip-phone-number-frontend is 6080
-The default port for cip-phone-number is port 6081
-The default port for cip-phone-number-validation is port 6082
-The default port for cip-phone-number-verification is port 6083
-The default port for cip-phone-number-stubs is port 6099
+The default port for phone-number-frontend is 6080
+The default port for phone-number is port 6081
+The default port for phone-number-validation is port 6082
+The default port for phone-number-verification is port 6083
+The default port for phone-number-stubs is port 6099
 
 ### Testing
 
@@ -22,30 +22,27 @@ The default port for cip-phone-number-stubs is port 6099
 
 ### Running app
 
-    sm --start CIP_PHONE_NUMBER_VERIFICATION_ALL
+    sm --start PHONE_NUMBER_VERIFICATION_ALL
 
-Run the services against the current versions in dev, stop the CIP_PHONE_NUMBER_VERIFICATION service and start manually
+Run the services against the current versions in dev, stop the PHONE_NUMBER_VERIFICATION service and start manually
 
-    sm --start CIP_PHONE_NUMBER_VERIFICATION_ALL -r
-    sm --stop CIP_PHONE_NUMBER_VERIFICATION
-    cd cip-phone-number-verification
+    sm --start PHONE_NUMBER_VERIFICATION_ALL -r
+    sm --stop PHONE_NUMBER_VERIFICATION
+    cd phone-number-verification
     sbt run
 
 For reference here are the details for running each of the services individually
 
-    cd cip-phone-number-frontend
+    cd phone-number-frontend
     sbt run
  
-    cd cip-phone-number
+    cd phone-number
     sbt run
 
-    cd cip-phone-number-validation
+    cd phone-number-verification
     sbt run
 
-    cd cip-phone-number-verification
-    sbt run
-
-    cd cip-phone-number-stubs
+    cd phone-number-stubs
     sbt run
 
 ### Curl microservice (for curl microservice build jobs)
@@ -54,19 +51,19 @@ For reference here are the details for running each of the services individually
 
     -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
 	    "phoneNumber": "<phone-number>"
-    }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify'
+    }' 'https://phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify'
 
 #### Check notification status
 
     -XGET -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ"
-    'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/notifications/<notificationId>'
+    'https://phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/notifications/<notificationId>'
 
 #### Verify Passcode
 
     -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
 	    "phoneNumber": "<phone-number>",
         "passcode": "<passcode>"
-    }' 'https://cip-phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/passcode'
+    }' 'https://phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/passcode'
 
 ### License
 
