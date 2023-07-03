@@ -1,7 +1,7 @@
 
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
-val appName = "cip-phone-number-verification"
+val appName = "phone-number-verification"
 
 lazy val scalaCompilerOptions = Seq(
   "-Xlint:-missing-interpolator,_",
