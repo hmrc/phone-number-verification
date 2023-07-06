@@ -30,7 +30,7 @@ class PasscodeCacheRepository @Inject() (
   timestampSupport: TimestampSupport
 )(implicit ec: ExecutionContext)
     extends MongoCacheRepository(mongoComponent = mongoComponent,
-                                 collectionName = "cip-phone-number-verification",
+                                 collectionName = "phone-number-verification",
                                  ttl = configuration.get[FiniteDuration]("cache.expiry"),
                                  timestampSupport = timestampSupport,
                                  cacheIdType = CacheIdType.SimpleCacheId

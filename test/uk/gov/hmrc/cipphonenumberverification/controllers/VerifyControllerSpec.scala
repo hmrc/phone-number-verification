@@ -57,7 +57,7 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
     protected val fakeRequest                           = FakeRequest().withHeaders("Authorization" -> "fake-token")
 
     private val expectedPredicate =
-      Permission(Resource(ResourceType("cip-phone-number-verification"), ResourceLocation("*")), IAAction("*"))
+      Permission(Resource(ResourceType("phone-number-verification"), ResourceLocation("*")), IAAction("*"))
     protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
 
