@@ -6,7 +6,6 @@ Backend server for validating and verifying a given phone number
 
 The default port for phone-number-frontend is 6080
 The default port for phone-number is port 6081
-The default port for phone-number-validation is port 6082
 The default port for phone-number-verification is port 6083
 The default port for phone-number-stubs is port 6099
 

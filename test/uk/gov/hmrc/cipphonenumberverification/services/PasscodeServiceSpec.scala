@@ -39,7 +39,7 @@ class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockit
       val now                             = System.currentTimeMillis()
       val phoneNumberAndPasscodeToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, passcode = passcode, now)
       passcodeCacheRepositoryMock
-        .put(phoneNumber.phoneNumber)(DataKey("cip-phone-number-verification"), phoneNumberAndPasscodeToPersist)
+        .put(phoneNumber.phoneNumber)(DataKey("phone-number-verification"), phoneNumberAndPasscodeToPersist)
         .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
       val result = passcodeService.persistPasscode(phoneNumberAndPasscodeToPersist)
@@ -53,7 +53,7 @@ class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockit
       val now        = System.currentTimeMillis()
       val dataFromDb = PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now)
       passcodeCacheRepositoryMock
-        .get[PhoneNumberPasscodeData]("thePhoneNumber")(DataKey("cip-phone-number-verification"))
+        .get[PhoneNumberPasscodeData]("thePhoneNumber")(DataKey("phone-number-verification"))
         .returns(Future.successful(Some(dataFromDb)))
       val result = passcodeService.retrievePasscode("thePhoneNumber")
       await(result) shouldBe Some(PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now))

@@ -419,7 +419,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
         Map(
           "passcode.expiry" -> 15,
           "cache.expiry"    -> 120,
-          "appName"         -> "cip-phone-number-verification"
+          "appName"         -> "phone-number-verification"
         )
       )
     )
