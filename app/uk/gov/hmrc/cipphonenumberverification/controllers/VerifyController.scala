@@ -16,9 +16,13 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
+import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber.verification._
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -27,7 +31,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyController @Inject() (cc: ControllerComponents, service: VerifyService) extends BackendController(cc) {
+class VerifyController @Inject() (cc: ControllerComponents, service: VerifyService, metricsService: MetricsService) extends BackendController(cc) with Logging {
 
   def verify: Action[JsValue] = Action(parse.json).async {
     implicit request =>
@@ -40,5 +44,9 @@ class VerifyController @Inject() (cc: ControllerComponents, service: VerifyServi
   override protected def withJsonBody[T](f: T => Future[Result])(implicit request: Request[JsValue], m: Manifest[T], reads: Reads[T]): Future[Result] =
     request.body.validate[T] match {
       case JsSuccess(payload, _) => f(payload)
+      case JsError(_) =>
+        metricsService.recordMetric("telephone_number_validation_failure")
+        logger.warn("Failed to validate request")
+        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))))
     }
 }

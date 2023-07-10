@@ -23,7 +23,7 @@ import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message._
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse._
-import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber.validation._
+import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber.verification._
 import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.services.ValidateService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
