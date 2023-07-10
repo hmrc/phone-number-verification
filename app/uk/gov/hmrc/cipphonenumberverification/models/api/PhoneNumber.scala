@@ -25,12 +25,10 @@ case class PhoneNumber(phoneNumber: String)
 object PhoneNumber {
 
   object verification {
-    implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
-  }
-
-  object validation {
     val MIN_LENGTH = 7
     val MAX_LENGTH = 20
+
+//    implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
 
     implicit val phoneNumberReads: Reads[PhoneNumber] =
       (JsPath \ "phoneNumber")

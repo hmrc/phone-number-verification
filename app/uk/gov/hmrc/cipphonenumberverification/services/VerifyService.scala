@@ -69,7 +69,8 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
 
   def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =
     validateService.validate(phoneNumber.phoneNumber) match {
-      case Right(validatedPhoneNumber) => processPhoneNumber(validatedPhoneNumber)
+      case Right(validatedPhoneNumber) =>
+        processPhoneNumber(validatedPhoneNumber)
       case Left(error) =>
         metricsService.recordMetric("CIP-Validation-HTTP-Failure")
         metricsService.recordMetric(error.toString.trim.dropRight(1))

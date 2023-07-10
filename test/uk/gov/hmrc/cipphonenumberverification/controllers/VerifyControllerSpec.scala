@@ -20,20 +20,19 @@ import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.http.Status.OK
+import play.api.http.Status.BAD_REQUEST
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.internalauth.client.Predicate.Permission
-import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Resource, ResourceLocation, ResourceType, Retrieval}
-import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
+import uk.gov.hmrc.internalauth.client._
+import uk.gov.hmrc.internalauth.client.test.StubBehaviour
 
-import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
 
 class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
@@ -47,13 +46,14 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
       val result = controller.verify(
         fakeRequest.withBody(Json.toJson(phoneNumber))
       )
-      status(result) shouldBe OK
+      status(result) shouldBe BAD_REQUEST
     }
   }
 
   trait SetUp {
     implicit protected val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
     protected val mockVerifyService                     = mock[VerifyService]
+    protected val mockMetricsService                    = mock[MetricsService]
     protected val fakeRequest                           = FakeRequest().withHeaders("Authorization" -> "fake-token")
 
     private val expectedPredicate =
@@ -61,6 +61,6 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
     protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
     mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
 
-    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService)
+    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, mockMetricsService)
   }
 }
