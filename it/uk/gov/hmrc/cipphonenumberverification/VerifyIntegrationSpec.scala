@@ -62,7 +62,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with IdiomaticMockito with Match
 
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
+          .url(s"$baseUrl/phone-number/verify")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -77,7 +77,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with IdiomaticMockito with Match
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
+          .url(s"$baseUrl/phone-number/verify")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {

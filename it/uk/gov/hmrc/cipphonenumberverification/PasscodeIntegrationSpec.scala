@@ -41,7 +41,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
       //verify PhoneNumberAndPasscode (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -60,7 +60,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
       //verify PhoneNumberAndPasscode (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -79,7 +79,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {

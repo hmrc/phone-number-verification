@@ -38,7 +38,7 @@ trait DataSteps {
 
   def verify(phoneNumber: String): Future[WSResponse] =
     wsClient
-      .url(s"$baseUrl/customer-insight-platform/phone-number/verify")
+      .url(s"$baseUrl/phone-number/verify")
       .withHttpHeaders(("Authorization", "local-test-token"))
       .post(Json.parse {
         s"""{"phoneNumber": "$phoneNumber"}""".stripMargin

@@ -1,5 +1,5 @@
 ### Correct-number
-POST http://localhost:6083/customer-insight-platform/phone-number/verify
+POST http://localhost:6083/phone-number/verify
 content-type: application/json
 Authorization: fake-token
 
@@ -8,7 +8,7 @@ Authorization: fake-token
 }
 
 ###
-POST http://localhost:6083/customer-insight-platform/phone-number/verify/passcode
+POST http://localhost:6083/phone-number/verify/passcode
 content-type: application/json
 Authorization: fake-token
 
@@ -18,23 +18,23 @@ Authorization: fake-token
 }
 
 ### Notification Status
-GET http://localhost:6083/customer-insight-platform/phone-number/notifications/ecf20f0a-86af-4ebf-9012-e48bc6a31174
+GET http://localhost:6083/phone-number/notifications/ecf20f0a-86af-4ebf-9012-e48bc6a31174
 Authorization: fake-token
 
 ### Notification Status
-GET http://localhost:6083/customer-insight-platform/phone-number/notifications/noresult-d385-4b17-a0b4-23a85c0c5b1a
+GET http://localhost:6083/phone-number/notifications/noresult-d385-4b17-a0b4-23a85c0c5b1a
 Authorization: fake-token
 
 ### Notification Status
-GET http://localhost:6083/customer-insight-platform/phone-number/notifications/systemclock-d385-4b17-a0b4-23a85c0c5b1a
+GET http://localhost:6083/phone-number/notifications/systemclock-d385-4b17-a0b4-23a85c0c5b1a
 Authorization: fake-token
 
 ### Notification Status
-GET http://localhost:6083/customer-insight-platform/phone-number/notifications/validation-d385-4b17-a0b4-23a85c0c5b1a
+GET http://localhost:6083/phone-number/notifications/validation-d385-4b17-a0b4-23a85c0c5b1a
 Authorization: fake-token
 
 ### Fixed_line
-POST http://localhost:6083/customer-insight-platform/phone-number/verify
+POST http://localhost:6083/phone-number/verify
 content-type: application/json
 Authorization: fake-token
 
@@ -43,7 +43,7 @@ Authorization: fake-token
 }
 
 ### Mobile
-POST http://localhost:6083/customer-insight-platform/phone-number/verify
+POST http://localhost:6083/phone-number/verify
 content-type: application/json
 Authorization: fake-token
 
@@ -52,7 +52,7 @@ Authorization: fake-token
 }
 
 ### Toll_free
-POST http://localhost:6083/customer-insight-platform/phone-number/verify
+POST http://localhost:6083/phone-number/verify
 content-type: application/json
 Authorization: fake-token
 
@@ -61,7 +61,7 @@ Authorization: fake-token
 }
 
 ###
-POST http://localhost:6083/customer-insight-platform/phone-number/verify
+POST http://localhost:6083/phone-number/verify
 content-type: application/json
 Authorization: fake-token
 
@@ -70,7 +70,7 @@ Authorization: fake-token
 }
 
 ###
-POST http://localhost:6083/customer-insight-platform/phone-number/verify/passcode
+POST http://localhost:6083/phone-number/verify/passcode
 content-type: application/json
 Authorization: fake-token
 
@@ -78,4 +78,3 @@ Authorization: fake-token
   "phoneNumber": "07843274331",
   "passcode": "GTHJKL"
 }
-
