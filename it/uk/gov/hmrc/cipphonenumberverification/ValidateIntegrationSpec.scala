@@ -34,7 +34,7 @@ class ValidateIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
     "respond with 200 status with valid phone number" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/validate")
+          .url(s"$baseUrl/phone-number/validate")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -51,7 +51,7 @@ class ValidateIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
     "respond with 400 status with invalid phone number" in {
       val response =
         wsClient
-          .url(s"$baseUrl/customer-insight-platform/phone-number/validate")
+          .url(s"$baseUrl/phone-number/validate")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {

@@ -50,19 +50,19 @@ For reference here are the details for running each of the services individually
 
     -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
 	    "phoneNumber": "<phone-number>"
-    }' 'https://phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify'
+    }' 'https://phone-number-verification.protected.mdtp/phone-number/verify'
 
 #### Check notification status
 
     -XGET -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ"
-    'https://phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/notifications/<notificationId>'
+    'https://phone-number-verification.protected.mdtp/phone-number/notifications/<notificationId>'
 
 #### Verify Passcode
 
     -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
 	    "phoneNumber": "<phone-number>",
         "passcode": "<passcode>"
-    }' 'https://phone-number-verification.protected.mdtp/customer-insight-platform/phone-number/verify/passcode'
+    }' 'https://phone-number-verification.protected.mdtp/phone-number/verify/passcode'
 
 ### License
 
