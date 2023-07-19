@@ -19,6 +19,8 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
+import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.INVALID_TELEPHONE_NUMBER
@@ -31,9 +33,12 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyController @Inject() (cc: ControllerComponents, service: VerifyService, metricsService: MetricsService) extends BackendController(cc) with Logging {
+class VerifyController @Inject() (cc: ControllerComponents, service: VerifyService, metricsService: MetricsService, override val appConfig: AppConfig)
+    extends BackendController(cc)
+    with AccessChecker
+    with Logging {
 
-  def verify: Action[JsValue] = Action(parse.json).async {
+  def verify: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       // TODO create some form of response builder
       withJsonBody[PhoneNumber] {

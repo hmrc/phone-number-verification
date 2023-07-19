@@ -18,20 +18,22 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.IdiomaticMockito
+import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.ConfigLoader
 import play.api.http.Status.BAD_REQUEST
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.internalauth.client.Predicate.Permission
 import uk.gov.hmrc.internalauth.client._
-import uk.gov.hmrc.internalauth.client.test.StubBehaviour
 
 import scala.concurrent.Future
 
@@ -54,13 +56,19 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
     implicit protected val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
     protected val mockVerifyService                     = mock[VerifyService]
     protected val mockMetricsService                    = mock[MetricsService]
-    protected val fakeRequest                           = FakeRequest().withHeaders("Authorization" -> "fake-token")
+    protected val mockAppConfig                         = mock[AppConfig]
+    protected val fakeRequest                           = FakeRequest().withHeaders("User-Agent" -> "tester")
 
-    private val expectedPredicate =
-      Permission(Resource(ResourceType("phone-number-verification"), ResourceLocation("*")), IAAction("*"))
-    protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
-    mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
+    {
+      implicit val stringConfigLoader = ConfigLoader.stringLoader
+      when(mockAppConfig.mustGetConfig(accessControlEnabledAbsoluteKey)).thenReturn(true.toString)
+    }
 
-    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, mockMetricsService)
+    {
+      implicit val stringSeqConfigLoader = ConfigLoader.seqStringLoader
+      when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
+    }
+
+    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, mockMetricsService, mockAppConfig)
   }
 }

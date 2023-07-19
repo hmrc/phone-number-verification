@@ -18,23 +18,24 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.IdiomaticMockito
+import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.ConfigLoader
 import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.api.{NotificationStatus, Verified}
+import uk.gov.hmrc.cipphonenumberverification.models.api.Verified
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.internalauth.client.Predicate.Permission
-import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
-import uk.gov.hmrc.internalauth.client.{BackendAuthComponents, IAAction, Resource, ResourceLocation, ResourceType, Retrieval}
+import uk.gov.hmrc.internalauth.client._
 
-import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.Future
 
 class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
@@ -65,13 +66,19 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
   trait SetUp {
     implicit protected val writes: OWrites[PhoneNumberAndPasscode] = Json.writes[PhoneNumberAndPasscode]
     protected val mockVerifyService                                = mock[VerifyService]
+    protected val mockAppConfig                                    = mock[AppConfig]
     protected val fakeRequest                                      = FakeRequest().withHeaders("Authorization" -> "fake-token")
 
-    private val expectedPredicate =
-      Permission(Resource(ResourceType("phone-number-verification"), ResourceLocation("*")), IAAction("*"))
-    protected val mockStubBehaviour: StubBehaviour = mock[StubBehaviour]
-    mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
+    {
+      implicit val stringConfigLoader = ConfigLoader.stringLoader
+      when(mockAppConfig.mustGetConfig(accessControlEnabledAbsoluteKey)).thenReturn(true.toString)
+    }
 
-    protected val controller = new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService)
+    {
+      implicit val stringSeqConfigLoader = ConfigLoader.seqStringLoader
+      when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
+    }
+
+    protected val controller = new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService, mockAppConfig)
   }
 }

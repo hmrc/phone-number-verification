@@ -17,21 +17,21 @@
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import org.mockito.IdiomaticMockito
+import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.ConfigLoader
 import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.services.ValidateService
-import uk.gov.hmrc.internalauth.client.Predicate.Permission
 import uk.gov.hmrc.internalauth.client._
-import uk.gov.hmrc.internalauth.client.test.{BackendAuthComponentsStub, StubBehaviour}
 
-import scala.concurrent.ExecutionContext.Implicits
-import scala.concurrent.Future
 import scala.util.Random
 
 class ValidateControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
@@ -67,13 +67,19 @@ class ValidateControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
   trait SetUp {
     protected val fakeRequest         = FakeRequest().withHeaders("Authorization" -> "fake-token")
     protected val mockValidateService = mock[ValidateService]
+    protected val mockAppConfig       = mock[AppConfig]
     protected val mockMetricsService  = mock[MetricsService]
 
-    private val expectedPredicate =
-      Permission(Resource(ResourceType("cip-phone-number-validation"), ResourceLocation("*")), IAAction("*"))
-    private val mockStubBehaviour = mock[StubBehaviour]
-    mockStubBehaviour.stubAuth(Some(expectedPredicate), Retrieval.EmptyRetrieval).returns(Future.unit)
-    protected val controller                            = new ValidateController(Helpers.stubControllerComponents(), mockValidateService, mockMetricsService)
+    {
+      implicit val stringConfigLoader = ConfigLoader.stringLoader
+      when(mockAppConfig.mustGetConfig(accessControlEnabledAbsoluteKey)).thenReturn(true.toString)
+    }
+
+    {
+      implicit val stringSeqConfigLoader = ConfigLoader.seqStringLoader
+      when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
+    }
+    protected val controller                            = new ValidateController(Helpers.stubControllerComponents(), mockValidateService, mockMetricsService, mockAppConfig)
     implicit protected val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
   }
 }
