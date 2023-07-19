@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.config
 
-import play.api.Configuration
+import play.api.{ConfigLoader, Configuration}
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -33,6 +33,13 @@ class AppConfig @Inject() (config: Configuration) {
   lazy val phoneNotificationAuthHeader = s"Basic $createAuth"
 
   private def createAuth = AppConfig.createAuth(appName, phoneNotificationConfig.authToken)
+
+  def mustGetConfig[T: ConfigLoader](key: String): T =
+    config.getOptional[T](key).getOrElse {
+      throw new Exception("ERROR: Unable to find config item " + key)
+    }
+
+  def getConfig[T: ConfigLoader](key: String): Option[T] = config.getOptional[T](key)
 }
 
 object AppConfig {

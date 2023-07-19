@@ -19,6 +19,8 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
+import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.testOnly.PhoneNumber
@@ -30,9 +32,12 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton()
-class TestPasscodeController @Inject() (cc: ControllerComponents, service: PasscodeService) extends BackendController(cc) with Logging {
+class TestPasscodeController @Inject() (cc: ControllerComponents, service: PasscodeService, override val appConfig: AppConfig)
+    extends BackendController(cc)
+    with AccessChecker
+    with Logging {
 
-  def retrievePasscode: Action[JsValue] = Action(parse.json).async {
+  def retrievePasscode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       withJsonBody[PhoneNumber] {
         phoneNumber =>
