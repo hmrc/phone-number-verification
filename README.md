@@ -48,18 +48,13 @@ For reference here are the details for running each of the services individually
 
 #### Verify
 
-    -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
+    -XPOST -H "Content-type: application/json" -d '{
 	    "phoneNumber": "<phone-number>"
     }' 'https://phone-number-verification.protected.mdtp/phone-number/verify'
 
-#### Check notification status
-
-    -XGET -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ"
-    'https://phone-number-verification.protected.mdtp/phone-number/notifications/<notificationId>'
-
 #### Verify Passcode
 
-    -XPOST -H "Content-type: application/json" -H "Authorization: qRq88mRp-GZS0caHUgokNAeRWFgV31YLpZQQn6TyEJP82wMY5WYRz9sea8kdcJ7KrphMcOsoZ" -d '{
+    -XPOST -H "Content-type: application/json" -d '{
 	    "phoneNumber": "<phone-number>",
         "passcode": "<passcode>"
     }' 'https://phone-number-verification.protected.mdtp/phone-number/verify/passcode'
