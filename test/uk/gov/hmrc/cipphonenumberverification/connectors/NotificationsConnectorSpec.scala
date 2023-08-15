@@ -58,8 +58,6 @@ class NotificationsConnectorSpec
         NotificationsConfig("http", wireMockHost, wireMockPort, UUID.randomUUID().toString, cbConfigData)
       )
 
-      when(appConfigMock.passcodeExpiry).thenReturn(15)
-
       val now                     = System.currentTimeMillis()
       val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode", now)
       val phoneNumberRequest      = PasscodeNotificationRequest("testPhoneNumber", "Your Phone verification code: testPasscode")

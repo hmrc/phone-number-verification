@@ -20,7 +20,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
-import uk.gov.hmrc.mongo.cache.DataKey
+import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 
 import scala.concurrent.Future
 
@@ -34,7 +34,7 @@ trait DataSteps {
 
   //mimics user reading text message
   def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndPasscode]] =
-    repository.get[PhoneNumberAndPasscode](phoneNumber)(DataKey("phone-number-verification"))
+    repository.get[PhoneNumberAndPasscode](phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataKey)
 
   def verify(phoneNumber: String): Future[WSResponse] =
     wsClient

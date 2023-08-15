@@ -37,7 +37,6 @@ import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndP
 import uk.gov.hmrc.cipphonenumberverification.utils.DateTimeUtils
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
-import java.time.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -285,30 +284,6 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
   }
 
   "verifyPasscode" should {
-    "return verification error and passcode has expired message if passcode has expired" in new SetUp {
-      val phoneNumberAndPasscode = PhoneNumberAndPasscode("enteredPhoneNumber", "enteredPasscode")
-      // assuming the passcode expiry config is set to 15 minutes
-      val seventeenMinutes              = Duration.ofMinutes(17).toMillis
-      val passcodeExpiryWillHaveElapsed = now - seventeenMinutes
-      val phoneNumberPasscodeDataFromDb =
-        PhoneNumberPasscodeData(phoneNumberAndPasscode.phoneNumber, phoneNumberAndPasscode.passcode, passcodeExpiryWillHaveElapsed)
-      validateServiceMock
-        .validate(phoneNumberAndPasscode.phoneNumber)
-        .returns(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, "Mobile")))
-      passcodeServiceMock
-        .retrievePasscode(phoneNumberAndPasscode.phoneNumber)
-        .returns(Future.successful(Some(phoneNumberPasscodeDataFromDb)))
-
-      val result = verifyService.verifyPasscode(phoneNumberAndPasscode)
-
-      status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[Int] shouldBe VERIFICATION_ERROR.id
-      (contentAsJson(result) \ "message").as[String] shouldBe "The passcode has expired. Request a new passcode"
-      // check what is sent to the audit service
-      val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", "Not verified")
-      auditServiceMock.sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent) was called
-    }
-
     "return Verified if passcode matches" in new SetUp {
       val phoneNumberAndPasscode        = PhoneNumberAndPasscode("enteredPhoneNumber", "enteredPasscode")
       val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(phoneNumberAndPasscode.phoneNumber, phoneNumberAndPasscode.passcode, now)
