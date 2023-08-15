@@ -103,7 +103,7 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
   private def processValidPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit hc: HeaderCarrier): Future[Result] = {
     val passcode   = passcodeGenerator.passcodeGenerator()
     val now        = dateTimeUtils.getCurrentDateTime()
-    val dataToSave = new PhoneNumberPasscodeData(validatedPhoneNumber.phoneNumber, passcode, now)
+    val dataToSave = new PhoneNumberPasscodeData(validatedPhoneNumber.phoneNumber, passcode)
     auditService.sendExplicitAuditEvent(PhoneNumberVerificationRequest, VerificationRequestAuditEvent(dataToSave.phoneNumber, passcode))
 
     passcodeService.persistPasscode(dataToSave) transformWith {
@@ -152,7 +152,8 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
   def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcodeToCheck: String)(implicit hc: HeaderCarrier): Future[Result] =
     (for {
       maybePhoneNumberAndPasscodeData <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
-      result                          <- processPasscode(PhoneNumberAndPasscode(validatedPhoneNumber.phoneNumber, passcodeToCheck), maybePhoneNumberAndPasscodeData)
+      _ = println(s">>> $maybePhoneNumberAndPasscodeData")
+      result <- processPasscode(PhoneNumberAndPasscode(validatedPhoneNumber.phoneNumber, passcodeToCheck), maybePhoneNumberAndPasscodeData)
     } yield result).recover {
       case err =>
         metricsService.recordMetric("mongo_cache_failure")

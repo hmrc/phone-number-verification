@@ -59,7 +59,7 @@ class NotificationsConnectorSpec
       )
 
       val now                     = System.currentTimeMillis()
-      val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode", now)
+      val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode")
       val phoneNumberRequest      = PasscodeNotificationRequest("testPhoneNumber", "Your Phone verification code: testPasscode")
 
       val result = notificationsConnector.sendPasscode(phoneNumberPasscodeData)

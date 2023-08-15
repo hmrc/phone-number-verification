@@ -18,7 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.models
 
 import play.api.libs.json.{Json, Reads, Writes}
 
-case class PhoneNumberPasscodeData(phoneNumber: String, passcode: String, createdAt: Long)
+case class PhoneNumberPasscodeData(phoneNumber: String, passcode: String)
 
 object PhoneNumberPasscodeData {
 

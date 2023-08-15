@@ -49,7 +49,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
-      val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       passcodeServiceMock
         .persistPasscode(any[PhoneNumberPasscodeData])
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
@@ -100,7 +100,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     "return internal sever error when datastore exception occurs" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -129,7 +129,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     "return BadGateway if gov-notify returns internal server error" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -157,7 +157,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     "return Service unavailable if gov-notify returns BadRequestError" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -185,7 +185,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     "return Service unavailable if gov-notify returns Forbidden error" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -213,7 +213,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     "return Too Many Requests if gov-notify returns RateLimitError or TooManyRequestsError" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -258,7 +258,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
     "return response from service if response has not been handled" in new SetUp {
       val enteredPhoneNumber               = PhoneNumber("test")
       val normalisedPhoneNumberAndPasscode = PhoneNumberAndPasscode("normalisedPhoneNumber", passcode)
-      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb    = PhoneNumberPasscodeData(normalisedPhoneNumberAndPasscode.phoneNumber, normalisedPhoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(enteredPhoneNumber.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -286,7 +286,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
   "verifyPasscode" should {
     "return Verified if passcode matches" in new SetUp {
       val phoneNumberAndPasscode        = PhoneNumberAndPasscode("enteredPhoneNumber", "enteredPasscode")
-      val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(phoneNumberAndPasscode.phoneNumber, phoneNumberAndPasscode.passcode, now)
+      val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(phoneNumberAndPasscode.phoneNumber, phoneNumberAndPasscode.passcode)
       validateServiceMock
         .validate(phoneNumberAndPasscode.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, "Mobile")))
@@ -324,7 +324,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
 
     "return Not verified if passcode does not match" in new SetUp {
       val phoneNumberAndPasscode        = PhoneNumberAndPasscode("enteredPhoneNumber", "enteredPasscode")
-      val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(phoneNumberAndPasscode.phoneNumber, "passcodethatdoesnotmatch", now)
+      val phoneNumberPasscodeDataFromDb = PhoneNumberPasscodeData(phoneNumberAndPasscode.phoneNumber, "passcodethatdoesnotmatch")
       validateServiceMock
         .validate(phoneNumberAndPasscode.phoneNumber)
         .returns(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, "Mobile")))
