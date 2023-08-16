@@ -21,6 +21,7 @@ import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
+import play.api.http.{HeaderNames, MimeTypes}
 import play.api.http.Status._
 import play.api.libs.json.{Json, OWrites}
 import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, status}
@@ -30,7 +31,7 @@ import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.INVALID_TELEPHONE_NUMBER
-import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber, ValidatedPhoneNumber}
+import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, NotificationStatus, PhoneNumber, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
@@ -55,12 +56,16 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
         .returns(Future.successful(phoneNumberPasscodeDataFromDb))
       userNotificationsConnectorMock
         .sendPasscode(phoneNumberPasscodeDataFromDb)
-        .returns(Future.successful(Right(HttpResponse(OK, Json.toJson("""{ "deliveryStatus" : "SUCCESSFUL"}""").toString()))))
+        .returns(
+          Future.successful(
+            Right(HttpResponse(OK, Json.toJson("""{"deliveryStatus" : "SUCCESSFUL"}"""), Map(HeaderNames.CONTENT_TYPE -> Seq(MimeTypes.JSON.toString))))
+          )
+        )
 
       val result = verifyService.verifyPhoneNumber(enteredPhoneNumber)
-
+      import NotificationStatus.Implicits._
       status(result) shouldBe OK
-      contentAsString(result) shouldBe Json.toJson("""{ "deliveryStatus" : "SUCCESSFUL"}""").toString()
+      contentAsJson(result) shouldBe Json.toJson(NotificationStatus.notificationSent)
 
       // header("Location", result) shouldBe Some("/notifications/test-notification-id")
 

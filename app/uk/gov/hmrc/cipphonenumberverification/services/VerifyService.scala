@@ -43,6 +43,7 @@ import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.{
 }
 import uk.gov.hmrc.cipphonenumberverification.models.api.StatusCode.{INDETERMINATE, NOT_VERIFIED, VERIFIED}
 import uk.gov.hmrc.cipphonenumberverification.models.api._
+import uk.gov.hmrc.cipphonenumberverification.models.api.NotificationStatus.Implicits._
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType._
 import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
@@ -137,17 +138,16 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
             Result.apply(ResponseHeader(error.statusCode), HttpEntity.NoEntity)
         }
       case Right(response) if response.status == 200 =>
-        import NotificationStatus._
         metricsService.recordMetric("UserNotifications_success")
         logger.info(response.body)
-        Ok(Json.toJson(notificationSent))
+        Ok(Json.toJson[NotificationStatus](NotificationStatus.notificationSent))
       //.withHeaders(("Location", s"/notifications/${response.json.as[GovUkNotificationId].id}"))
     } recover {
       case err =>
         logger.error(err.getMessage)
         metricsService.recordMetric(err.toString.trim.dropRight(1))
         metricsService.recordMetric("UserNotifications_failure")
-        ServiceUnavailable(Json.toJson(api.ErrorResponse(EXTERNAL_SERVICE_FAIL.id, "Server currently unavailable")))
+        ServiceUnavailable(Json.toJson(api.ErrorResponse(EXTERNAL_SERVICE_FAIL.id, EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE)))
     }
 
   def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcodeToCheck: String)(implicit hc: HeaderCarrier): Future[Result] =
