@@ -28,8 +28,6 @@ object PhoneNumber {
     val MIN_LENGTH = 7
     val MAX_LENGTH = 20
 
-//    implicit val reads: Reads[PhoneNumber] = Json.reads[PhoneNumber]
-
     implicit val phoneNumberReads: Reads[PhoneNumber] =
       (JsPath \ "phoneNumber")
         .read[String](

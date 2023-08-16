@@ -137,9 +137,10 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
             Result.apply(ResponseHeader(error.statusCode), HttpEntity.NoEntity)
         }
       case Right(response) if response.status == 200 =>
+        import NotificationStatus._
         metricsService.recordMetric("UserNotifications_success")
         logger.info(response.body)
-        Ok(response.body)
+        Ok(Json.toJson(notificationSent))
       //.withHeaders(("Location", s"/notifications/${response.json.as[GovUkNotificationId].id}"))
     } recover {
       case err =>
@@ -166,7 +167,6 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
   ): Future[Result] =
     maybePhoneNumberAndPasscode match {
       case Some(storedPhoneNumberAndPasscode) =>
-//        checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndPasscode, storedPhoneNumberAndPasscode, System.currentTimeMillis())
         checkIfPasscodeMatches(enteredPhoneNumberAndPasscode, storedPhoneNumberAndPasscode)
       case _ =>
         auditService.sendExplicitAuditEvent(
@@ -176,30 +176,10 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
         Future.successful(Ok(Json.toJson(ErrorResponse(VERIFICATION_ERROR.id, PASSCODE_STORED_TIME_ELAPSED))))
     }
 
-//  private def checkIfPasscodeIsStillAllowedToBeUsed(enteredPhoneNumberAndpasscode: PhoneNumberAndPasscode,
-//                                                    foundPhoneNumberPasscodeData: PhoneNumberPasscodeData,
-//                                                    now: Long
-//  )(implicit hc: HeaderCarrier): Future[Result] =
-//    hasPasscodeExpired(foundPhoneNumberPasscodeData: PhoneNumberPasscodeData, now) match {
-//      case true =>
-//        auditService.sendExplicitAuditEvent(
-//          PhoneNumberVerificationCheck,
-//          VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, NOT_VERIFIED)
-//        )
-//        Future.successful(Ok(Json.toJson(ErrorResponse(VERIFICATION_ERROR.id, PASSCODE_ALLOWED_TIME_ELAPSED))))
-//      case false => checkIfPasscodeMatches(enteredPhoneNumberAndpasscode, foundPhoneNumberPasscodeData)
-//    }
-
-//  private def hasPasscodeExpired(foundPhoneNumberPasscodeData: PhoneNumberPasscodeData, currentTime: Long): Boolean = {
-//    val elapsedTimeInMilliseconds: Long                    = calculateElapsedTime(foundPhoneNumberPasscodeData.createdAt, currentTime)
-//    val allowedTimeGapForPasscodeUsageInMilliseconds: Long = Duration.ofMinutes(passcodeExpiry).toMillis
-//    elapsedTimeInMilliseconds > allowedTimeGapForPasscodeUsageInMilliseconds
-//  }
-
   private def checkIfPasscodeMatches(enteredPhoneNumberAndpasscode: PhoneNumberAndPasscode, maybePhoneNumberAndpasscodeData: PhoneNumberPasscodeData)(implicit
     hc: HeaderCarrier
   ): Future[Result] =
-    if (passcodeMatches(enteredPhoneNumberAndpasscode.passcode, maybePhoneNumberAndpasscodeData.passcode)) {
+    if (enteredPhoneNumberAndpasscode.passcode == maybePhoneNumberAndpasscodeData.passcode) {
       metricsService.recordMetric("passcode_verification_success")
       auditService.sendExplicitAuditEvent(
         PhoneNumberVerificationCheck,
@@ -211,13 +191,6 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
         PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, NOT_VERIFIED)
       )
-      Future.successful(Ok(Json.toJson(Verified(NOT_VERIFIED))))
+      Future.successful(Ok(Json.toJson(NotVerified(NOT_VERIFIED))))
     }
-
-  private def passcodeMatches(enteredPasscode: String, storedPasscode: String): Boolean =
-    enteredPasscode.equals(storedPasscode)
-
-  def calculateElapsedTime(timeA: Long, timeB: Long): Long =
-    timeB - timeA
-
 }

@@ -24,7 +24,7 @@ sealed trait VerificationStatus {
 }
 
 case class Verified(override val code: StatusCode.StatusCode, override val message: String = "Verified") extends VerificationStatus
-case class NotVerified(override val code: StatusCode.StatusCode, override val message: String) extends VerificationStatus
+case class NotVerified(override val code: StatusCode.StatusCode, override val message: String = "Not verified") extends VerificationStatus
 case class Indeterminate(override val code: StatusCode.StatusCode, override val message: String) extends VerificationStatus
 
 object VerificationStatus {
