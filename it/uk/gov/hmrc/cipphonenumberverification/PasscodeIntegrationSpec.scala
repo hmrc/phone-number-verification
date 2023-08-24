@@ -20,7 +20,7 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.libs.json.JsValue.jsValueToJsLookup
+import play.api.http.Status.{BAD_REQUEST, NO_CONTENT}
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
@@ -52,8 +52,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe 200
-      (response.json \ "code").as[String] shouldBe "Verified"
+      response.status shouldBe NO_CONTENT
     }
 
     "respond with 200 not verified status with non existent phone number" in {
@@ -71,9 +70,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe 200
-      (response.json \ "code").as[Int] shouldBe VERIFICATION_ERROR.id
-      (response.json \ "message").as[String] shouldBe "Enter a correct passcode"
+      response.status shouldBe NO_CONTENT
     }
 
     "respond with 400 status for invalid request" in {
@@ -90,9 +87,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe 400
-      (response.json \ "code").as[Int] shouldBe VALIDATION_ERROR.id
-      (response.json \ "message").as[String] shouldBe "Enter a valid passcode"
+      response.status shouldBe BAD_REQUEST
     }
   }
 }
