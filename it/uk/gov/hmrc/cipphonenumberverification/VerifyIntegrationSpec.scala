@@ -24,7 +24,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
-import play.api.http.Status.{BAD_REQUEST, NO_CONTENT, OK}
+import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
@@ -32,6 +32,7 @@ import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.Future
@@ -70,7 +71,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with IdiomaticMockito with Match
           .futureValue
 
       phoneNumberPasscodeDataCaptor.getValue.phoneNumber shouldBe "+447811123456"
-      response.status shouldBe NO_CONTENT
+      response.status shouldBe 200
     }
 
     "respond with 400 status for invalid request" in {
@@ -84,7 +85,9 @@ class VerifyIntegrationSpec extends AnyWordSpec with IdiomaticMockito with Match
           })
           .futureValue
 
-      response.status shouldBe BAD_REQUEST
+      response.status shouldBe 400
+      (response.json \ "code").as[Int] shouldBe VALIDATION_ERROR.id
+      (response.json \ "message").as[String] shouldBe "Enter a valid telephone number"
     }
   }
 }

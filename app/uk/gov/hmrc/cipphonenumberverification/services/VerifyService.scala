@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.http.HttpEntity
 import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, TOO_MANY_REQUESTS}
 import play.api.libs.json._
-import play.api.mvc.Results.{BadGateway, BadRequest, InternalServerError, Ok, ServiceUnavailable, TooManyRequests}
+import play.api.mvc.Results.{BadGateway, BadRequest, InternalServerError, NotFound, Ok, ServiceUnavailable, TooManyRequests}
 import play.api.mvc.{ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
@@ -153,8 +153,7 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
   def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcodeToCheck: String)(implicit hc: HeaderCarrier): Future[Result] =
     (for {
       maybePhoneNumberAndPasscodeData <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
-      _ = println(s">>> $maybePhoneNumberAndPasscodeData")
-      result <- processPasscode(PhoneNumberAndPasscode(validatedPhoneNumber.phoneNumber, passcodeToCheck), maybePhoneNumberAndPasscodeData)
+      result                          <- processPasscode(PhoneNumberAndPasscode(validatedPhoneNumber.phoneNumber, passcodeToCheck), maybePhoneNumberAndPasscodeData)
     } yield result).recover {
       case err =>
         metricsService.recordMetric("mongo_cache_failure")
@@ -178,7 +177,8 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
 
   private def checkIfPasscodeMatches(enteredPhoneNumberAndpasscode: PhoneNumberAndPasscode, maybePhoneNumberAndpasscodeData: PhoneNumberPasscodeData)(implicit
     hc: HeaderCarrier
-  ): Future[Result] =
+  ): Future[Result] = {
+    println(s""">>> $enteredPhoneNumberAndpasscode ==? $maybePhoneNumberAndpasscodeData""")
     if (enteredPhoneNumberAndpasscode.passcode == maybePhoneNumberAndpasscodeData.passcode) {
       metricsService.recordMetric("passcode_verification_success")
       auditService.sendExplicitAuditEvent(
@@ -191,6 +191,7 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
         PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, NOT_VERIFIED)
       )
-      Future.successful(Ok(Json.toJson(NotVerified(NOT_VERIFIED))))
+      Future.successful(NotFound(Json.toJson(NotVerified(NOT_VERIFIED))))
     }
+  }
 }

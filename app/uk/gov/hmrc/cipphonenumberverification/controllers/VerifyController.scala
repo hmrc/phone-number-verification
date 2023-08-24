@@ -30,27 +30,19 @@ import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton()
-class VerifyController @Inject() (cc: ControllerComponents,
-                                  service: VerifyService,
-                                  metricsService: MetricsService,
-                                  override val appConfig: AppConfig,
-                                  val ec: ExecutionContext
-) extends BackendController(cc)
+class VerifyController @Inject() (cc: ControllerComponents, service: VerifyService, metricsService: MetricsService, override val appConfig: AppConfig)
+    extends BackendController(cc)
     with AccessChecker
     with Logging {
-  implicit val ecc: ExecutionContext = ec
 
   def verify: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       // TODO create some form of response builder
       withJsonBody[PhoneNumber] {
         service.verifyPhoneNumber
-      }.map {
-        case (r: Result) if r.header.status == OK => NoContent
-        case r: Result                            => BadRequest
       }
   }
 

@@ -68,11 +68,6 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
       when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
     }
 
-    protected val controller = new VerifyController(Helpers.stubControllerComponents(),
-                                                    mockVerifyService,
-                                                    mockMetricsService,
-                                                    mockAppConfig,
-                                                    scala.concurrent.ExecutionContext.Implicits.global
-    )
+    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, mockMetricsService, mockAppConfig)
   }
 }

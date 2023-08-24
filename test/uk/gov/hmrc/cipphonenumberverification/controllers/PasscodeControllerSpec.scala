@@ -22,13 +22,14 @@ import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.ConfigLoader
-import play.api.http.Status.{BAD_REQUEST, NO_CONTENT}
+import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
-import play.api.test.Helpers.{defaultAwaitTimeout, status}
+import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.api.Verified
 import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
@@ -47,7 +48,8 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       val result = controller.verifyPasscode(
         fakeRequest.withBody(Json.toJson(passcode))
       )
-      status(result) shouldBe NO_CONTENT
+      status(result) shouldBe OK
+      (contentAsJson(result) \ "code").as[String] shouldBe "test"
     }
 
     "return 400 for invalid request" in new SetUp {
@@ -55,6 +57,8 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
         fakeRequest.withBody(Json.toJson(PhoneNumberAndPasscode("", "test")))
       )
       status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "code").as[Int] shouldBe VALIDATION_ERROR.id
+      (contentAsJson(result) \ "message").as[String] shouldBe "Enter a valid passcode"
     }
   }
 
@@ -74,7 +78,6 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
     }
 
-    protected val controller =
-      new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService, mockAppConfig, scala.concurrent.ExecutionContext.Implicits.global)
+    protected val controller = new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService, mockAppConfig)
   }
 }

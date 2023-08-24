@@ -339,7 +339,7 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
 
       val result = verifyService.verifyPasscode(phoneNumberAndPasscode)
 
-      status(result) shouldBe OK
+      status(result) shouldBe NOT_FOUND
       (contentAsJson(result) \ "code").as[String] shouldBe "Not verified"
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent = VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", "Not verified")
