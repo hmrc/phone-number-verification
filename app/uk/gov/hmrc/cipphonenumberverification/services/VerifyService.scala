@@ -177,8 +177,7 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
 
   private def checkIfPasscodeMatches(enteredPhoneNumberAndpasscode: PhoneNumberAndPasscode, maybePhoneNumberAndpasscodeData: PhoneNumberPasscodeData)(implicit
     hc: HeaderCarrier
-  ): Future[Result] = {
-    println(s""">>> $enteredPhoneNumberAndpasscode ==? $maybePhoneNumberAndpasscodeData""")
+  ): Future[Result] =
     if (enteredPhoneNumberAndpasscode.passcode == maybePhoneNumberAndpasscodeData.passcode) {
       metricsService.recordMetric("passcode_verification_success")
       auditService.sendExplicitAuditEvent(
@@ -193,5 +192,4 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
       )
       Future.successful(NotFound(Json.toJson(NotVerified(NOT_VERIFIED))))
     }
-  }
 }
