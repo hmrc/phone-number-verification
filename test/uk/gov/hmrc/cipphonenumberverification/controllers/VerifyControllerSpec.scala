@@ -33,7 +33,6 @@ import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.internalauth.client._
 
 import scala.concurrent.Future
 

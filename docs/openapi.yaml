@@ -1,0 +1,78 @@
+openapi: 3.0.3
+info:
+  title: Phone Number Verification
+  description: Phone Number Verification
+  version: 1.0.0
+paths:
+  /verify:
+    post:
+      summary: Send an OTAC the phone number to verify
+      description: |
+        Send an OTAC to the phone number to verify
+      parameters:
+        - in: header
+          required: true
+          name: User-Agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phoneNumber
+              properties:
+                phoneNumber:
+                  type: string
+                  pattern: '(\+|0)[1-9]+'
+              example:
+                {
+                  "phoneNumber": "17123123456"
+                }
+      responses:
+        '200':
+          description: OTAC sent to phone number
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /verify/passcode:
+    post:
+      summary: Verify that the OTAC is correct
+      description: |
+        Verify that the OTAC is correct
+      parameters:
+        - in: header
+          required: true
+          name: User-Agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phoneNumber
+                - passcode
+              properties:
+                phoneNumber:
+                  type: string
+                  pattern: '(\+|0)[1-9]+'
+                passcode:
+                  type: string
+                  pattern: '[A-Z]{6}'
+              example:
+                {
+                  "phoneNumber": "12123123456",
+                  "passcode": "ABCGED"
+                }
+      responses:
+        '200':
+          description: OTAC verified
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object

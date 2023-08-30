@@ -20,6 +20,7 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.http.Status.{BAD_REQUEST, NOT_FOUND}
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
@@ -76,6 +77,31 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
       (response.json \ "message").as[String] shouldBe "Enter a correct passcode"
     }
 
+    "respond with 400 status when passcode not matched" in {
+      val phoneNumber = "07811123456"
+
+      //generate PhoneNumberAndPasscode
+      verify(phoneNumber).futureValue
+
+      //retrieve PhoneNumberAndPasscode
+      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123456").futureValue
+
+      val response =
+        wsClient
+          .url(s"$baseUrl/phone-number/verify/passcode")
+          .withHttpHeaders(("Authorization", "fake-token"))
+          .withRequestFilter(AhcCurlRequestLogger())
+          .post(Json.parse {
+            s"""{
+               "phoneNumber": "+447811123456",
+               "passcode": "not-matched-passcode"
+               }""".stripMargin
+          })
+          .futureValue
+
+      response.status shouldBe BAD_REQUEST
+    }
+
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
@@ -90,9 +116,37 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe 400
+      response.status shouldBe BAD_REQUEST
       (response.json \ "code").as[Int] shouldBe VALIDATION_ERROR.id
       (response.json \ "message").as[String] shouldBe "Enter a valid passcode"
+    }
+
+    "respond with 404 status for request with a passcode that does not match" in {
+      val phoneNumber = "07811123654"
+
+      //generate PhoneNumberAndPasscode
+      verify(phoneNumber).futureValue
+
+      //retrieve PhoneNumberAndPasscode
+      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123654").futureValue
+      println(s""">>> maybePhoneNumberAndPasscode: $maybePhoneNumberAndPasscode""")
+
+      val response =
+        wsClient
+          .url(s"$baseUrl/phone-number/verify/passcode")
+          .withHttpHeaders(("Authorization", "fake-token"))
+          .withRequestFilter(AhcCurlRequestLogger())
+          .post(Json.parse {
+            s"""{
+               "phoneNumber": "07811123654",
+               "passcode": "ABCDEF"
+               }""".stripMargin
+          })
+          .futureValue
+
+      response.status shouldBe NOT_FOUND
+      (response.json \ "code").as[String] shouldBe "Not verified"
+      (response.json \ "message").as[String] shouldBe "Not verified"
     }
   }
 }

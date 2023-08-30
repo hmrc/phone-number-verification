@@ -28,11 +28,10 @@ import uk.gov.hmrc.cipphonenumberverification.services.PasscodeService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class TestPasscodeController @Inject() (cc: ControllerComponents, service: PasscodeService, override val appConfig: AppConfig)
+class TestPasscodeController @Inject() (cc: ControllerComponents, service: PasscodeService, override val appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends BackendController(cc)
     with AccessChecker
     with Logging {

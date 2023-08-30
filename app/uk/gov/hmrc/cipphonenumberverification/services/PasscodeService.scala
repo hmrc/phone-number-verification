@@ -19,7 +19,6 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import play.api.Logging
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
-import uk.gov.hmrc.mongo.cache.DataKey
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,7 +28,7 @@ class PasscodeService @Inject() (passcodeCacheRepository: PasscodeCacheRepositor
   def persistPasscode(phoneNumberAndPasscode: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
     logger.debug(s"Storing phoneNumberAndPasscode in database")
     passcodeCacheRepository
-      .put(phoneNumberAndPasscode.phoneNumber)(DataKey("phone-number-verification"), phoneNumberAndPasscode)
+      .put(phoneNumberAndPasscode.phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscode)
       .map(
         _ => phoneNumberAndPasscode
       )
@@ -37,7 +36,7 @@ class PasscodeService @Inject() (passcodeCacheRepository: PasscodeCacheRepositor
 
   def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberPasscodeData]] = {
     logger.debug(s"Retrieving phoneNumberAndPasscode from database")
-    passcodeCacheRepository.get[PhoneNumberPasscodeData](phoneNumber)(DataKey("phone-number-verification"))
+    passcodeCacheRepository.get[PhoneNumberPasscodeData](phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey)
   }
 
 }

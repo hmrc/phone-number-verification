@@ -24,7 +24,7 @@ import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
-import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
+import uk.gov.hmrc.mongo.cache.CacheItem
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,9 +37,9 @@ class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockit
       val phoneNumber                     = PhoneNumber("test")
       val passcode                        = "ABCDEF"
       val now                             = System.currentTimeMillis()
-      val phoneNumberAndPasscodeToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, passcode = passcode, now)
+      val phoneNumberAndPasscodeToPersist = PhoneNumberPasscodeData(phoneNumber.phoneNumber, passcode = passcode)
       passcodeCacheRepositoryMock
-        .put(phoneNumber.phoneNumber)(DataKey("phone-number-verification"), phoneNumberAndPasscodeToPersist)
+        .put(phoneNumber.phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscodeToPersist)
         .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
       val result = passcodeService.persistPasscode(phoneNumberAndPasscodeToPersist)
@@ -51,12 +51,12 @@ class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockit
   "retrievePasscode" should {
     "return passcode" in new SetUp {
       val now        = System.currentTimeMillis()
-      val dataFromDb = PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now)
+      val dataFromDb = PhoneNumberPasscodeData("thePhoneNumber", "thePasscode")
       passcodeCacheRepositoryMock
-        .get[PhoneNumberPasscodeData]("thePhoneNumber")(DataKey("phone-number-verification"))
+        .get[PhoneNumberPasscodeData]("thePhoneNumber")(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey)
         .returns(Future.successful(Some(dataFromDb)))
       val result = passcodeService.retrievePasscode("thePhoneNumber")
-      await(result) shouldBe Some(PhoneNumberPasscodeData("thePhoneNumber", "thePasscode", now))
+      await(result) shouldBe Some(PhoneNumberPasscodeData("thePhoneNumber", "thePasscode"))
     }
   }
 

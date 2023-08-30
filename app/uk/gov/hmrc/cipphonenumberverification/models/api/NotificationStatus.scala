@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.cipphonenumberverification.models.api
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{Json, Writes}
 
-case class NotificationStatus(notificationStatus: String, message: String)
+case class NotificationStatus(code: String, message: String)
 
 object NotificationStatus {
-  implicit val writes: OWrites[NotificationStatus] = Json.writes[NotificationStatus]
+  val notificationSent: NotificationStatus = new NotificationStatus("ok", "verification code sent")
+
+  object Implicits {
+    implicit val writes: Writes[NotificationStatus] = Json.writes[NotificationStatus]
+  }
 }

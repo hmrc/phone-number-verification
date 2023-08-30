@@ -17,7 +17,9 @@
 package uk.gov.hmrc.cipphonenumberverification.repositories
 
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.mongo.cache.{CacheIdType, MongoCacheRepository}
+import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
+import uk.gov.hmrc.mongo.cache.{CacheIdType, DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import javax.inject.Inject
@@ -31,3 +33,8 @@ class PasscodeCacheRepository @Inject() (mongoComponent: MongoComponent, config:
                                  timestampSupport = timestampSupport,
                                  cacheIdType = CacheIdType.SimpleCacheId
     )
+
+object PasscodeCacheRepository {
+  val phoneNumberPasscodeDataDataKey: DataKey[PhoneNumberPasscodeData] = DataKey("phone-number-verification")
+  val phoneNumberPasscodeDataKey: DataKey[PhoneNumberAndPasscode]      = DataKey("phone-number-verification")
+}
