@@ -19,14 +19,13 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Message.INVALID_TELEPHONE_NUMBER
-import uk.gov.hmrc.cipphonenumberverification.models.api.{ErrorResponse, PhoneNumber}
-import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber.verification._
-import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
+import uk.gov.hmrc.cipphonenumberverification.services.{MetricsService, VerifyService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -37,6 +36,8 @@ class VerifyController @Inject() (cc: ControllerComponents, service: VerifyServi
     extends BackendController(cc)
     with AccessChecker
     with Logging {
+
+  import PhoneNumber.Implicits._
 
   def verify: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
@@ -50,8 +51,8 @@ class VerifyController @Inject() (cc: ControllerComponents, service: VerifyServi
     request.body.validate[T] match {
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
-        metricsService.recordMetric("telephone_number_validation_failure")
+        metricsService.recordPhoneNumberNotValidated()
         logger.warn("Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR.id, INVALID_TELEPHONE_NUMBER))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
     }
 }

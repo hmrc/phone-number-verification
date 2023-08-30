@@ -17,7 +17,6 @@
 package uk.gov.hmrc.cipphonenumberverification.config
 
 import play.api.{ConfigLoader, Configuration}
-import uk.gov.hmrc.mongo.cache.DataKey
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -30,8 +29,6 @@ class AppConfig @Inject() (config: Configuration) {
   lazy val phoneNotificationConfig: NotificationsConfig = config.get[NotificationsConfig]("microservice.services.user-notifications.phone")
 
   lazy val phoneNotificationAuthHeader = s"Basic $createAuth"
-
-  val dataKey = DataKey("phone-number-verification")
 
   private def createAuth = AppConfig.createAuth(appName, phoneNotificationConfig.authToken)
 

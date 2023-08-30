@@ -21,23 +21,29 @@ import play.api.Logging
 import play.api.http.HeaderNames
 import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
-import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PasscodeNotificationRequest
+import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberPasscodeData}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class UserNotificationsConnector @Inject() (httpClient: HttpClientV2, config: AppConfig)(implicit
-  executionContext: ExecutionContext,
-  protected val materializer: Materializer
-) extends Logging
-    with CircuitBreakerWrapper {
+class UserNotificationsConnector @Inject() (@Named("internal-http-client") httpClient: HttpClientV2,
+                                            config: AppConfig,
+                                            @Named("user-notifications-circuit-breaker") val circuitBreakerConfig: CircuitBreakerConfig,
+                                            override val ec: ExecutionContext
+)(implicit protected val materializer: Materializer)
+    extends Logging
+    with UsingCircuitBreaker {
+
+  import PasscodeNotificationRequest.Implicits._
+
+  implicit val iec: ExecutionContext = ec
 
   implicit val connectionFailure: Try[Either[UpstreamErrorResponse, HttpResponse]] => Boolean = {
     case Success(_) => false
@@ -58,5 +64,6 @@ class UserNotificationsConnector @Inject() (httpClient: HttpClientV2, config: Ap
     )
   }
 
-  override def configCB: CircuitBreakerConfig = config.phoneNotificationConfig.cbConfig
+  override protected def breakOnException(t: Throwable): Boolean = true
+
 }

@@ -17,8 +17,8 @@
 package uk.gov.hmrc.cipphonenumberverification.repositories
 
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
 import uk.gov.hmrc.mongo.cache.{CacheIdType, DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
@@ -28,7 +28,7 @@ import scala.concurrent.duration.DurationLong
 
 class PasscodeCacheRepository @Inject() (mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
     extends MongoCacheRepository(mongoComponent = mongoComponent,
-                                 collectionName = "phone-number-verification",
+                                 collectionName = config.appName,
                                  ttl = config.cacheExpiry.minutes,
                                  timestampSupport = timestampSupport,
                                  cacheIdType = CacheIdType.SimpleCacheId

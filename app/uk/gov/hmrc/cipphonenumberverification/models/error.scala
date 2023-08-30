@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.models.api
+package uk.gov.hmrc.cipphonenumberverification.models
 
-import play.api.libs.json.{Json, OWrites}
-
-case class NotificationId(notificationId: String)
-
-object NotificationId {
-  implicit val writes: OWrites[NotificationId] = Json.writes[NotificationId]
-}
+object error {}

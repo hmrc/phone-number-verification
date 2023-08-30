@@ -17,13 +17,14 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PasscodeService @Inject() (passcodeCacheRepository: PasscodeCacheRepository)(implicit ec: ExecutionContext) extends Logging {
+  import PhoneNumberPasscodeData.Implicits._
 
   def persistPasscode(phoneNumberAndPasscode: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
     logger.debug(s"Storing phoneNumberAndPasscode in database")

@@ -20,11 +20,13 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.http.Status.{BAD_REQUEST, NOT_FOUND}
+import play.api.http.{Status => HttpStatus}
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes._
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{VALIDATION_ERROR, VERIFICATION_ERROR}
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{INVALID_TELEPHONE_NUMBER, PASSCODE_NOT_RECOGNISED}
+import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
 class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with DataSteps {
@@ -53,8 +55,8 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe 200
-      (response.json \ "code").as[String] shouldBe "Verified"
+      response.status shouldBe HttpStatus.OK
+      (response.json \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.PASSCODE_VERIFIED
     }
 
     "respond with 200 not verified status with non existent phone number" in {
@@ -73,8 +75,8 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           .futureValue
 
       response.status shouldBe 200
-      (response.json \ "code").as[Int] shouldBe VERIFICATION_ERROR.id
-      (response.json \ "message").as[String] shouldBe "Enter a correct passcode"
+      (response.json \ "status").as[StatusCode.StatusCode] shouldBe VERIFICATION_ERROR
+      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe PASSCODE_NOT_RECOGNISED
     }
 
     "respond with 400 status when passcode not matched" in {
@@ -84,7 +86,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
       verify(phoneNumber).futureValue
 
       //retrieve PhoneNumberAndPasscode
-      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123456").futureValue
+//      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123456").futureValue
 
       val response =
         wsClient
@@ -99,7 +101,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe BAD_REQUEST
+      response.status shouldBe HttpStatus.BAD_REQUEST
     }
 
     "respond with 400 status for invalid request" in {
@@ -116,9 +118,9 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe BAD_REQUEST
-      (response.json \ "code").as[Int] shouldBe VALIDATION_ERROR.id
-      (response.json \ "message").as[String] shouldBe "Enter a valid passcode"
+      response.status shouldBe HttpStatus.BAD_REQUEST
+      (response.json \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
+      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER
     }
 
     "respond with 404 status for request with a passcode that does not match" in {
@@ -129,7 +131,6 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
 
       //retrieve PhoneNumberAndPasscode
       val maybePhoneNumberAndPasscode = retrievePasscode("+447811123654").futureValue
-      println(s""">>> maybePhoneNumberAndPasscode: $maybePhoneNumberAndPasscode""")
 
       val response =
         wsClient
@@ -144,9 +145,9 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
           })
           .futureValue
 
-      response.status shouldBe NOT_FOUND
-      (response.json \ "code").as[String] shouldBe "Not verified"
-      (response.json \ "message").as[String] shouldBe "Not verified"
+      response.status shouldBe HttpStatus.NOT_FOUND
+      (response.json \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.PASSCODE_VERIFY_FAIL
+      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe StatusMessage.PASSCODE_NOT_RECOGNISED
     }
   }
 }

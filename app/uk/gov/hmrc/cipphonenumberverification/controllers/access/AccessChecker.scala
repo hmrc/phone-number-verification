@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.access
+package uk.gov.hmrc.cipphonenumberverification.controllers.access
 
 import org.slf4j.LoggerFactory
 import play.api.http.HeaderNames
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
+import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{
   accessControlAllowListAbsoluteKey,
   accessControlEnabledAbsoluteKey,
   accessRequestFormUrlAbsoluteKey
 }
-import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 
 import javax.inject.Singleton
 import scala.concurrent.Future
