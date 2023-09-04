@@ -19,19 +19,19 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import org.mockito.IdiomaticMockito
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{Json, OWrites}
-import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.AuditType.PhoneNumberVerificationRequest
-import uk.gov.hmrc.cipphonenumberverification.models.domain.audit.VerificationRequestAuditEvent
+import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.PhoneNumberVerificationRequest
+import uk.gov.hmrc.cipphonenumberverification.models.audit.VerificationRequestAuditEvent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.ExecutionContext
 
 class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
+  import VerificationRequestAuditEvent.Implicits._
 
   "sendEvent" should {
     "send AuditEvent to audit service" in new SetUp {
-      val auditEvent = VerificationRequestAuditEvent("myPhoneNumber", "myPasscode")
+      val auditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("myPhoneNumber", "myPasscode")
       service.sendExplicitAuditEvent(PhoneNumberVerificationRequest, auditEvent)
 
       mockAuditConnector.sendExplicitAudit[VerificationRequestAuditEvent](PhoneNumberVerificationRequest.toString, auditEvent) was called
@@ -39,10 +39,9 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
   }
 
   trait SetUp {
-    implicit val writes: OWrites[VerificationRequestAuditEvent] = Json.writes[VerificationRequestAuditEvent]
-    implicit val ex: ExecutionContext                           = ExecutionContext.global
-    implicit val hc: HeaderCarrier                              = HeaderCarrier()
-    val mockAuditConnector                                      = mock[AuditConnector]
-    val service: AuditService                                   = new AuditService(mockAuditConnector)
+    implicit val ex: ExecutionContext      = ExecutionContext.global
+    implicit val hc: HeaderCarrier         = HeaderCarrier()
+    val mockAuditConnector: AuditConnector = mock[AuditConnector]
+    val service: AuditService              = new AuditService(mockAuditConnector)
   }
 }

@@ -23,20 +23,20 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.ConfigLoader
 import play.api.http.Status.BAD_REQUEST
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.metrics.MetricsService
-import uk.gov.hmrc.cipphonenumberverification.models.api.PhoneNumber
-import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.services.{MetricsService, VerifyService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
+  import PhoneNumber.Implicits._
 
   "verify" should {
     "delegate to verify service" in new SetUp {
@@ -52,11 +52,10 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMocki
   }
 
   trait SetUp {
-    implicit protected val writes: OWrites[PhoneNumber] = Json.writes[PhoneNumber]
-    protected val mockVerifyService                     = mock[VerifyService]
-    protected val mockMetricsService                    = mock[MetricsService]
-    protected val mockAppConfig                         = mock[AppConfig]
-    protected val fakeRequest                           = FakeRequest().withHeaders("User-Agent" -> "tester")
+    protected val mockVerifyService  = mock[VerifyService]
+    protected val mockMetricsService = mock[MetricsService]
+    protected val mockAppConfig      = mock[AppConfig]
+    protected val fakeRequest        = FakeRequest().withHeaders("User-Agent" -> "tester")
 
     {
       implicit val stringConfigLoader = ConfigLoader.stringLoader

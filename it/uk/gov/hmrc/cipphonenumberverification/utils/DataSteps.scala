@@ -19,13 +19,15 @@ package uk.gov.hmrc.cipphonenumberverification.utils
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 
 import scala.concurrent.Future
 
 trait DataSteps {
   this: GuiceOneServerPerSuite =>
+
+  import PhoneNumberAndPasscode.Implicits._
 
   private val repository = app.injector.instanceOf[PasscodeCacheRepository]
 

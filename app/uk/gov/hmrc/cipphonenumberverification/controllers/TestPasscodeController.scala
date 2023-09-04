@@ -19,11 +19,13 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.testOnly.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
+import uk.gov.hmrc.cipphonenumberverification.models
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
 import uk.gov.hmrc.cipphonenumberverification.services.PasscodeService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -35,6 +37,8 @@ class TestPasscodeController @Inject() (cc: ControllerComponents, service: Passc
     extends BackendController(cc)
     with AccessChecker
     with Logging {
+  import PhoneNumber.Implicits._
+  import PhoneNumberPasscodeData.Implicits._
 
   def retrievePasscode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
@@ -56,6 +60,6 @@ class TestPasscodeController @Inject() (cc: ControllerComponents, service: Passc
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR.id, "Enter a valid passcode"))))
+        Future.successful(BadRequest(Json.toJson(models.response.VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
     }
 }

@@ -20,30 +20,22 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import org.mockito.Mockito.when
 import org.mockito.MockitoSugar.mock
 import org.scalatest.EitherValues
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.http.Status.OK
 import play.api.libs.json.Json
-import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, CircuitBreakerConfig, NotificationsConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PasscodeNotificationRequest
+import play.api.test.Helpers
+import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
+import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, NotificationsConfig}
+import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberPasscodeData}
 import uk.gov.hmrc.cipphonenumberverification.utils.TestActorSystem
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-class NotificationsConnectorSpec
-    extends AnyWordSpec
-    with Matchers
-    with WireMockSupport
-    with ScalaFutures
-    with EitherValues
-    with HttpClientV2Support
-    with TestActorSystem {
+class NotificationsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport with EitherValues with HttpClientV2Support with TestActorSystem {
+  import PasscodeNotificationRequest.Implicits._
 
   val notificationUrl: String = "/notifications/sms"
 
@@ -55,18 +47,15 @@ class NotificationsConnectorSpec
       )
 
       when(appConfigMock.phoneNotificationConfig).thenReturn(
-        NotificationsConfig("http", wireMockHost, wireMockPort, UUID.randomUUID().toString, cbConfigData)
+        NotificationsConfig("http", wireMockHost, wireMockPort, UUID.randomUUID().toString)
       )
 
       val now                     = System.currentTimeMillis()
       val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode")
       val phoneNumberRequest      = PasscodeNotificationRequest("testPhoneNumber", "Your Phone verification code: testPasscode")
 
-      val result = notificationsConnector.sendPasscode(phoneNumberPasscodeData)
-      whenReady(result) {
-        res =>
-          res.map(_.status shouldBe OK)
-      }
+      val result = Helpers.await(notificationsConnector.sendPasscode(phoneNumberPasscodeData))(Helpers.defaultAwaitTimeout)
+      result shouldBe a[Right[_, _]]
       verify(
         postRequestedFor(urlEqualTo(notificationUrl)).withRequestBody(equalToJson(Json.toJson(phoneNumberRequest).toString()))
       )
@@ -76,7 +65,7 @@ class NotificationsConnectorSpec
   trait SetUp {
     implicit protected val hc: HeaderCarrier = HeaderCarrier()
     protected val appConfigMock              = mock[AppConfig]
-    val cbConfigData                         = CircuitBreakerConfig("", 5, 5.toDuration, 30.toDuration, 5.toDuration, 1, 0)
+    val cbConfigData                         = CircuitBreakerConfig("test-service")
 
     implicit class IntToDuration(timeout: Int) {
       def toDuration: FiniteDuration = Duration(timeout, java.util.concurrent.TimeUnit.SECONDS)
@@ -84,7 +73,9 @@ class NotificationsConnectorSpec
 
     val notificationsConnector = new UserNotificationsConnector(
       httpClientV2,
-      appConfigMock
+      appConfigMock,
+      cbConfigData,
+      scala.concurrent.ExecutionContext.Implicits.global
     )
   }
 }

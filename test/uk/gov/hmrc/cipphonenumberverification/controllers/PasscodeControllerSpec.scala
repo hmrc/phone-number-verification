@@ -27,11 +27,12 @@ import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.api.Verified
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -44,12 +45,12 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       val passcode = PhoneNumberAndPasscode("07123456789", "123456")
       mockVerifyService
         .verifyPasscode(passcode)(any[HeaderCarrier])
-        .returns(Future.successful(Ok(Json.toJson(Verified("test")))))
+        .returns(Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.VERIFIED, StatusMessage.VERIFIED)))))
       val result = controller.verifyPasscode(
         fakeRequest.withBody(Json.toJson(passcode))
       )
       status(result) shouldBe OK
-      (contentAsJson(result) \ "code").as[String] shouldBe "test"
+      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.VERIFIED
     }
 
     "return 400 for invalid request" in new SetUp {
@@ -57,8 +58,8 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
         fakeRequest.withBody(Json.toJson(PhoneNumberAndPasscode("", "test")))
       )
       status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[Int] shouldBe VALIDATION_ERROR.id
-      (contentAsJson(result) \ "message").as[String] shouldBe "Enter a valid passcode"
+      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
+      (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER
     }
   }
 

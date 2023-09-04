@@ -4,7 +4,7 @@ content-type: application/json
 Authorization: fake-token
 
 {
-  "phoneNumber" : "+447430001000"
+  "phoneNumber": "+447430001000"
 }
 
 ###
@@ -13,8 +13,8 @@ content-type: application/json
 Authorization: fake-token
 
 {
-"phoneNumber" : "+447430001000",
-"passcode":"DAKMHY"
+  "phoneNumber": "+447430001000",
+  "passcode": "DAKMHY"
 }
 
 ### Notification Status
@@ -39,7 +39,7 @@ content-type: application/json
 Authorization: fake-token
 
 {
-  "phoneNumber" : "02088207098"
+  "phoneNumber": "02088207098"
 }
 
 ### Mobile
@@ -48,7 +48,7 @@ content-type: application/json
 Authorization: fake-token
 
 {
-  "phoneNumber" : "07843274331"
+  "phoneNumber": "07843274331"
 }
 
 ### Toll_free
@@ -57,7 +57,7 @@ content-type: application/json
 Authorization: fake-token
 
 {
-  "phoneNumber" : "0845 46 41"
+  "phoneNumber": "0845 46 41"
 }
 
 ###
@@ -66,7 +66,7 @@ content-type: application/json
 Authorization: fake-token
 
 {
-  "phoneNumber" : "dfsdsfs"
+  "phoneNumber": "dfsdsfs"
 }
 
 ###

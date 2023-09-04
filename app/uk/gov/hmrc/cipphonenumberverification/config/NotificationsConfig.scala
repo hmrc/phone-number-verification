@@ -18,7 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.config
 
 import play.api.{ConfigLoader, Configuration}
 
-case class NotificationsConfig(protocol: String, host: String, port: Int, authToken: String, cbConfig: CircuitBreakerConfig) {
+case class NotificationsConfig(protocol: String, host: String, port: Int, authToken: String) {
   lazy val url: String = s"$protocol://$host:$port"
 }
 
@@ -32,8 +32,7 @@ object NotificationsConfig {
           config.get[String]("protocol"),
           config.get[String]("host"),
           config.get[Int]("port"),
-          config.get[String]("auth-token"),
-          config.get[CircuitBreakerConfig]("circuit-breaker")
+          config.get[String]("auth-token")
         )
     }
 }

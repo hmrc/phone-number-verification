@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification
 
-import org.mockito.ArgumentMatchers.{eq => meq, _}
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, IdiomaticMockito}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -31,8 +31,10 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
-import uk.gov.hmrc.cipphonenumberverification.models.PhoneNumberPasscodeData
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.Future
@@ -86,8 +88,8 @@ class VerifyIntegrationSpec extends AnyWordSpec with IdiomaticMockito with Match
           .futureValue
 
       response.status shouldBe 400
-      (response.json \ "code").as[Int] shouldBe VALIDATION_ERROR.id
-      (response.json \ "message").as[String] shouldBe "Enter a valid telephone number"
+      (response.json \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
+      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER
     }
   }
 }

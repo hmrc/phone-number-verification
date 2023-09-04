@@ -32,11 +32,19 @@ paths:
       responses:
         '200':
           description: OTAC sent to phone number
-          headers: {}
+          headers: { }
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - status
+                  - message
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
 
   /verify/passcode:
     post:
@@ -71,8 +79,16 @@ paths:
       responses:
         '200':
           description: OTAC verified
-          headers: {}
+          headers: { }
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - status
+                  - message
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string

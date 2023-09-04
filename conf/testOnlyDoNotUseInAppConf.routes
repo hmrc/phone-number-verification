@@ -10,7 +10,6 @@
 # Failing to follow this rule may result in test routes deployed in production.
 
 # Add all the application routes to the prod.routes file
-->         /                          prod.Routes
+->          /                                   prod.Routes
 
-POST       /test-only/retrieve/passcode                 uk.gov.hmrc.cipphonenumberverification.controllers.TestPasscodeController.retrievePasscode
-
+POST        /test-only/retrieve/passcode        uk.gov.hmrc.cipphonenumberverification.controllers.TestPasscodeController.retrievePasscode

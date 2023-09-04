@@ -1,4 +1,3 @@
-
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "phone-number-verification"
@@ -22,9 +21,9 @@ lazy val scalaCompilerOptions = Seq(
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
-    majorVersion                     := 0,
-    scalaVersion                     := "2.13.8",
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+    majorVersion := 0,
+    scalaVersion := "2.13.8",
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions ++= scalaCompilerOptions,
@@ -36,13 +35,13 @@ lazy val microservice = Project(appName, file("."))
       "-Wconf:cat=unused-imports&site=<empty>:s",
       "-Wconf:cat=unused&src=.*RoutesPrefix\\.scala:s",
       "-Wconf:cat=unused&src=.*Routes\\.scala:s"
-    ),
+    )
     // ***************
   )
   .settings(
-    Compile / scalafmtOnCompile := true,
-    Test / scalafmtOnCompile := true,
-    IntegrationTest / scalafmtOnCompile := true,
+    Compile / scalafmtOnCompile         := true,
+    Test / scalafmtOnCompile            := true,
+    IntegrationTest / scalafmtOnCompile := true
   )
   .settings(
     PlayKeys.playDefaultPort := 6083
@@ -51,4 +50,3 @@ lazy val microservice = Project(appName, file("."))
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)
-

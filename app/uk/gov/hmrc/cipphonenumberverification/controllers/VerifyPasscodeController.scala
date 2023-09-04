@@ -19,11 +19,12 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.cipphonenumberverification.access.AccessChecker
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse
-import uk.gov.hmrc.cipphonenumberverification.models.api.ErrorResponse.Codes.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.domain.data.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -35,6 +36,8 @@ class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: Ver
     extends BackendController(cc)
     with AccessChecker
     with Logging {
+
+  import PhoneNumberAndPasscode.Implicits._
 
   def verifyPasscode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
@@ -48,6 +51,6 @@ class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: Ver
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(ErrorResponse(VALIDATION_ERROR.id, "Enter a valid passcode"))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
     }
 }
