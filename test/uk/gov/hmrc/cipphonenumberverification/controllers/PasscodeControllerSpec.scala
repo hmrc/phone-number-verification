@@ -31,7 +31,7 @@ import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{INVALID_TELEPHONE_NUMBER, INVALID_TELEPHONE_NUMBER_OR_PASSCODE}
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -59,7 +59,7 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMoc
       )
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
-      (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER
+      (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_PASSCODE
     }
   }
 

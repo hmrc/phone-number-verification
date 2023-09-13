@@ -55,9 +55,10 @@ object response {
     val SERVER_CURRENTLY_UNAVAILABLE: StatusMessage          = Value("Server currently unavailable")
     val SERVER_EXPERIENCED_AN_ISSUE: StatusMessage           = Value("Server has experienced an issue")
     val EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE: StatusMessage = Value("External server currently unavailable")
-    val PASSCODE_NOT_RECOGNISED: StatusMessage               = Value("Enter a correct passcode")
+    val PASSCODE_NOT_RECOGNISED: StatusMessage               = Value("Enter a valid passcode")
     val PASSCODE_VERIFIED: StatusMessage                     = Value("Passcode successfully verified")
     val INVALID_TELEPHONE_NUMBER: StatusMessage              = Value("Enter a valid telephone number")
+    val INVALID_TELEPHONE_NUMBER_OR_PASSCODE: StatusMessage  = Value("Enter a valid telephone number/passcode")
     val SERVICE_THROTTLED_ERROR: StatusMessage               = Value("The request for the API is throttled as you have exceeded your quota")
 
     implicit val statusMessageFormat: Format[StatusMessage.StatusMessage] = Json.formatEnum(this)

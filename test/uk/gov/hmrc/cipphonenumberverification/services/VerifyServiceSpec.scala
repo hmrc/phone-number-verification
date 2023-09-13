@@ -382,8 +382,8 @@ class VerifyServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito 
 
       status(result) shouldBe BAD_REQUEST
       val errorResponse: VerificationStatus = contentAsJson(result).as[VerificationStatus]
-      errorResponse.status shouldBe VALIDATION_ERROR
-      errorResponse.message shouldBe INVALID_TELEPHONE_NUMBER
+      errorResponse.status shouldBe PASSCODE_VERIFY_FAIL
+      errorResponse.message shouldBe PASSCODE_NOT_RECOGNISED
       auditServiceMock wasNever called
     }
 
