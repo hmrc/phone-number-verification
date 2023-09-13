@@ -86,7 +86,7 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
       case Left(error) =>
         metricsService.recordVerificationStatus(error)
         logger.error(error.message.toString)
-        Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(PASSCODE_VERIFY_FAIL, PASSCODE_NOT_RECOGNISED))))
     }
 
   private def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit hc: HeaderCarrier): Future[Result] =

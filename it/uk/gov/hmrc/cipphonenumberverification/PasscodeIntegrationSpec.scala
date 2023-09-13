@@ -25,7 +25,11 @@ import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{VALIDATION_ERROR, VERIFICATION_ERROR}
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{INVALID_TELEPHONE_NUMBER, PASSCODE_NOT_RECOGNISED}
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{
+  INVALID_TELEPHONE_NUMBER,
+  INVALID_TELEPHONE_NUMBER_OR_PASSCODE,
+  PASSCODE_NOT_RECOGNISED
+}
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
@@ -120,7 +124,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
 
       response.status shouldBe HttpStatus.BAD_REQUEST
       (response.json \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
-      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER
+      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_PASSCODE
     }
 
     "respond with 404 status for request with a passcode that does not match" in {
