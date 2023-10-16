@@ -129,7 +129,6 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
         }
       case Right(response) if response.status == 200 =>
         metricsService.recordSendNotificationSuccess()
-        logger.info(response.body)
         Ok(Json.toJson[VerificationStatus](VerificationStatus(VERIFIED, StatusMessage.VERIFIED)))
     } recover {
       case err =>
