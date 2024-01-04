@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import org.mockito.IdiomaticMockito
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.{eq => meq, _}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.PhoneNumberVerificationRequest
 import uk.gov.hmrc.cipphonenumberverification.models.audit.VerificationRequestAuditEvent
 import uk.gov.hmrc.http.HeaderCarrier
@@ -26,7 +28,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.ExecutionContext
 
-class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
+class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
   import VerificationRequestAuditEvent.Implicits._
 
   "sendEvent" should {
@@ -34,7 +36,8 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
       val auditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("myPhoneNumber", "myPasscode")
       service.sendExplicitAuditEvent(PhoneNumberVerificationRequest, auditEvent)
 
-      mockAuditConnector.sendExplicitAudit[VerificationRequestAuditEvent](PhoneNumberVerificationRequest.toString, auditEvent) was called
+      verify(mockAuditConnector, atLeastOnce)
+        .sendExplicitAudit[VerificationRequestAuditEvent](meq(PhoneNumberVerificationRequest.toString), meq(auditEvent))(any(), any(), any())
     }
   }
 

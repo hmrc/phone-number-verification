@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.Logging
 import play.api.http.HeaderNames
 import play.api.libs.json.Json

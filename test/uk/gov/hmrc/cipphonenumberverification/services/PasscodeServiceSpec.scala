@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import org.mockito.IdiomaticMockito
+import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsObject
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
 import uk.gov.hmrc.mongo.cache.CacheItem
 
@@ -30,7 +31,7 @@ import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
+class PasscodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
   import PhoneNumberPasscodeData.Implicits._
 
   "persistPasscode" should {
@@ -38,9 +39,11 @@ class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockit
       val phoneNumber: PhoneNumber                                 = PhoneNumber("test")
       val passcode                                                 = "ABCDEF"
       val phoneNumberAndPasscodeToPersist: PhoneNumberPasscodeData = PhoneNumberPasscodeData(phoneNumber.phoneNumber, passcode = passcode)
-      passcodeCacheRepositoryMock
-        .put(phoneNumber.phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscodeToPersist)
-        .returns(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
+      when(
+        passcodeCacheRepositoryMock
+          .put(phoneNumber.phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscodeToPersist)
+      )
+        .thenReturn(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
       val result: Future[PhoneNumberPasscodeData] = passcodeService.persistPasscode(phoneNumberAndPasscodeToPersist)
 
@@ -51,9 +54,11 @@ class PasscodeServiceSpec extends AnyWordSpec with Matchers with IdiomaticMockit
   "retrievePasscode" should {
     "return passcode" in new SetUp {
       val dataFromDb: PhoneNumberPasscodeData = PhoneNumberPasscodeData("thePhoneNumber", "thePasscode")
-      passcodeCacheRepositoryMock
-        .get[PhoneNumberPasscodeData]("thePhoneNumber")(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey)
-        .returns(Future.successful(Some(dataFromDb)))
+      when(
+        passcodeCacheRepositoryMock
+          .get[PhoneNumberPasscodeData]("thePhoneNumber")(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey)
+      )
+        .thenReturn(Future.successful(Some(dataFromDb)))
       val result: Future[Option[PhoneNumberPasscodeData]] = passcodeService.retrievePasscode("thePhoneNumber")
       await(result) shouldBe Some(PhoneNumberPasscodeData("thePhoneNumber", "thePasscode"))
     }

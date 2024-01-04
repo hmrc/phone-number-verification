@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.config
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.inject.{AbstractModule, Provides}
 import play.api.libs.ws.WSClient

@@ -18,10 +18,11 @@ package uk.gov.hmrc.cipphonenumberverification
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, IdiomaticMockito}
+import org.mockito.ArgumentCaptor
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.http.Status.OK
@@ -39,7 +40,7 @@ import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.Future
 
-class VerifyIntegrationSpec extends AnyWordSpec with IdiomaticMockito with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite {
+class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite {
 
   private val mockNotificationsConnector: UserNotificationsConnector = mock[UserNotificationsConnector]
 

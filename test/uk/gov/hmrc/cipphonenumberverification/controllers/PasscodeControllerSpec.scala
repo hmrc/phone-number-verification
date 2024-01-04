@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import org.mockito.ArgumentMatchersSugar.any
-import org.mockito.IdiomaticMockito
+import org.mockito.ArgumentMatchers.{eq => meq, _}
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.ConfigLoader
 import play.api.http.Status.{BAD_REQUEST, OK}
 import play.api.libs.json.{Json, OWrites}
@@ -31,21 +31,23 @@ import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{INVALID_TELEPHONE_NUMBER, INVALID_TELEPHONE_NUMBER_OR_PASSCODE}
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER_OR_PASSCODE
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class PasscodeControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
+class PasscodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   "verifyPasscode" should {
     "delegate to verify service" in new SetUp {
       val passcode = PhoneNumberAndPasscode("07123456789", "123456")
-      mockVerifyService
-        .verifyPasscode(passcode)(any[HeaderCarrier])
-        .returns(Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.VERIFIED, StatusMessage.VERIFIED)))))
+      when(
+        mockVerifyService
+          .verifyPasscode(meq(passcode))(any[HeaderCarrier])
+      )
+        .thenReturn(Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.VERIFIED, StatusMessage.VERIFIED)))))
       val result = controller.verifyPasscode(
         fakeRequest.withBody(Json.toJson(passcode))
       )

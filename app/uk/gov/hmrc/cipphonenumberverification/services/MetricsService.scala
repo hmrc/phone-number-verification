@@ -18,9 +18,9 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.codahale.metrics.Counter
 import com.google.inject.Inject
-import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
 import uk.gov.hmrc.http.UpstreamErrorResponse
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import javax.inject.Singleton
 

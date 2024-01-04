@@ -18,10 +18,10 @@ package uk.gov.hmrc.cipphonenumberverification.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.mockito.Mockito.when
-import org.mockito.MockitoSugar.mock
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
@@ -34,7 +34,14 @@ import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 import java.util.UUID
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-class NotificationsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport with EitherValues with HttpClientV2Support with TestActorSystem {
+class NotificationsConnectorSpec
+    extends AnyWordSpec
+    with MockitoSugar
+    with Matchers
+    with WireMockSupport
+    with EitherValues
+    with HttpClientV2Support
+    with TestActorSystem {
   import PasscodeNotificationRequest.Implicits._
 
   val notificationUrl: String = "/notifications/sms"

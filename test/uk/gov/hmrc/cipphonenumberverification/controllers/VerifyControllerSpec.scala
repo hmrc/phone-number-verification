@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
-import org.mockito.ArgumentMatchersSugar.any
-import org.mockito.IdiomaticMockito
+import org.mockito.ArgumentMatchers.{eq => meq, _}
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.ConfigLoader
 import play.api.http.Status.BAD_REQUEST
 import play.api.libs.json.Json
@@ -35,15 +35,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class VerifyControllerSpec extends AnyWordSpec with Matchers with IdiomaticMockito {
+class VerifyControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
   import PhoneNumber.Implicits._
 
   "verify" should {
     "delegate to verify service" in new SetUp {
       val phoneNumber = PhoneNumber("")
-      mockVerifyService
-        .verifyPhoneNumber(phoneNumber)(any[HeaderCarrier])
-        .returns(Future.successful(Ok))
+      when(
+        mockVerifyService
+          .verifyPhoneNumber(meq(phoneNumber))(any[HeaderCarrier])
+      )
+        .thenReturn(Future.successful(Ok))
       val result = controller.verify(
         fakeRequest.withBody(Json.toJson(phoneNumber))
       )
