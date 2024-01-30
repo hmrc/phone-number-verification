@@ -45,6 +45,8 @@ class MetricsService @Inject() (metrics: Metrics) {
 
   def recordPasscodeVerified(): Unit = recordMetric("passcode_verification_success")
 
+  def recordPasscodeNotVerified(): Unit = recordMetric("passcode_verification_failure")
+
   def recordError(e: Throwable): Unit = recordMetric(e.getMessage)
 
   private def getCounter(counterName: String): Counter =
