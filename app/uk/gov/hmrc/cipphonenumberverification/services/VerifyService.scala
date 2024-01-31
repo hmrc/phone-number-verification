@@ -174,6 +174,7 @@ class VerifyService @Inject() (passcodeGenerator: PasscodeGenerator,
       )
       Future.successful(Ok(Json.toJson(new VerificationStatus(PASSCODE_VERIFIED, StatusMessage.PASSCODE_VERIFIED))))
     } else {
+      metricsService.recordPasscodeNotVerified()
       auditService.sendExplicitAuditEvent(
         PhoneNumberVerificationCheck,
         VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.passcode, NOT_VERIFIED)
