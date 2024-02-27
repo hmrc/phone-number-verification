@@ -92,5 +92,22 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
       (response.json \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
       (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER
     }
+
+    "respond with 400 status for request with invalid json payload" in {
+      val response =
+        wsClient
+          .url(s"$baseUrl/phone-number/verify")
+          .withHttpHeaders(
+            ("Authorization", "fake-token"),
+            ("Content-Type", "application/json")
+          )
+          .withRequestFilter(AhcCurlRequestLogger())
+          .post(s"""{"phoneNumber": }""")
+          .futureValue
+
+      response.status shouldBe 400
+      (response.json \ "statusCode").as[Int] shouldBe 400
+      (response.json \ "message").as[String] shouldBe "bad request, cause: invalid json"
+    }
   }
 }
