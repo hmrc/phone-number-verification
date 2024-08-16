@@ -21,11 +21,12 @@ import play.api.{ConfigLoader, Configuration}
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.duration.FiniteDuration
 
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
   lazy val appName: String                              = config.get[String]("appName")
-  lazy val cacheExpiry: Long                            = config.get[Long]("cache.expiry")
+  lazy val cacheExpiry: FiniteDuration                  = config.get[FiniteDuration]("cache.expiry")
   lazy val phoneNotificationConfig: NotificationsConfig = config.get[NotificationsConfig]("microservice.services.user-notifications.phone")
 
   lazy val phoneNotificationAuthHeader = s"Basic $createAuth"

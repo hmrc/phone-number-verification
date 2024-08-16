@@ -36,7 +36,7 @@ lazy val microservice = Project(appName, file("."))
     buildInfoPackage := "buildinfo"
   )
   .settings(
-    PlayKeys.playDefaultPort := 6081
+    PlayKeys.playDefaultPort := 6083
   )
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)

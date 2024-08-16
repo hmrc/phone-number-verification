@@ -24,12 +24,11 @@ import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.DurationLong
 
 class PasscodeCacheRepository @Inject() (mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
     extends MongoCacheRepository(mongoComponent = mongoComponent,
                                  collectionName = config.appName,
-                                 ttl = config.cacheExpiry.minutes,
+                                 ttl = config.cacheExpiry,
                                  timestampSupport = timestampSupport,
                                  cacheIdType = CacheIdType.SimpleCacheId
     )
