@@ -26,7 +26,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, NotificationsConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberPasscodeData}
+import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberVerificationCodeData}
 import uk.gov.hmrc.cipphonenumberverification.utils.TestActorSystem
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
@@ -57,11 +57,11 @@ class NotificationsConnectorSpec
         NotificationsConfig("http", wireMockHost, wireMockPort, UUID.randomUUID().toString)
       )
 
-      val now                     = System.currentTimeMillis()
-      val phoneNumberPasscodeData = PhoneNumberPasscodeData("testPhoneNumber", "testPasscode")
-      val phoneNumberRequest      = PasscodeNotificationRequest("testPhoneNumber", "Your Phone verification code: testPasscode")
+      val now                             = System.currentTimeMillis()
+      val phoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("test-phone-number", "test-passcode")
+      val phoneNumberRequest              = PasscodeNotificationRequest("test-phone-number", "Your Phone verification code: test-passcode")
 
-      val result = Helpers.await(notificationsConnector.sendPasscode(phoneNumberPasscodeData))(Helpers.defaultAwaitTimeout)
+      val result = Helpers.await(notificationsConnector.sendPasscode(phoneNumberVerificationCodeData))(Helpers.defaultAwaitTimeout)
       result shouldBe a[Right[_, _]]
       verify(
         postRequestedFor(urlEqualTo(notificationUrl)).withRequestBody(equalToJson(Json.toJson(phoneNumberRequest).toString()))
@@ -77,6 +77,8 @@ class NotificationsConnectorSpec
     implicit class IntToDuration(timeout: Int) {
       def toDuration: FiniteDuration = Duration(timeout, java.util.concurrent.TimeUnit.SECONDS)
     }
+
+    when(appConfigMock.appName).thenReturn("test-app")
 
     val notificationsConnector = new UserNotificationsConnector(
       httpClientV2,

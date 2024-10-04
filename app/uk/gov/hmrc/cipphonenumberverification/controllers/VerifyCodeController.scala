@@ -21,27 +21,27 @@ import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
-import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{INVALID_TELEPHONE_NUMBER, INVALID_TELEPHONE_NUMBER_OR_PASSCODE}
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerificationCode
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
-import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.cipphonenumberverification.services.SendCodeService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: VerifyService, override val appConfig: AppConfig)
+class VerifyCodeController @Inject() (cc: ControllerComponents, service: SendCodeService, override val appConfig: AppConfig)
     extends BackendController(cc)
     with AccessChecker
     with Logging {
 
-  import PhoneNumberAndPasscode.Implicits._
+  import PhoneNumberAndVerificationCode.Implicits._
 
-  def verifyPasscode: Action[JsValue] = accessCheckedAction(parse.json) {
+  def verifyCode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
-      withJsonBody[PhoneNumberAndPasscode] {
+      withJsonBody[PhoneNumberAndVerificationCode] {
         service.verifyPasscode
       }
   }
@@ -51,6 +51,6 @@ class VerifyPasscodeController @Inject() (cc: ControllerComponents, service: Ver
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER_OR_PASSCODE))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_PASSCODE))))
     }
 }

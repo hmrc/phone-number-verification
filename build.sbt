@@ -22,7 +22,7 @@ lazy val scalaCompilerOptions = Seq(
 )
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin, BuildInfoPlugin)
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions += "-Wconf:cat=unused-imports&src=routes/.*:s"
@@ -39,7 +39,7 @@ lazy val microservice = Project(appName, file("."))
     PlayKeys.playDefaultPort := 6083
   )
   .settings(resolvers += Resolver.jcenterRepo)
-  .settings(CodeCoverageSettings.settings: _*)
+  .settings(CodeCoverageSettings.settings *)
 
 lazy val it = project
   .in(file("it"))

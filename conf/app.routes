@@ -1,4 +1,4 @@
      # microservice specific routes
 
-POST        /verify                 uk.gov.hmrc.cipphonenumberverification.controllers.VerifyController.verify
-POST        /verify/passcode        uk.gov.hmrc.cipphonenumberverification.controllers.VerifyPasscodeController.verifyPasscode
+POST        /send-code          uk.gov.hmrc.cipphonenumberverification.controllers.SendCodeController.sendCode
+POST        /verify-code        uk.gov.hmrc.cipphonenumberverification.controllers.VerifyCodeController.verifyCode

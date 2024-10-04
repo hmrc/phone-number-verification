@@ -43,9 +43,9 @@ class MetricsService @Inject() (metrics: Metrics) {
 
   def recordSendNotificationFailure(): Unit = recordMetric("notification_failure")
 
-  def recordPasscodeVerified(): Unit = recordMetric("passcode_verification_success")
+  def recordCodeVerified(): Unit = recordMetric("code_verification_success")
 
-  def recordPasscodeNotVerified(): Unit = recordMetric("passcode_verification_failure")
+  def recordCodeNotVerified(): Unit = recordMetric("code_verification_failure")
 
   def recordError(e: Throwable): Unit = recordMetric(e.getMessage)
 

@@ -18,20 +18,32 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.google.inject.Inject
 import play.api.Logging
-import play.api.libs.json.Writes
+import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.mvc.Request
+import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditEvent
 import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.AuditType
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
+import java.util.UUID
 import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: ExecutionContext) extends Logging {
+class AuditService @Inject() (auditConnector: AuditConnector, appConfig: AppConfig)(implicit ec: ExecutionContext) extends Logging {
 
-  def sendExplicitAuditEvent[T <: AuditEvent](auditType: AuditType, auditEvent: T)(implicit hc: HeaderCarrier, writes: Writes[T]): Unit = {
+  def sendExplicitAuditEvent[T <: AuditEvent](auditType: AuditType,
+                                              auditEvent: T
+  )(implicit req: Request[JsValue], hc: HeaderCarrier, writes: Writes[T]): Unit = {
     logger.debug(s"Sending explicit audit event for $auditEvent")
-    auditConnector.sendExplicitAudit(auditType.toString, auditEvent)
+    val dataEvent = ExtendedDataEvent(
+      auditSource = appConfig.appName,
+      auditType = auditType.toString,
+      eventId = UUID.randomUUID().toString,
+      detail = Json.toJson(auditEvent)
+    )
+    auditConnector.sendExtendedEvent(dataEvent)
   }
 }

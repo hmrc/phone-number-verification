@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberPasscodeData}
+import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberVerificationCodeData}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -50,9 +50,11 @@ class UserNotificationsConnector @Inject() (@Named("internal-http-client") httpC
     case Failure(_) => true
   }
 
-  def sendPasscode(phoneNumberPasscodeData: PhoneNumberPasscodeData)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
+  def sendPasscode(
+    phoneNumberPasscodeData: PhoneNumberVerificationCodeData
+  )(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
 
-    val message                     = s"Your Phone verification code: ${phoneNumberPasscodeData.passcode}"
+    val message                     = s"Your Phone verification code: ${phoneNumberPasscodeData.verificationCode}"
     val passcodeNotificationRequest = PasscodeNotificationRequest(phoneNumberPasscodeData.phoneNumber, message)
 
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](

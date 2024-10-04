@@ -19,28 +19,28 @@ package uk.gov.hmrc.cipphonenumberverification.utils
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.Json
 import play.api.libs.ws.{WSClient, WSResponse}
-import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
-import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerificationCode
+import uk.gov.hmrc.cipphonenumberverification.repositories.VerificationCodeCacheRepository
 
 import scala.concurrent.Future
 
 trait DataSteps {
   this: GuiceOneServerPerSuite =>
 
-  import PhoneNumberAndPasscode.Implicits._
+  import PhoneNumberAndVerificationCode.Implicits._
 
-  private val repository = app.injector.instanceOf[PasscodeCacheRepository]
+  private val repository = app.injector.instanceOf[VerificationCodeCacheRepository]
 
   val wsClient: WSClient = app.injector.instanceOf[WSClient]
   val baseUrl            = s"http://localhost:$port"
 
   //mimics user reading text message
-  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndPasscode]] =
-    repository.get[PhoneNumberAndPasscode](phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataKey)
+  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndVerificationCode]] =
+    repository.get[PhoneNumberAndVerificationCode](phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataKey)
 
   def verify(phoneNumber: String): Future[WSResponse] =
     wsClient
-      .url(s"$baseUrl/phone-number-verification/verify")
+      .url(s"$baseUrl/phone-number-verification/send-code")
       .withHttpHeaders(("Authorization", "local-test-token"))
       .post(Json.parse {
         s"""{"phoneNumber": "$phoneNumber"}""".stripMargin

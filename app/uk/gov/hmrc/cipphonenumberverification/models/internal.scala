@@ -34,12 +34,12 @@ object internal {
     }
   }
 
-  case class PhoneNumberPasscodeData(phoneNumber: String, passcode: String)
+  case class PhoneNumberVerificationCodeData(phoneNumber: String, verificationCode: String)
 
-  object PhoneNumberPasscodeData {
+  object PhoneNumberVerificationCodeData {
 
     object Implicits {
-      implicit val phoneNumberPasscodeDataFormat: Format[PhoneNumberPasscodeData] = Json.format[PhoneNumberPasscodeData]
+      implicit val phoneNumberPasscodeDataFormat: Format[PhoneNumberVerificationCodeData] = Json.format[PhoneNumberVerificationCodeData]
     }
   }
 

@@ -29,18 +29,22 @@ object response {
   object StatusCode extends Enumeration {
     type StatusCode = Value
 
-    val VERIFIED: StatusCode      = Value("VERIFIED")
-    val NOT_VERIFIED: StatusCode  = Value("NOT_VERIFIED")
-    val INDETERMINATE: StatusCode = Value("INDETERMINATE")
+    val VALIDATION_ERROR: StatusCode = Value("VALIDATION_ERROR")
 
-    val VALIDATION_ERROR: StatusCode         = Value("VALIDATION_ERROR")
-    val VERIFICATION_ERROR: StatusCode       = Value("VERIFICATION_ERROR")
-    val EXTERNAL_API_FAIL: StatusCode        = Value("EXTERNAL_API_FAIL")
-    val PASSCODE_VERIFY_FAIL: StatusCode     = Value("PASSCODE_VERIFY_FAIL")
-    val PASSCODE_VERIFIED: StatusCode        = Value("PASSCODE_VERIFIFIED")
-    val EXTERNAL_SERVICE_FAIL: StatusCode    = Value("EXTERNAL_SERVICE_FAIL")
-    val MESSAGE_THROTTLED_OUT: StatusCode    = Value("MESSAGE_THROTTLED_OUT")
-    val PASSCODE_PERSISTING_FAIL: StatusCode = Value("PASSCODE_PERSISTING_FAIL")
+    val CODE_SENT: StatusCode       = Value("CODE_SENT")
+    val CODE_NOT_SENT: StatusCode   = Value("CODE_NOT_SENT")
+    val CODE_SEND_ERROR: StatusCode = Value("CODE_SEND_ERROR")
+
+    val CODE_VERIFY_FAILURE: StatusCode = Value("CODE_VERIFY_FAILURE")
+    val CODE_VERIFIED: StatusCode       = Value("CODE_VERIFIFIED")
+
+    val CODE_PERSISTING_FAIL: StatusCode = Value("CODE_PERSISTING_FAIL")
+
+    val MESSAGE_THROTTLED_OUT: StatusCode = Value("MESSAGE_THROTTLED_OUT")
+    val EXTERNAL_SERVICE_FAIL: StatusCode = Value("EXTERNAL_SERVICE_FAIL")
+    val EXTERNAL_API_FAIL: StatusCode     = Value("EXTERNAL_API_FAIL")
+
+    val INDETERMINATE: StatusCode = Value("INDETERMINATE")
 
     implicit val statusCodeFormat: Format[StatusCode.StatusCode] = Json.formatEnum(this)
   }
@@ -48,18 +52,21 @@ object response {
   object StatusMessage extends Enumeration {
     type StatusMessage = Value
 
-    val VERIFIED: StatusMessage                = Value("Phone verification code successfully sent")
-    val NOT_VERIFIED: StatusMessage            = Value("Could not send phone verification code")
+    val CODE_SENT: StatusMessage               = Value("Phone verification code successfully sent")
+    val CODE_NOT_SENT: StatusMessage           = Value("Could not send phone verification code")
     val ONLY_MOBILES_VERIFIABLE: StatusMessage = Value("Only mobile numbers can be verified")
+
+    val INVALID_TELEPHONE_NUMBER: StatusMessage             = Value("Enter a valid telephone number")
+    val INVALID_TELEPHONE_NUMBER_OR_PASSCODE: StatusMessage = Value("Enter a valid telephone number/passcode")
+
+    val CODE_VERIFIED: StatusMessage       = Value("Passcode successfully verified")
+    val CODE_NOT_RECOGNISED: StatusMessage = Value("Enter a valid passcode")
+
+    val SERVICE_THROTTLED_ERROR: StatusMessage = Value("The request for the API is throttled as you have exceeded your quota")
 
     val SERVER_CURRENTLY_UNAVAILABLE: StatusMessage          = Value("Server currently unavailable")
     val SERVER_EXPERIENCED_AN_ISSUE: StatusMessage           = Value("Server has experienced an issue")
     val EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE: StatusMessage = Value("External server currently unavailable")
-    val PASSCODE_NOT_RECOGNISED: StatusMessage               = Value("Enter a valid passcode")
-    val PASSCODE_VERIFIED: StatusMessage                     = Value("Passcode successfully verified")
-    val INVALID_TELEPHONE_NUMBER: StatusMessage              = Value("Enter a valid telephone number")
-    val INVALID_TELEPHONE_NUMBER_OR_PASSCODE: StatusMessage  = Value("Enter a valid telephone number/passcode")
-    val SERVICE_THROTTLED_ERROR: StatusMessage               = Value("The request for the API is throttled as you have exceeded your quota")
 
     implicit val statusMessageFormat: Format[StatusMessage.StatusMessage] = Json.formatEnum(this)
   }

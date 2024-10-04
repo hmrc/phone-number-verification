@@ -19,9 +19,9 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class PasscodeGeneratorSpec extends AnyWordSpec with Matchers {
+class VerificationCodeGeneratorSpec extends AnyWordSpec with Matchers {
 
-  private val passcodeGenerator = new PasscodeGenerator()
+  private val passcodeGenerator = new VerificationCodeGenerator()
 
   "create 6 digit passcode" in {
     passcodeGenerator

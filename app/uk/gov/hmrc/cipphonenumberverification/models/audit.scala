@@ -38,7 +38,7 @@ object audit {
     }
   }
 
-  case class VerificationRequestAuditEvent(phoneNumber: String, passcode: String) extends audit.AuditEvent(phoneNumber, passcode)
+  case class VerificationRequestAuditEvent(phoneNumber: String, verificationCode: String) extends audit.AuditEvent(phoneNumber, verificationCode)
 
   object VerificationRequestAuditEvent {
 
