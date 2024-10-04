@@ -65,7 +65,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
 
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify")
+          .url(s"$baseUrl/phone-number-verification/verify")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -80,7 +80,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify")
+          .url(s"$baseUrl/phone-number-verification/verify")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -96,7 +96,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
     "respond with 400 status for request with invalid json payload" in {
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify")
+          .url(s"$baseUrl/phone-number-verification/verify")
           .withHttpHeaders(
             ("Authorization", "fake-token"),
             ("Content-Type", "application/json")

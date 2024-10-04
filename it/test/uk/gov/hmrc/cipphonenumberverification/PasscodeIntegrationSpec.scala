@@ -25,11 +25,7 @@ import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{VALIDATION_ERROR, VERIFICATION_ERROR}
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{
-  INVALID_TELEPHONE_NUMBER,
-  INVALID_TELEPHONE_NUMBER_OR_PASSCODE,
-  PASSCODE_NOT_RECOGNISED
-}
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{INVALID_TELEPHONE_NUMBER_OR_PASSCODE, PASSCODE_NOT_RECOGNISED}
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
@@ -48,7 +44,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
       //verify PhoneNumberAndPasscode (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number-verification/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -67,7 +63,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
       //verify PhoneNumberAndPasscode (sut)
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number-verification/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -94,7 +90,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
 
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number-verification/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -111,7 +107,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number-verification/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -138,7 +134,7 @@ class PasscodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFuture
 
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number/verify/passcode")
+          .url(s"$baseUrl/phone-number-verification/verify/passcode")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
