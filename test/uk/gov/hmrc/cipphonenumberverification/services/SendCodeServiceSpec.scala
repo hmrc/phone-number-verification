@@ -96,7 +96,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       // check what is sent to validation service
       verify(validateServiceMock, atLeastOnce()).validate("test")
       verify(metricsServiceMock, atLeastOnce()).recordSendNotificationSuccess()
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       // check what is sent to the audit service
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
@@ -123,7 +123,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       errorResponse.status shouldBe VALIDATION_ERROR
       errorResponse.message shouldBe INVALID_TELEPHONE_NUMBER
       verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[Request[JsValue]], any[HeaderCarrier], any())
-      verify(passcodeGeneratorMock, never()).passcodeGenerator()
+      verify(passcodeGeneratorMock, never()).generate()
       verify(verificationServiceMock, never()).persistPasscode(any())
       verify(verificationServiceMock, never()).retrievePasscode(any())
       verify(userNotificationsConnectorMock, never()).sendPasscode(any())(any())
@@ -152,7 +152,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVER_EXPERIENCED_AN_ISSUE
       // check what is sent to validation service
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       // check what is sent to the audit service
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
@@ -190,7 +190,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe EXTERNAL_SERVICE_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVER_CURRENTLY_UNAVAILABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(meq(PhoneNumberVerificationRequest), meq(expectedAuditEvent))(any[Request[JsValue]],
                                                                                                                                    any[HeaderCarrier],
@@ -228,7 +228,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe EXTERNAL_API_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
       verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
@@ -263,7 +263,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe EXTERNAL_API_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
       verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
@@ -298,7 +298,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe MESSAGE_THROTTLED_OUT
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVICE_THROTTLED_ERROR
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
       verify(verificationServiceMock, atLeastOnce()).persistPasscode(meq(phoneNumberVerificationCodeDataFromDb))
@@ -352,7 +352,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       status(result) shouldBe CONFLICT
       contentAsString(result) shouldBe empty
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).passcodeGenerator()
+      verify(passcodeGeneratorMock, atLeastOnce()).generate()
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
       verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
@@ -492,7 +492,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
     val passcodeGeneratorMock: VerificationCodeGenerator           = mock[VerificationCodeGenerator]
     val metricsServiceMock: MetricsService                         = mock[MetricsService]
     val passcode                                                   = "ABCDEF"
-    when(passcodeGeneratorMock.passcodeGenerator()).thenReturn(passcode)
+    when(passcodeGeneratorMock.generate()).thenReturn(passcode)
 
     val verifyService =
       new SendCodeService(passcodeGeneratorMock,

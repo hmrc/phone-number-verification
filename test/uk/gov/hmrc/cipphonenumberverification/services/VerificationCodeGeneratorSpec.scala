@@ -21,25 +21,25 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class VerificationCodeGeneratorSpec extends AnyWordSpec with Matchers {
 
-  private val passcodeGenerator = new VerificationCodeGenerator()
+  private val generate = new VerificationCodeGenerator()
 
   "create 6 digit passcode" in {
-    passcodeGenerator
-      .passcodeGenerator()
+    generate
+      .generate()
       .forall(
         y => y.isUpper
       ) shouldBe true
-    passcodeGenerator
-      .passcodeGenerator()
+    generate
+      .generate()
       .forall(
         y => y.isLetter
       ) shouldBe true
 
     val illegalChars = List('@', '£', '$', '%', '^', '&', '*', '(', ')', '-', '+')
-    passcodeGenerator.passcodeGenerator().toList map (
+    generate.generate().toList map (
       y => assertResult(illegalChars contains y)(false)
     )
 
-    passcodeGenerator.passcodeGenerator().length shouldBe 6
+    generate.generate().length shouldBe 6
   }
 }

@@ -50,7 +50,7 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .sendExtendedEvent(extendedDataEventCaptor.capture())(any(), any())
 
       val actualEDE = extendedDataEventCaptor.getValue
-      actualEDE.auditSource shouldBe "user-agent"
+      actualEDE.auditSource shouldBe "test-app-name"
       actualEDE.auditType shouldBe "PhoneNumberVerificationRequest"
       actualEDE.tags shouldBe empty
       actualEDE.redactionLog.redactedFields shouldBe empty
@@ -59,6 +59,7 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val djs = actualEDE.detail
       (djs \ "phoneNumber").as[String] shouldBe "test-phone-number"
       (djs \ "verificationCode").as[String] shouldBe "test-verification-code"
+      (djs \ "userAgent").as[String] shouldBe "user-agent"
     }
   }
 
@@ -74,7 +75,7 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
     )
     val mockAuditConnector: AuditConnector = mock[AuditConnector]
     val mockAppConfig: AppConfig           = mock[AppConfig]
-    when(mockAppConfig.appName).thenReturn("user-agent")
+    when(mockAppConfig.appName).thenReturn("test-app-name")
     val service: AuditService = new AuditService(mockAuditConnector, mockAppConfig)
   }
 }

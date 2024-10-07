@@ -71,7 +71,7 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
 
   private def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
     if (validatedPhoneNumber.isMobile) {
-      val passcode   = passcodeGenerator.passcodeGenerator()
+      val passcode   = passcodeGenerator.generate()
       val dataToSave = new PhoneNumberVerificationCodeData(validatedPhoneNumber.phoneNumber, passcode)
       auditService.sendExplicitAuditEvent(PhoneNumberVerificationRequest, VerificationRequestAuditEvent(dataToSave.phoneNumber, passcode))
 

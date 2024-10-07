@@ -18,7 +18,8 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.google.inject.Inject
 import play.api.Logging
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.http.HeaderNames
+import play.api.libs.json.{JsObject, JsString, JsValue, Json, Writes}
 import play.api.mvc.Request
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditEvent
@@ -42,7 +43,13 @@ class AuditService @Inject() (auditConnector: AuditConnector, appConfig: AppConf
       auditSource = appConfig.appName,
       auditType = auditType.toString,
       eventId = UUID.randomUUID().toString,
-      detail = Json.toJson(auditEvent)
+      detail = Json.toJson(auditEvent).as[JsObject] ++
+        req.headers
+          .get(HeaderNames.USER_AGENT)
+          .map(
+            ua => JsObject(Map("userAgent" -> JsString(ua)))
+          )
+          .getOrElse(JsObject.empty)
     )
     auditConnector.sendExtendedEvent(dataEvent)
   }
