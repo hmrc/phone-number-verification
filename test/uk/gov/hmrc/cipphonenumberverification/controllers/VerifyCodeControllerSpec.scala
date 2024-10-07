@@ -23,41 +23,42 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.ConfigLoader
 import play.api.http.Status.{BAD_REQUEST, OK}
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{JsValue, Json, OWrites}
+import play.api.mvc.Request
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
-import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerificationCode
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER_OR_PASSCODE
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
-import uk.gov.hmrc.cipphonenumberverification.services.VerifyService
+import uk.gov.hmrc.cipphonenumberverification.services.SendCodeService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class PasscodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class VerifyCodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   "verifyPasscode" should {
     "delegate to verify service" in new SetUp {
-      val passcode = PhoneNumberAndPasscode("07123456789", "123456")
+      val passcode = PhoneNumberAndVerificationCode("07123456789", "123456")
       when(
         mockVerifyService
-          .verifyPasscode(meq(passcode))(any[HeaderCarrier])
+          .verifyPasscode(meq(passcode))(any[Request[JsValue]], any[HeaderCarrier])
       )
-        .thenReturn(Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.VERIFIED, StatusMessage.VERIFIED)))))
-      val result = controller.verifyPasscode(
+        .thenReturn(Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.CODE_SENT, StatusMessage.CODE_SENT)))))
+      val result = controller.verifyCode(
         fakeRequest.withBody(Json.toJson(passcode))
       )
       status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.VERIFIED
+      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_SENT
     }
 
     "return 400 for invalid request" in new SetUp {
-      val result = controller.verifyPasscode(
-        fakeRequest.withBody(Json.toJson(PhoneNumberAndPasscode("", "test")))
+      val result = controller.verifyCode(
+        fakeRequest.withBody(Json.toJson(PhoneNumberAndVerificationCode("", "test")))
       )
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
@@ -66,10 +67,10 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar
   }
 
   trait SetUp {
-    implicit protected val writes: OWrites[PhoneNumberAndPasscode] = Json.writes[PhoneNumberAndPasscode]
-    protected val mockVerifyService                                = mock[VerifyService]
-    protected val mockAppConfig                                    = mock[AppConfig]
-    protected val fakeRequest                                      = FakeRequest().withHeaders("Authorization" -> "fake-token")
+    implicit protected val writes: OWrites[PhoneNumberAndVerificationCode] = Json.writes[PhoneNumberAndVerificationCode]
+    protected val mockVerifyService                                        = mock[SendCodeService]
+    protected val mockAppConfig                                            = mock[AppConfig]
+    protected val fakeRequest                                              = FakeRequest().withHeaders("Authorization" -> "fake-token")
 
     {
       implicit val stringConfigLoader = ConfigLoader.stringLoader
@@ -81,6 +82,6 @@ class PasscodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar
       when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
     }
 
-    protected val controller = new VerifyPasscodeController(Helpers.stubControllerComponents(), mockVerifyService, mockAppConfig)
+    protected val controller = new VerifyCodeController(Helpers.stubControllerComponents(), mockVerifyService, mockAppConfig)
   }
 }

@@ -25,21 +25,21 @@ import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
-import uk.gov.hmrc.cipphonenumberverification.services.{MetricsService, VerifyService}
+import uk.gov.hmrc.cipphonenumberverification.services.{MetricsService, SendCodeService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class VerifyController @Inject() (cc: ControllerComponents, service: VerifyService, metricsService: MetricsService, override val appConfig: AppConfig)
+class SendCodeController @Inject() (cc: ControllerComponents, service: SendCodeService, metricsService: MetricsService, override val appConfig: AppConfig)
     extends BackendController(cc)
     with AccessChecker
     with Logging {
 
   import PhoneNumber.Implicits._
 
-  def verify: Action[JsValue] = accessCheckedAction(parse.json) {
+  def sendCode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       // TODO create some form of response builder
       withJsonBody[PhoneNumber] {

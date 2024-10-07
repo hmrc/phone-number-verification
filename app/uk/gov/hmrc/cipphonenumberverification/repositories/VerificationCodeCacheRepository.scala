@@ -17,8 +17,8 @@
 package uk.gov.hmrc.cipphonenumberverification.repositories
 
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
-import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndPasscode
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberVerificationCodeData
+import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerificationCode
 import uk.gov.hmrc.mongo.cache.{CacheIdType, DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
@@ -26,15 +26,16 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 
-class PasscodeCacheRepository @Inject() (mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit ec: ExecutionContext)
-    extends MongoCacheRepository(mongoComponent = mongoComponent,
-                                 collectionName = config.appName,
-                                 ttl = config.cacheExpiry.minutes,
-                                 timestampSupport = timestampSupport,
-                                 cacheIdType = CacheIdType.SimpleCacheId
+class VerificationCodeCacheRepository @Inject() (mongoComponent: MongoComponent, config: AppConfig, timestampSupport: TimestampSupport)(implicit
+  ec: ExecutionContext
+) extends MongoCacheRepository(mongoComponent = mongoComponent,
+                               collectionName = config.appName,
+                               ttl = config.cacheExpiry.minutes,
+                               timestampSupport = timestampSupport,
+                               cacheIdType = CacheIdType.SimpleCacheId
     )
 
-object PasscodeCacheRepository {
-  val phoneNumberPasscodeDataDataKey: DataKey[PhoneNumberPasscodeData] = DataKey("phone-number-verification")
-  val phoneNumberPasscodeDataKey: DataKey[PhoneNumberAndPasscode]      = DataKey("phone-number-verification")
+object VerificationCodeCacheRepository {
+  val phoneNumberPasscodeDataDataKey: DataKey[PhoneNumberVerificationCodeData] = DataKey("phone-number-verification")
+  val phoneNumberPasscodeDataKey: DataKey[PhoneNumberAndVerificationCode]      = DataKey("phone-number-verification")
 }

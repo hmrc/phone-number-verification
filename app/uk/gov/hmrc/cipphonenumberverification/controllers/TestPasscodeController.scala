@@ -22,23 +22,24 @@ import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
 import uk.gov.hmrc.cipphonenumberverification.models
-import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberVerificationCodeData
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
-import uk.gov.hmrc.cipphonenumberverification.services.PasscodeService
+import uk.gov.hmrc.cipphonenumberverification.services.VerificationCodeService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class TestPasscodeController @Inject() (cc: ControllerComponents, service: PasscodeService, override val appConfig: AppConfig)(implicit ec: ExecutionContext)
-    extends BackendController(cc)
+class TestPasscodeController @Inject() (cc: ControllerComponents, service: VerificationCodeService, override val appConfig: AppConfig)(implicit
+  ec: ExecutionContext
+) extends BackendController(cc)
     with AccessChecker
     with Logging {
   import PhoneNumber.Implicits._
-  import PhoneNumberPasscodeData.Implicits._
+  import PhoneNumberVerificationCodeData.Implicits._
 
   def retrievePasscode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>

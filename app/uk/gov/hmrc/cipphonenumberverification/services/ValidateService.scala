@@ -23,8 +23,8 @@ import com.google.i18n.phonenumbers.Phonenumber.{PhoneNumber => GPhoneNumber}
 import org.apache.commons.lang3.StringUtils
 import play.api.Logging
 import uk.gov.hmrc.cipphonenumberverification.models.internal.ValidatedPhoneNumber
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
 
 import javax.inject.{Inject, Singleton}
@@ -49,7 +49,7 @@ class ValidateService @Inject() (phoneNumberUtil: PhoneNumberUtil, metricsServic
       case Success(None) | Failure(_) =>
         metricsService.recordPhoneNumberNotValidated()
         logger.warn("Failed to validate phone number")
-        Left(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))
+        Left(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER))
     }
 
   private def isPhoneNumberValid(phoneNumber: String, defaultRegion: String): Option[(GPhoneNumber, GPhoneNumberType)] = {

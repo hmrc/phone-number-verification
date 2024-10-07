@@ -1,5 +1,5 @@
 ### Correct-number
-POST http://localhost:6083/phone-number/verify
+POST http://localhost:6083/phone-number/send-code
 content-type: application/json
 Authorization: fake-token
 
@@ -8,7 +8,7 @@ Authorization: fake-token
 }
 
 ###
-POST http://localhost:6083/phone-number/verify/passcode
+POST http://localhost:6083/phone-number/verify-code
 content-type: application/json
 Authorization: fake-token
 
@@ -34,7 +34,7 @@ GET http://localhost:6083/phone-number/notifications/validation-d385-4b17-a0b4-2
 Authorization: fake-token
 
 ### Fixed_line
-POST http://localhost:6083/phone-number/verify
+POST http://localhost:6083/phone-number/send-code
 content-type: application/json
 Authorization: fake-token
 
@@ -43,7 +43,7 @@ Authorization: fake-token
 }
 
 ### Mobile
-POST http://localhost:6083/phone-number/verify
+POST http://localhost:6083/phone-number/send-code
 content-type: application/json
 Authorization: fake-token
 
@@ -52,7 +52,7 @@ Authorization: fake-token
 }
 
 ### Toll_free
-POST http://localhost:6083/phone-number/verify
+POST http://localhost:6083/phone-number/send-code
 content-type: application/json
 Authorization: fake-token
 
@@ -61,7 +61,7 @@ Authorization: fake-token
 }
 
 ###
-POST http://localhost:6083/phone-number/verify
+POST http://localhost:6083/phone-number/send-code
 content-type: application/json
 Authorization: fake-token
 
@@ -70,7 +70,7 @@ Authorization: fake-token
 }
 
 ###
-POST http://localhost:6083/phone-number/verify/passcode
+POST http://localhost:6083/phone-number/verify-code
 content-type: application/json
 Authorization: fake-token
 

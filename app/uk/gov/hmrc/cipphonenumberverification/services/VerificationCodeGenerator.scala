@@ -21,9 +21,9 @@ import javax.inject.Singleton
 import scala.collection.mutable
 
 @Singleton()
-class PasscodeGenerator {
+class VerificationCodeGenerator {
 
-  def passcodeGenerator(): String = {
+  def generate(): String = {
     val sb               = new mutable.StringBuilder()
     val passcodeSize     = 6
     val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -23,19 +23,20 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.ConfigLoader
 import play.api.http.Status.BAD_REQUEST
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.Request
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
-import uk.gov.hmrc.cipphonenumberverification.services.{MetricsService, VerifyService}
+import uk.gov.hmrc.cipphonenumberverification.services.{MetricsService, SendCodeService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class VerifyControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class SendCodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
   import PhoneNumber.Implicits._
 
   "verify" should {
@@ -43,10 +44,10 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val phoneNumber = PhoneNumber("")
       when(
         mockVerifyService
-          .verifyPhoneNumber(meq(phoneNumber))(any[HeaderCarrier])
+          .verifyPhoneNumber(meq(phoneNumber))(any[Request[JsValue]], any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Ok))
-      val result = controller.verify(
+      val result = controller.sendCode(
         fakeRequest.withBody(Json.toJson(phoneNumber))
       )
       status(result) shouldBe BAD_REQUEST
@@ -54,7 +55,7 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
   }
 
   trait SetUp {
-    protected val mockVerifyService  = mock[VerifyService]
+    protected val mockVerifyService  = mock[SendCodeService]
     protected val mockMetricsService = mock[MetricsService]
     protected val mockAppConfig      = mock[AppConfig]
     protected val fakeRequest        = FakeRequest().withHeaders("User-Agent" -> "tester")
@@ -69,6 +70,6 @@ class VerifyControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
       when(mockAppConfig.getConfig(accessControlAllowListAbsoluteKey)).thenReturn(Some(Seq("tester")))
     }
 
-    protected val controller = new VerifyController(Helpers.stubControllerComponents(), mockVerifyService, mockMetricsService, mockAppConfig)
+    protected val controller = new SendCodeController(Helpers.stubControllerComponents(), mockVerifyService, mockMetricsService, mockAppConfig)
   }
 }

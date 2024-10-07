@@ -17,27 +17,27 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import play.api.Logging
-import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
-import uk.gov.hmrc.cipphonenumberverification.repositories.PasscodeCacheRepository
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberVerificationCodeData
+import uk.gov.hmrc.cipphonenumberverification.repositories.VerificationCodeCacheRepository
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PasscodeService @Inject() (passcodeCacheRepository: PasscodeCacheRepository)(implicit ec: ExecutionContext) extends Logging {
-  import PhoneNumberPasscodeData.Implicits._
+class VerificationCodeService @Inject() (passcodeCacheRepository: VerificationCodeCacheRepository)(implicit ec: ExecutionContext) extends Logging {
+  import PhoneNumberVerificationCodeData.Implicits._
 
-  def persistPasscode(phoneNumberAndPasscode: PhoneNumberPasscodeData): Future[PhoneNumberPasscodeData] = {
+  def persistPasscode(phoneNumberAndPasscode: PhoneNumberVerificationCodeData): Future[PhoneNumberVerificationCodeData] = {
     logger.debug(s"Storing phoneNumberAndPasscode in database")
     passcodeCacheRepository
-      .put(phoneNumberAndPasscode.phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscode)
+      .put(phoneNumberAndPasscode.phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscode)
       .map(
         _ => phoneNumberAndPasscode
       )
   }
 
-  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberPasscodeData]] = {
+  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberVerificationCodeData]] = {
     logger.debug(s"Retrieving phoneNumberAndPasscode from database")
-    passcodeCacheRepository.get[PhoneNumberPasscodeData](phoneNumber)(PasscodeCacheRepository.phoneNumberPasscodeDataDataKey)
+    passcodeCacheRepository.get[PhoneNumberVerificationCodeData](phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataDataKey)
   }
 
 }

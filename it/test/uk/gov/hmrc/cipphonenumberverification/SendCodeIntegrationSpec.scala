@@ -32,7 +32,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
-import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberPasscodeData
+import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberVerificationCodeData
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
@@ -40,7 +40,7 @@ import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.Future
 
-class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite {
+class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite {
 
   private val mockNotificationsConnector: UserNotificationsConnector = mock[UserNotificationsConnector]
 
@@ -54,7 +54,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
 
   "/verify" should {
     "return 200 with valid telephone number" in {
-      val phoneNumberPasscodeDataCaptor: ArgumentCaptor[PhoneNumberPasscodeData] = ArgumentCaptor.forClass(classOf[PhoneNumberPasscodeData])
+      val phoneNumberPasscodeDataCaptor: ArgumentCaptor[PhoneNumberVerificationCodeData] = ArgumentCaptor.forClass(classOf[PhoneNumberVerificationCodeData])
       when(mockNotificationsConnector.sendPasscode(phoneNumberPasscodeDataCaptor.capture())(any())).thenReturn(
         Future.successful(
           Right(
@@ -65,7 +65,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
 
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number-verification/verify")
+          .url(s"$baseUrl/phone-number-verification/send-code")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -80,7 +80,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
     "respond with 400 status for invalid request" in {
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number-verification/verify")
+          .url(s"$baseUrl/phone-number-verification/send-code")
           .withHttpHeaders(("Authorization", "fake-token"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
@@ -96,7 +96,7 @@ class VerifyIntegrationSpec extends AnyWordSpec with MockitoSugar with Matchers 
     "respond with 400 status for request with invalid json payload" in {
       val response =
         wsClient
-          .url(s"$baseUrl/phone-number-verification/verify")
+          .url(s"$baseUrl/phone-number-verification/send-code")
           .withHttpHeaders(
             ("Authorization", "fake-token"),
             ("Content-Type", "application/json")

@@ -24,7 +24,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
-class PasscodeCacheRepository @Inject() (
+class VerificationCodeCacheRepository @Inject() (
   mongoComponent: MongoComponent,
   configuration: Configuration,
   timestampSupport: TimestampSupport
