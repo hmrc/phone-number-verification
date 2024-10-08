@@ -36,7 +36,7 @@ object response {
     val CODE_SEND_ERROR: StatusCode = Value("CODE_SEND_ERROR")
 
     val CODE_VERIFY_FAILURE: StatusCode = Value("CODE_VERIFY_FAILURE")
-    val CODE_VERIFIED: StatusCode       = Value("CODE_VERIFIFIED")
+    val CODE_VERIFIED: StatusCode       = Value("CODE_VERIFIED")
 
     val CODE_PERSISTING_FAIL: StatusCode = Value("CODE_PERSISTING_FAIL")
 
