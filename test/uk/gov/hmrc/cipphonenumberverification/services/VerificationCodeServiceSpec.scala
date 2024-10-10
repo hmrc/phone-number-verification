@@ -34,39 +34,39 @@ import scala.concurrent.Future
 class VerificationCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
   import PhoneNumberVerificationCodeData.Implicits._
 
-  "persistPasscode" should {
-    "return passcode" in new SetUp {
+  "persistVerificationCode" should {
+    "return verificationCode" in new SetUp {
       val phoneNumber: PhoneNumber = PhoneNumber("test")
-      val passcode                 = "ABCDEF"
-      val phoneNumberAndPasscodeToPersist: PhoneNumberVerificationCodeData =
-        PhoneNumberVerificationCodeData(phoneNumber.phoneNumber, verificationCode = passcode)
+      val verificationCode         = "ABCDEF"
+      val phoneNumberAndVerificationCodeToPersist: PhoneNumberVerificationCodeData =
+        PhoneNumberVerificationCodeData(phoneNumber.phoneNumber, verificationCode = verificationCode)
       when(
-        passcodeCacheRepositoryMock
-          .put(phoneNumber.phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscodeToPersist)
+        verificationCodeCacheRepositoryMock
+          .put(phoneNumber.phoneNumber)(VerificationCodeCacheRepository.phoneNumberVerificationCodeDataDataKey, phoneNumberAndVerificationCodeToPersist)
       )
         .thenReturn(Future.successful(CacheItem("", JsObject.empty, Instant.EPOCH, Instant.EPOCH)))
 
-      val result: Future[PhoneNumberVerificationCodeData] = passcodeService.persistPasscode(phoneNumberAndPasscodeToPersist)
+      val result: Future[PhoneNumberVerificationCodeData] = verificationCodeService.persistVerificationCode(phoneNumberAndVerificationCodeToPersist)
 
-      await(result) shouldBe phoneNumberAndPasscodeToPersist
+      await(result) shouldBe phoneNumberAndVerificationCodeToPersist
     }
   }
 
-  "retrievePasscode" should {
-    "return passcode" in new SetUp {
-      val dataFromDb: PhoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("thePhoneNumber", "thePasscode")
+  "retrieveVerificationCode" should {
+    "return verificationCode" in new SetUp {
+      val dataFromDb: PhoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("thePhoneNumber", "theVerificationCode")
       when(
-        passcodeCacheRepositoryMock
-          .get[PhoneNumberVerificationCodeData]("thePhoneNumber")(VerificationCodeCacheRepository.phoneNumberPasscodeDataDataKey)
+        verificationCodeCacheRepositoryMock
+          .get[PhoneNumberVerificationCodeData]("thePhoneNumber")(VerificationCodeCacheRepository.phoneNumberVerificationCodeDataDataKey)
       )
         .thenReturn(Future.successful(Some(dataFromDb)))
-      val result: Future[Option[PhoneNumberVerificationCodeData]] = passcodeService.retrievePasscode("thePhoneNumber")
-      await(result) shouldBe Some(PhoneNumberVerificationCodeData("thePhoneNumber", "thePasscode"))
+      val result: Future[Option[PhoneNumberVerificationCodeData]] = verificationCodeService.retrieveVerificationCode("thePhoneNumber")
+      await(result) shouldBe Some(PhoneNumberVerificationCodeData("thePhoneNumber", "theVerificationCode"))
     }
   }
 
   trait SetUp {
-    val passcodeCacheRepositoryMock: VerificationCodeCacheRepository = mock[VerificationCodeCacheRepository]
-    val passcodeService: VerificationCodeService                     = new VerificationCodeService(passcodeCacheRepositoryMock)
+    val verificationCodeCacheRepositoryMock: VerificationCodeCacheRepository = mock[VerificationCodeCacheRepository]
+    val verificationCodeService: VerificationCodeService                     = new VerificationCodeService(verificationCodeCacheRepositoryMock)
   }
 }

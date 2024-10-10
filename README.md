@@ -46,18 +46,18 @@ For reference here are the details for running each of the services individually
 
 ### Curl microservice (for curl microservice build jobs)
 
-#### Verify
+#### Send Code
 
     -XPOST -H "Content-type: application/json" -d '{
 	    "phoneNumber": "<phone-number>"
-    }' 'https://phone-number-verification.protected.mdtp/phone-number/verify'
+    }' 'https://phone-number-verification.protected.mdtp/phone-number-verification/send-code'
 
-#### Verify Passcode
+#### Verify Code
 
     -XPOST -H "Content-type: application/json" -d '{
 	    "phoneNumber": "<phone-number>",
-        "passcode": "<passcode>"
-    }' 'https://phone-number-verification.protected.mdtp/phone-number/verify/passcode'
+        "verificationCode": "<verification-code>"
+    }' 'https://phone-number-verification.protected.mdtp/phone-number-verification/verify-code'
 
 ### License
 

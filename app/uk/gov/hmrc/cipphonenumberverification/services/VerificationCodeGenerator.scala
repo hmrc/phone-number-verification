@@ -24,12 +24,12 @@ import scala.collection.mutable
 class VerificationCodeGenerator {
 
   def generate(): String = {
-    val sb               = new mutable.StringBuilder()
-    val passcodeSize     = 6
-    val chrsToChooseFrom = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    val secureRandom     = SecureRandom.getInstanceStrong
+    val sb                   = new mutable.StringBuilder()
+    val verificationCodeSize = 6
+    val chrsToChooseFrom     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val secureRandom         = SecureRandom.getInstanceStrong
     secureRandom
-      .ints(passcodeSize, 0, chrsToChooseFrom.length)
+      .ints(verificationCodeSize, 0, chrsToChooseFrom.length)
       .mapToObj(
         (i: Int) => chrsToChooseFrom.charAt(i)
       )

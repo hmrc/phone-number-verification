@@ -26,7 +26,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, NotificationsConfig}
-import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberVerificationCodeData}
+import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, VerificationCodeNotificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.utils.TestActorSystem
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
@@ -42,12 +42,12 @@ class NotificationsConnectorSpec
     with EitherValues
     with HttpClientV2Support
     with TestActorSystem {
-  import PasscodeNotificationRequest.Implicits._
+  import VerificationCodeNotificationRequest.Implicits._
 
   val notificationUrl: String = "/notifications/sms"
 
   "NotificationsConnector" should {
-    "send the passcode " in new SetUp {
+    "send the verification code " in new SetUp {
       stubFor(
         post(urlEqualTo(notificationUrl))
           .willReturn(aResponse())
@@ -58,10 +58,10 @@ class NotificationsConnectorSpec
       )
 
       val now                             = System.currentTimeMillis()
-      val phoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("test-phone-number", "test-passcode")
-      val phoneNumberRequest              = PasscodeNotificationRequest("test-phone-number", "Your Phone verification code: test-passcode")
+      val phoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("test-phone-number", "test-verification-code")
+      val phoneNumberRequest              = VerificationCodeNotificationRequest("test-phone-number", "Your Phone verification code: test-verification-code")
 
-      val result = Helpers.await(notificationsConnector.sendPasscode(phoneNumberVerificationCodeData))(Helpers.defaultAwaitTimeout)
+      val result = Helpers.await(notificationsConnector.sendVerificationCode(phoneNumberVerificationCodeData))(Helpers.defaultAwaitTimeout)
       result shouldBe a[Right[_, _]]
       verify(
         postRequestedFor(urlEqualTo(notificationUrl)).withRequestBody(equalToJson(Json.toJson(phoneNumberRequest).toString()))

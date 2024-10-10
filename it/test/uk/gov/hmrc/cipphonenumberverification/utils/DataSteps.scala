@@ -35,8 +35,8 @@ trait DataSteps {
   val baseUrl            = s"http://localhost:$port"
 
   //mimics user reading text message
-  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberAndVerificationCode]] =
-    repository.get[PhoneNumberAndVerificationCode](phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataKey)
+  def retrieveVerificationCode(phoneNumber: String): Future[Option[PhoneNumberAndVerificationCode]] =
+    repository.get[PhoneNumberAndVerificationCode](phoneNumber)(VerificationCodeCacheRepository.phoneNumberVerificationCodeDataKey)
 
   def verify(phoneNumber: String): Future[WSResponse] =
     wsClient

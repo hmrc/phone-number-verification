@@ -45,11 +45,11 @@ object request {
   object PhoneNumberAndVerificationCode {
 
     object Implicits {
-      val MIN_LENGTH_PASSCODE = 6
-      val MAX_LENGTH_PASSCODE = 6
+      val MIN_LENGTH_VERIFICATION_CODE = 6
+      val MAX_LENGTH_VERIFICATION_CODE = 6
 
       implicit val reads: Reads[PhoneNumberAndVerificationCode] = ((JsPath \ "phoneNumber").read[String] and
-        (JsPath \ "verificationCode").read[String](minLength[String](MIN_LENGTH_PASSCODE).keepAnd(maxLength[String](MAX_LENGTH_PASSCODE))))(
+        (JsPath \ "verificationCode").read[String](minLength[String](MIN_LENGTH_VERIFICATION_CODE).keepAnd(maxLength[String](MAX_LENGTH_VERIFICATION_CODE))))(
         PhoneNumberAndVerificationCode.apply _
       )
 

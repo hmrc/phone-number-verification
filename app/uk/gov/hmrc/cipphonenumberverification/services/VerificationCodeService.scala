@@ -23,21 +23,21 @@ import uk.gov.hmrc.cipphonenumberverification.repositories.VerificationCodeCache
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class VerificationCodeService @Inject() (passcodeCacheRepository: VerificationCodeCacheRepository)(implicit ec: ExecutionContext) extends Logging {
+class VerificationCodeService @Inject() (verificationCodeCacheRepository: VerificationCodeCacheRepository)(implicit ec: ExecutionContext) extends Logging {
   import PhoneNumberVerificationCodeData.Implicits._
 
-  def persistPasscode(phoneNumberAndPasscode: PhoneNumberVerificationCodeData): Future[PhoneNumberVerificationCodeData] = {
-    logger.debug(s"Storing phoneNumberAndPasscode in database")
-    passcodeCacheRepository
-      .put(phoneNumberAndPasscode.phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataDataKey, phoneNumberAndPasscode)
+  def persistVerificationCode(phoneNumberAndVerificationCode: PhoneNumberVerificationCodeData): Future[PhoneNumberVerificationCodeData] = {
+    logger.debug(s"Storing phoneNumberAndVerificationCode in database")
+    verificationCodeCacheRepository
+      .put(phoneNumberAndVerificationCode.phoneNumber)(VerificationCodeCacheRepository.phoneNumberVerificationCodeDataDataKey, phoneNumberAndVerificationCode)
       .map(
-        _ => phoneNumberAndPasscode
+        _ => phoneNumberAndVerificationCode
       )
   }
 
-  def retrievePasscode(phoneNumber: String): Future[Option[PhoneNumberVerificationCodeData]] = {
-    logger.debug(s"Retrieving phoneNumberAndPasscode from database")
-    passcodeCacheRepository.get[PhoneNumberVerificationCodeData](phoneNumber)(VerificationCodeCacheRepository.phoneNumberPasscodeDataDataKey)
+  def retrieveVerificationCode(phoneNumber: String): Future[Option[PhoneNumberVerificationCodeData]] = {
+    logger.debug(s"Retrieving phoneNumberAndverificationCode from database")
+    verificationCodeCacheRepository.get[PhoneNumberVerificationCodeData](phoneNumber)(VerificationCodeCacheRepository.phoneNumberVerificationCodeDataDataKey)
   }
 
 }

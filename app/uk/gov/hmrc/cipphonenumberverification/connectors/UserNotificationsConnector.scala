@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.internal.{PasscodeNotificationRequest, PhoneNumberVerificationCodeData}
+import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, VerificationCodeNotificationRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
@@ -41,7 +41,7 @@ class UserNotificationsConnector @Inject() (@Named("internal-http-client") httpC
     extends Logging
     with UsingCircuitBreaker {
 
-  import PasscodeNotificationRequest.Implicits._
+  import VerificationCodeNotificationRequest.Implicits._
 
   implicit val iec: ExecutionContext = ec
 
@@ -50,18 +50,18 @@ class UserNotificationsConnector @Inject() (@Named("internal-http-client") httpC
     case Failure(_) => true
   }
 
-  def sendPasscode(
-    phoneNumberPasscodeData: PhoneNumberVerificationCodeData
+  def sendVerificationCode(
+    phoneNumberVerificationCodeData: PhoneNumberVerificationCodeData
   )(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
 
-    val message                     = s"Your Phone verification code: ${phoneNumberPasscodeData.verificationCode}"
-    val passcodeNotificationRequest = PasscodeNotificationRequest(phoneNumberPasscodeData.phoneNumber, message)
+    val message                             = s"Your Phone verification code: ${phoneNumberVerificationCodeData.verificationCode}"
+    val verificationCodeNotificationRequest = VerificationCodeNotificationRequest(phoneNumberVerificationCodeData.phoneNumber, message)
 
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
       httpClient
         .post(url"${config.phoneNotificationConfig.url}/notifications/sms")
         .setHeader(HeaderNames.AUTHORIZATION -> config.phoneNotificationAuthHeader)
-        .withBody(Json.toJson(passcodeNotificationRequest))
+        .withBody(Json.toJson(verificationCodeNotificationRequest))
         .execute[Either[UpstreamErrorResponse, HttpResponse]]
     )
   }

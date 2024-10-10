@@ -39,16 +39,16 @@ object internal {
   object PhoneNumberVerificationCodeData {
 
     object Implicits {
-      implicit val phoneNumberPasscodeDataFormat: Format[PhoneNumberVerificationCodeData] = Json.format[PhoneNumberVerificationCodeData]
+      implicit val phoneNumberVerificationCodeDataFormat: Format[PhoneNumberVerificationCodeData] = Json.format[PhoneNumberVerificationCodeData]
     }
   }
 
-  case class PasscodeNotificationRequest(phoneNumber: String, message: String)
+  case class VerificationCodeNotificationRequest(phoneNumber: String, message: String)
 
-  object PasscodeNotificationRequest {
+  object VerificationCodeNotificationRequest {
 
     object Implicits {
-      implicit val passcodeNotificationRequestFormat: Format[PasscodeNotificationRequest] = Json.format[PasscodeNotificationRequest]
+      implicit val verificationCodeNotificationRequestFormat: Format[VerificationCodeNotificationRequest] = Json.format[VerificationCodeNotificationRequest]
     }
   }
 }

@@ -14,7 +14,7 @@ Authorization: fake-token
 
 {
   "phoneNumber": "+447430001000",
-  "passcode": "DAKMHY"
+  "verificationCode": "DAKMHY"
 }
 
 ### Notification Status
@@ -76,5 +76,5 @@ Authorization: fake-token
 
 {
   "phoneNumber": "07843274331",
-  "passcode": "GTHJKL"
+  "verificationCode": "GTHJKL"
 }
