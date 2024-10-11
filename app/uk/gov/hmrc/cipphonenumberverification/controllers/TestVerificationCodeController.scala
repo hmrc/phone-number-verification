@@ -33,7 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class TestPasscodeController @Inject() (cc: ControllerComponents, service: VerificationCodeService, override val appConfig: AppConfig)(implicit
+class TestVerificationCodeController @Inject() (cc: ControllerComponents, service: VerificationCodeService, override val appConfig: AppConfig)(implicit
   ec: ExecutionContext
 ) extends BackendController(cc)
     with AccessChecker
@@ -41,16 +41,16 @@ class TestPasscodeController @Inject() (cc: ControllerComponents, service: Verif
   import PhoneNumber.Implicits._
   import PhoneNumberVerificationCodeData.Implicits._
 
-  def retrievePasscode: Action[JsValue] = accessCheckedAction(parse.json) {
+  def retrieveVerificationCode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       withJsonBody[PhoneNumber] {
         phoneNumber =>
-          service.retrievePasscode(phoneNumber.phoneNumber).map {
-            case Some(phoneNumberPasscodeData) =>
-              logger.info(s"PassCode found for phone number: ${phoneNumber.phoneNumber}")
-              Ok(Json.toJson(phoneNumberPasscodeData))
+          service.retrieveVerificationCode(phoneNumber.phoneNumber).map {
+            case Some(phoneNumberVerificationCodeData) =>
+              logger.info(s"Verificatio code found for phone number: ${phoneNumber.phoneNumber}")
+              Ok(Json.toJson(phoneNumberVerificationCodeData))
             case None =>
-              logger.info(s"No passcode found for phone number: ${phoneNumber.phoneNumber}")
+              logger.info(s"No verification code found for phone number: ${phoneNumber.phoneNumber}")
               NoContent
           }
       }

@@ -32,7 +32,7 @@ import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker.{accessControlAllowListAbsoluteKey, accessControlEnabledAbsoluteKey}
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerificationCode
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER_OR_PASSCODE
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
 import uk.gov.hmrc.cipphonenumberverification.services.SendCodeService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -41,16 +41,16 @@ import scala.concurrent.Future
 
 class VerifyCodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  "verifyPasscode" should {
+  "verifyCode" should {
     "delegate to verify service" in new SetUp {
-      val passcode = PhoneNumberAndVerificationCode("07123456789", "123456")
+      val verificationCode = PhoneNumberAndVerificationCode("07123456789", "123456")
       when(
         mockVerifyService
-          .verifyPasscode(meq(passcode))(any[Request[JsValue]], any[HeaderCarrier])
+          .verifyVerificationCode(meq(verificationCode))(any[Request[JsValue]], any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.CODE_SENT, StatusMessage.CODE_SENT)))))
       val result = controller.verifyCode(
-        fakeRequest.withBody(Json.toJson(passcode))
+        fakeRequest.withBody(Json.toJson(verificationCode))
       )
       status(result) shouldBe OK
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_SENT
@@ -62,7 +62,7 @@ class VerifyCodeControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       )
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
-      (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_PASSCODE
+      (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE
     }
   }
 

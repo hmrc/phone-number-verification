@@ -20,7 +20,7 @@ import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.StatusCode
 
 object audit {
-  abstract class AuditEvent(phoneNumber: String, passcode: String)
+  abstract class AuditEvent(phoneNumber: String, verificationCode: String)
 
   object AuditType extends Enumeration {
     type AuditType = Value
@@ -29,7 +29,8 @@ object audit {
     val PhoneNumberVerificationCheck: AuditType   = Value
   }
 
-  case class VerificationCheckAuditEvent(phoneNumber: String, passcode: String, result: StatusCode) extends audit.AuditEvent(phoneNumber, passcode)
+  case class VerificationCheckAuditEvent(phoneNumber: String, verificationCode: String, result: StatusCode)
+      extends audit.AuditEvent(phoneNumber, verificationCode)
 
   object VerificationCheckAuditEvent {
 

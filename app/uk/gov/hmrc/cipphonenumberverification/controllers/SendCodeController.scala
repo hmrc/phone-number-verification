@@ -43,7 +43,7 @@ class SendCodeController @Inject() (cc: ControllerComponents, service: SendCodeS
     implicit request =>
       // TODO create some form of response builder
       withJsonBody[PhoneNumber] {
-        service.verifyPhoneNumber
+        service.sendCode
       }
   }
 

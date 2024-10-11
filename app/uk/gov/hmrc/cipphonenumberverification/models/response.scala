@@ -56,11 +56,11 @@ object response {
     val CODE_NOT_SENT: StatusMessage           = Value("Could not send phone verification code")
     val ONLY_MOBILES_VERIFIABLE: StatusMessage = Value("Only mobile numbers can be verified")
 
-    val INVALID_TELEPHONE_NUMBER: StatusMessage             = Value("Enter a valid telephone number")
-    val INVALID_TELEPHONE_NUMBER_OR_PASSCODE: StatusMessage = Value("Enter a valid telephone number/passcode")
+    val INVALID_TELEPHONE_NUMBER: StatusMessage                      = Value("Enter a valid telephone number")
+    val INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE: StatusMessage = Value("Enter a valid telephone number/verification code")
 
-    val CODE_VERIFIED: StatusMessage       = Value("Passcode successfully verified")
-    val CODE_NOT_RECOGNISED: StatusMessage = Value("Enter a valid passcode")
+    val CODE_VERIFIED: StatusMessage       = Value("Verification code successfully verified")
+    val CODE_NOT_RECOGNISED: StatusMessage = Value("Enter a valid verification code")
 
     val SERVICE_THROTTLED_ERROR: StatusMessage = Value("The request for the API is throttled as you have exceeded your quota")
 

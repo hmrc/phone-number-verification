@@ -42,7 +42,7 @@ class VerifyCodeController @Inject() (cc: ControllerComponents, service: SendCod
   def verifyCode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       withJsonBody[PhoneNumberAndVerificationCode] {
-        service.verifyPasscode
+        service.verifyVerificationCode
       }
   }
 
@@ -51,6 +51,6 @@ class VerifyCodeController @Inject() (cc: ControllerComponents, service: SendCod
       case JsSuccess(payload, _) => f(payload)
       case JsError(_) =>
         logger.warn(s"Failed to validate request")
-        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_PASSCODE))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE))))
     }
 }

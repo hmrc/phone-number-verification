@@ -36,6 +36,6 @@ class VerificationCodeCacheRepository @Inject() (mongoComponent: MongoComponent,
     )
 
 object VerificationCodeCacheRepository {
-  val phoneNumberPasscodeDataDataKey: DataKey[PhoneNumberVerificationCodeData] = DataKey("phone-number-verification")
-  val phoneNumberPasscodeDataKey: DataKey[PhoneNumberAndVerificationCode]      = DataKey("phone-number-verification")
+  val phoneNumberVerificationCodeDataDataKey: DataKey[PhoneNumberVerificationCodeData] = DataKey("phone-number-verification")
+  val phoneNumberVerificationCodeDataKey: DataKey[PhoneNumberAndVerificationCode]      = DataKey("phone-number-verification")
 }

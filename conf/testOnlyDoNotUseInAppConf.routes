@@ -12,4 +12,4 @@
 # Add all the application routes to the prod.routes file
 ->          /                                   prod.Routes
 
-POST        /test-only/retrieve/passcode        uk.gov.hmrc.cipphonenumberverification.controllers.TestPasscodeController.retrievePasscode
+POST        /test-only/retrieve/verification-code        uk.gov.hmrc.cipphonenumberverification.controllers.TestVerificationCodeController.retrieveVerificationCode

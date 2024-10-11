@@ -64,7 +64,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
   "verify" should {
     "return success if telephone number is valid" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       when(
         validateServiceMock
           .validate(enteredPhoneNumber.phoneNumber)
@@ -74,12 +74,12 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.successful(phoneNumberVerificationCodeDataFromDb))
       when(
         userNotificationsConnectorMock
-          .sendPasscode(phoneNumberVerificationCodeDataFromDb)
+          .sendVerificationCode(phoneNumberVerificationCodeDataFromDb)
       )
         .thenReturn(
           Future.successful(
@@ -87,7 +87,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
           )
         )
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
       status(result) shouldBe OK
       contentAsJson(result) shouldBe Json.toJson(VerificationStatus(CODE_SENT, StatusMessage.CODE_SENT))
 
@@ -96,14 +96,14 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       // check what is sent to validation service
       verify(validateServiceMock, atLeastOnce()).validate("test")
       verify(metricsServiceMock, atLeastOnce()).recordSendNotificationSuccess()
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
       // check what is sent to the audit service
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
       // check what is sent to DAO
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(phoneNumberVerificationCodeDataFromDb)
       // Check what is sent to GovNotify
-      verify(userNotificationsConnectorMock, atLeastOnce()).sendPasscode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
+      verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
     }
 
     "return error response if telephone number is invalid" in new SetUp {
@@ -116,22 +116,22 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       )
         .thenReturn(Left(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER)))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe BAD_REQUEST
       val errorResponse: VerificationStatus = contentAsJson(result).as[VerificationStatus]
       errorResponse.status shouldBe VALIDATION_ERROR
       errorResponse.message shouldBe INVALID_TELEPHONE_NUMBER
       verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[Request[JsValue]], any[HeaderCarrier], any())
-      verify(passcodeGeneratorMock, never()).generate()
-      verify(verificationServiceMock, never()).persistPasscode(any())
-      verify(verificationServiceMock, never()).retrievePasscode(any())
-      verify(userNotificationsConnectorMock, never()).sendPasscode(any())(any())
+      verify(verificationCodeGeneratorMock, never()).generate()
+      verify(verificationServiceMock, never()).persistVerificationCode(any())
+      verify(verificationServiceMock, never()).retrieveVerificationCode(any())
+      verify(userNotificationsConnectorMock, never()).sendVerificationCode(any())(any())
     }
 
     "return internal server error when datastore exception occurs" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       val phoneNumberVerificationCdeDataFromDb: PhoneNumberVerificationCodeData =
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
@@ -141,31 +141,31 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.failed(new Exception("simulated database operation failure")))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe CODE_PERSISTING_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVER_EXPERIENCED_AN_ISSUE
       // check what is sent to validation service
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
       // check what is sent to the audit service
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
       // check what is sent to DAO
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCdeDataFromDb)
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(phoneNumberVerificationCdeDataFromDb)
 
       // Check NOTHING is sent to GovNotify
-      verify(userNotificationsConnectorMock, never()).sendPasscode(any())(any())
+      verify(userNotificationsConnectorMock, never()).sendVerificationCode(any())(any())
     }
 
     "return BadGateway if user notifications returns internal server error" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
@@ -175,35 +175,35 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.successful(phoneNumberVerificationCodeDataFromDb))
       when(
         userNotificationsConnectorMock
-          .sendPasscode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
+          .sendVerificationCode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Left(UpstreamErrorResponse("Server currently unavailable", INTERNAL_SERVER_ERROR))))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe BAD_GATEWAY
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe EXTERNAL_SERVICE_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVER_CURRENTLY_UNAVAILABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(meq(PhoneNumberVerificationRequest), meq(expectedAuditEvent))(any[Request[JsValue]],
                                                                                                                                    any[HeaderCarrier],
                                                                                                                                    any()
       )
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(meq(phoneNumberVerificationCodeDataFromDb))
-      verify(userNotificationsConnectorMock, atLeastOnce()).sendPasscode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))
+      verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
       verify(metricsServiceMock, atLeastOnce()).recordUpstreamError(any[UpstreamErrorResponse])
     }
 
     "return Service unavailable if gov-notify returns BadRequestError" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
@@ -213,32 +213,32 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.successful(phoneNumberVerificationCodeDataFromDb))
       when(
         userNotificationsConnectorMock
-          .sendPasscode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
+          .sendVerificationCode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Left(UpstreamErrorResponse("External server currently unavailable", BAD_REQUEST))))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe SERVICE_UNAVAILABLE
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe EXTERNAL_API_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
-      verify(userNotificationsConnectorMock, atLeastOnce()).sendPasscode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(phoneNumberVerificationCodeDataFromDb)
+      verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
       verify(metricsServiceMock, atLeastOnce()).recordUpstreamError(any[UpstreamErrorResponse])
     }
 
     "return Service unavailable if gov-notify returns Forbidden error" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
@@ -248,32 +248,32 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.successful(phoneNumberVerificationCodeDataFromDb))
       when(
         userNotificationsConnectorMock
-          .sendPasscode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
+          .sendVerificationCode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Left(UpstreamErrorResponse("External server currently unavailable", FORBIDDEN))))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe SERVICE_UNAVAILABLE
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe EXTERNAL_API_FAIL
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe EXTERNAL_SERVER_CURRENTLY_UNAVAILABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
-      verify(userNotificationsConnectorMock, atLeastOnce()).sendPasscode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(phoneNumberVerificationCodeDataFromDb)
+      verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
       verify(metricsServiceMock, atLeastOnce()).recordUpstreamError(any[UpstreamErrorResponse])
     }
 
     "return Too Many Requests if gov-notify returns RateLimitError or TooManyRequestsError" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
@@ -283,52 +283,52 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.successful(phoneNumberVerificationCodeDataFromDb))
       when(
         userNotificationsConnectorMock
-          .sendPasscode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
+          .sendVerificationCode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Left(UpstreamErrorResponse("External server currently unavailable", TOO_MANY_REQUESTS))))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe TOO_MANY_REQUESTS
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe MESSAGE_THROTTLED_OUT
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVICE_THROTTLED_ERROR
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(meq(phoneNumberVerificationCodeDataFromDb))
-      verify(userNotificationsConnectorMock, atLeastOnce()).sendPasscode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))
+      verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
     }
 
     "return indeterminate response if phone number is not a mobile" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       when(
         validateServiceMock
           .validate(enteredPhoneNumber.phoneNumber)
       )
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.FIXED_LINE)))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe OK
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.INDETERMINATE
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe StatusMessage.ONLY_MOBILES_VERIFIABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
       verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any(), any(), any())
-      verify(verificationServiceMock, never()).persistPasscode(any())
-      verify(verificationServiceMock, never()).retrievePasscode(any())
-      verify(userNotificationsConnectorMock, never()).sendPasscode(any())(any[HeaderCarrier])
+      verify(verificationServiceMock, never()).persistVerificationCode(any())
+      verify(verificationServiceMock, never()).retrieveVerificationCode(any())
+      verify(userNotificationsConnectorMock, never()).sendVerificationCode(any())(any[HeaderCarrier])
     }
 
     "return response from service if response has not been handled" in new SetUp {
       val enteredPhoneNumber: PhoneNumber                                          = PhoneNumber("test")
-      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", passcode)
+      val normalisedPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("normalised-phone-number", verificationCode)
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
         PhoneNumberVerificationCodeData(normalisedPhoneNumberAndVerificationCode.phoneNumber, normalisedPhoneNumberAndVerificationCode.verificationCode)
       when(
@@ -338,113 +338,113 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .thenReturn(Right(ValidatedPhoneNumber(normalisedPhoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .persistPasscode(any[PhoneNumberVerificationCodeData])
+          .persistVerificationCode(any[PhoneNumberVerificationCodeData])
       )
         .thenReturn(Future.successful(phoneNumberVerificationCodeDataFromDb))
       when(
         userNotificationsConnectorMock
-          .sendPasscode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
+          .sendVerificationCode(any[PhoneNumberVerificationCodeData])(any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Left(UpstreamErrorResponse("Some random message from external service", CONFLICT))))
 
-      val result: Future[Result] = verifyService.verifyPhoneNumber(enteredPhoneNumber)
+      val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
       status(result) shouldBe CONFLICT
       contentAsString(result) shouldBe empty
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(passcodeGeneratorMock, atLeastOnce()).generate()
-      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", passcode)
+      verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
+      val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationRequest, expectedAuditEvent)
-      verify(verificationServiceMock, atLeastOnce()).persistPasscode(phoneNumberVerificationCodeDataFromDb)
-      verify(userNotificationsConnectorMock, atLeastOnce()).sendPasscode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
+      verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(phoneNumberVerificationCodeDataFromDb)
+      verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
       verify(metricsServiceMock, atLeastOnce()).recordUpstreamError(any[UpstreamErrorResponse])
     }
   }
 
-  "verifyPasscode" should {
-    "return Verified if passcode matches" in new SetUp {
-      val phoneNumberAndPasscode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredPasscode")
+  "verifyVerificationCode" should {
+    "return Verified if verification code matches" in new SetUp {
+      val phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredVerificationCode")
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
-        PhoneNumberVerificationCodeData(phoneNumberAndPasscode.phoneNumber, phoneNumberAndPasscode.verificationCode)
+        PhoneNumberVerificationCodeData(phoneNumberAndVerificationCode.phoneNumber, phoneNumberAndVerificationCode.verificationCode)
       when(
         validateServiceMock
-          .validate(phoneNumberAndPasscode.phoneNumber)
+          .validate(phoneNumberAndVerificationCode.phoneNumber)
       )
-        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, PhoneNumberType.MOBILE)))
+        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .retrievePasscode(phoneNumberAndPasscode.phoneNumber)
+          .retrieveVerificationCode(phoneNumberAndVerificationCode.phoneNumber)
       )
         .thenReturn(Future.successful(Some(phoneNumberVerificationCodeDataFromDb)))
 
-      val result: Future[Result] = verifyService.verifyPasscode(phoneNumberAndPasscode)
+      val result: Future[Result] = verifyService.verifyVerificationCode(phoneNumberAndVerificationCode)
 
       status(result) shouldBe OK
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_VERIFIED
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
-        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", StatusCode.CODE_SENT)
+        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_SENT)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent)
     }
 
-    "return verification error and enter a correct passcode message if cache has expired or if passcode does not exist" in new SetUp {
-      val phoneNumberAndPasscode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredPasscode")
+    "return verification error and enter a correct verification code message if cache has expired or if verification code does not exist" in new SetUp {
+      val phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredVerificationCode")
       when(
         validateServiceMock
-          .validate(phoneNumberAndPasscode.phoneNumber)
+          .validate(phoneNumberAndVerificationCode.phoneNumber)
       )
-        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, PhoneNumberType.MOBILE)))
+        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .retrievePasscode(phoneNumberAndPasscode.phoneNumber)
+          .retrieveVerificationCode(phoneNumberAndVerificationCode.phoneNumber)
       )
         .thenReturn(Future.successful(None))
 
-      val result: Future[Result] = verifyService.verifyPasscode(phoneNumberAndPasscode)
+      val result: Future[Result] = verifyService.verifyVerificationCode(phoneNumberAndVerificationCode)
 
       status(result) shouldBe OK
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe CODE_SEND_ERROR
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe CODE_NOT_RECOGNISED
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
-        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", StatusCode.CODE_NOT_SENT)
+        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_NOT_SENT)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent)
     }
 
-    "return Not verified if passcode does not match" in new SetUp {
-      val phoneNumberAndPasscode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredPasscode")
+    "return Not verified if verification code does not match" in new SetUp {
+      val phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredVerificationCode")
       val phoneNumberVerificationCodeDataFromDb: PhoneNumberVerificationCodeData =
-        PhoneNumberVerificationCodeData(phoneNumberAndPasscode.phoneNumber, "passcodethatdoesnotmatch")
+        PhoneNumberVerificationCodeData(phoneNumberAndVerificationCode.phoneNumber, "verificationcodethatdoesnotmatch")
       when(
         validateServiceMock
-          .validate(phoneNumberAndPasscode.phoneNumber)
+          .validate(phoneNumberAndVerificationCode.phoneNumber)
       )
-        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, PhoneNumberType.MOBILE)))
+        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .retrievePasscode(phoneNumberAndPasscode.phoneNumber)
+          .retrieveVerificationCode(phoneNumberAndVerificationCode.phoneNumber)
       )
         .thenReturn(Future.successful(Some(phoneNumberVerificationCodeDataFromDb)))
 
-      val result: Future[Result] = verifyService.verifyPasscode(phoneNumberAndPasscode)
+      val result: Future[Result] = verifyService.verifyVerificationCode(phoneNumberAndVerificationCode)
 
       status(result) shouldBe NOT_FOUND
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_VERIFY_FAILURE
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
-        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredPasscode", StatusCode.CODE_NOT_SENT)
+        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_NOT_SENT)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent)
     }
 
     "return bad request if telephone number is invalid" in new SetUp {
-      val phoneNumberAndPasscode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredPasscode")
+      val phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredVerificationCode")
       when(
         validateServiceMock
-          .validate(phoneNumberAndPasscode.phoneNumber)
+          .validate(phoneNumberAndVerificationCode.phoneNumber)
       )
         .thenReturn(Left(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER)))
 
-      val result: Future[Result] = verifyService.verifyPasscode(phoneNumberAndPasscode)
+      val result: Future[Result] = verifyService.verifyVerificationCode(phoneNumberAndVerificationCode)
 
       status(result) shouldBe BAD_REQUEST
       val errorResponse: VerificationStatus = contentAsJson(result).as[VerificationStatus]
@@ -454,19 +454,19 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
     }
 
     "return internal sever error when datastore exception occurs on get" in new SetUp {
-      val phoneNumberAndPasscode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredPasscode")
+      val phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode = PhoneNumberAndVerificationCode("enteredPhoneNumber", "enteredVerificationCode")
       when(
         validateServiceMock
-          .validate(phoneNumberAndPasscode.phoneNumber)
+          .validate(phoneNumberAndVerificationCode.phoneNumber)
       )
-        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndPasscode.phoneNumber, PhoneNumberType.MOBILE)))
+        .thenReturn(Right(ValidatedPhoneNumber(phoneNumberAndVerificationCode.phoneNumber, PhoneNumberType.MOBILE)))
       when(
         verificationServiceMock
-          .retrievePasscode(phoneNumberAndPasscode.phoneNumber)
+          .retrieveVerificationCode(phoneNumberAndVerificationCode.phoneNumber)
       )
         .thenReturn(Future.failed(new Exception("simulated database operation failure")))
 
-      val result: Future[Result] = verifyService.verifyPasscode(phoneNumberAndPasscode)
+      val result: Future[Result] = verifyService.verifyVerificationCode(phoneNumberAndVerificationCode)
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe CODE_VERIFY_FAILURE
@@ -489,13 +489,13 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
     val validateServiceMock: ValidateService                       = mock[ValidateService]
     val userNotificationsConnectorMock: UserNotificationsConnector = mock[UserNotificationsConnector]
     val auditServiceMock: AuditService                             = mock[AuditService]
-    val passcodeGeneratorMock: VerificationCodeGenerator           = mock[VerificationCodeGenerator]
+    val verificationCodeGeneratorMock: VerificationCodeGenerator   = mock[VerificationCodeGenerator]
     val metricsServiceMock: MetricsService                         = mock[MetricsService]
-    val passcode                                                   = "ABCDEF"
-    when(passcodeGeneratorMock.generate()).thenReturn(passcode)
+    val verificationCode                                           = "ABCDEF"
+    when(verificationCodeGeneratorMock.generate()).thenReturn(verificationCode)
 
     val verifyService =
-      new SendCodeService(passcodeGeneratorMock,
+      new SendCodeService(verificationCodeGeneratorMock,
                           auditServiceMock,
                           verificationServiceMock,
                           validateServiceMock,

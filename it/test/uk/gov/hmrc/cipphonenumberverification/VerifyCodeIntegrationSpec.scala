@@ -25,23 +25,23 @@ import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{CODE_SEND_ERROR, VALIDATION_ERROR}
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{CODE_NOT_RECOGNISED, INVALID_TELEPHONE_NUMBER_OR_PASSCODE}
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{CODE_NOT_RECOGNISED, INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE}
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
 
 class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with DataSteps {
 
   "/verify-code" should {
-    "respond with 200 verified status with valid phone number and passcode" in {
+    "respond with 200 verified status with valid phone number and verification code" in {
       val phoneNumber = "07811123456"
 
-      //generate PhoneNumberAndPasscode
+      //generate PhoneNumberAndVerificationCode
       verify(phoneNumber).futureValue
 
-      //retrieve PhoneNumberAndPasscode
-      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123456").futureValue
+      //retrieve PhoneNumberAndVerificationCode
+      val maybePhoneNumberAndVerificationCode = retrieveVerificationCode("+447811123456").futureValue
 
-      //verify PhoneNumberAndPasscode (sut)
+      //verify PhoneNumberAndVerificationCode (sut)
       val response =
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
@@ -50,7 +50,7 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
           .post(Json.parse {
             s"""{
                "phoneNumber": "$phoneNumber",
-               "verificationCode": "${maybePhoneNumberAndPasscode.get.verificationCode}"
+               "verificationCode": "${maybePhoneNumberAndVerificationCode.get.verificationCode}"
                }""".stripMargin
           })
           .futureValue
@@ -60,7 +60,7 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
     }
 
     "respond with 200 not verified status with non existent phone number" in {
-      //verify PhoneNumberAndPasscode (sut)
+      //verify PhoneNumberAndVerificationCode (sut)
       val response =
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
@@ -79,14 +79,14 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
       (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe CODE_NOT_RECOGNISED
     }
 
-    "respond with 400 status when passcode not matched" in {
+    "respond with 400 status when verification code not matched" in {
       val phoneNumber = "07811123456"
 
-      //generate PhoneNumberAndPasscode
+      //generate PhoneNumberAndVerificationCode
       verify(phoneNumber).futureValue
 
-      //retrieve PhoneNumberAndPasscode
-//      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123456").futureValue
+      //retrieve PhoneNumberAndVerificationCode
+//      val maybePhoneNumberAndVerificationCode = retrieveVerificationCode("+447811123456").futureValue
 
       val response =
         wsClient
@@ -96,7 +96,7 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
           .post(Json.parse {
             s"""{
                "phoneNumber": "+447811123456",
-               "verificationCode": "not-matched-passcode"
+               "verificationCode": "not-matched-verification-code"
                }""".stripMargin
           })
           .futureValue
@@ -120,17 +120,17 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
 
       response.status shouldBe HttpStatus.BAD_REQUEST
       (response.json \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
-      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_PASSCODE
+      (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE
     }
 
-    "respond with 404 status for request with a passcode that does not match" in {
+    "respond with 404 status for request with a verification code that does not match" in {
       val phoneNumber = "07811123654"
 
-      //generate PhoneNumberAndPasscode
+      //generate PhoneNumberAndVerificationCode
       verify(phoneNumber).futureValue
 
-      //retrieve PhoneNumberAndPasscode
-      val maybePhoneNumberAndPasscode = retrievePasscode("+447811123654").futureValue
+      //retrieve PhoneNumberAndVerificationCode
+      val maybePhoneNumberAndVerificationCode = retrieveVerificationCode("+447811123654").futureValue
 
       val response =
         wsClient

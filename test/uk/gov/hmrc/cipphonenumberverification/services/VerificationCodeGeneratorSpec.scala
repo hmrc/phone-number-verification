@@ -23,7 +23,7 @@ class VerificationCodeGeneratorSpec extends AnyWordSpec with Matchers {
 
   private val generate = new VerificationCodeGenerator()
 
-  "create 6 digit passcode" in {
+  "create 6 digit verification code" in {
     generate
       .generate()
       .forall(

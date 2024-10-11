@@ -37,9 +37,9 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
+class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGenerator,
                                  auditService: AuditService,
-                                 passcodeService: VerificationCodeService,
+                                 verificationCodeService: VerificationCodeService,
                                  validateService: ValidateService,
                                  userNotificationsConnector: UserNotificationsConnector,
                                  metricsService: MetricsService
@@ -49,7 +49,7 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
   import VerificationCheckAuditEvent.Implicits._
   import VerificationRequestAuditEvent.Implicits._
 
-  def verifyPhoneNumber(phoneNumber: PhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
+  def sendCode(phoneNumber: PhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
     validateService.validate(phoneNumber.phoneNumber) match {
       case Right(validatedPhoneNumber) =>
         processPhoneNumber(validatedPhoneNumber)
@@ -59,10 +59,12 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
         Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER))))
     }
 
-  def verifyPasscode(phoneNumberAndPasscode: PhoneNumberAndVerificationCode)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
-    validateService.validate(phoneNumberAndPasscode.phoneNumber) match {
+  def verifyVerificationCode(
+    phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode
+  )(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
+    validateService.validate(phoneNumberAndVerificationCode.phoneNumber) match {
       case Right(validatedPhoneNumber) =>
-        processValidPasscode(validatedPhoneNumber, phoneNumberAndPasscode.verificationCode)
+        processValidVerificationCode(validatedPhoneNumber, phoneNumberAndVerificationCode.verificationCode)
       case Left(error) =>
         metricsService.recordVerificationStatus(error)
         logger.error(error.message.toString)
@@ -71,12 +73,12 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
 
   private def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
     if (validatedPhoneNumber.isMobile) {
-      val passcode   = passcodeGenerator.generate()
-      val dataToSave = new PhoneNumberVerificationCodeData(validatedPhoneNumber.phoneNumber, passcode)
-      auditService.sendExplicitAuditEvent(PhoneNumberVerificationRequest, VerificationRequestAuditEvent(dataToSave.phoneNumber, passcode))
+      val verificationCode = verificationCodeGenerator.generate()
+      val dataToSave       = new PhoneNumberVerificationCodeData(validatedPhoneNumber.phoneNumber, verificationCode)
+      auditService.sendExplicitAuditEvent(PhoneNumberVerificationRequest, VerificationRequestAuditEvent(dataToSave.phoneNumber, verificationCode))
 
-      passcodeService.persistPasscode(dataToSave) transformWith {
-        case Success(savedPhoneNumberPasscodeData) => sendPasscode(savedPhoneNumberPasscodeData)
+      verificationCodeService.persistVerificationCode(dataToSave) transformWith {
+        case Success(savedPhoneNumberverificationCodeData) => sendVerificationCode(savedPhoneNumberverificationCodeData)
         case Failure(err) =>
           metricsService.recordMongoCacheFailure()
           logger.error(s"Database operation failed - ${err.getMessage}")
@@ -88,8 +90,8 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
       Future(Ok(Json.toJson(new VerificationStatus(StatusCode.INDETERMINATE, StatusMessage.ONLY_MOBILES_VERIFIABLE))))
     }
 
-  private def sendPasscode(data: PhoneNumberVerificationCodeData)(implicit req: Request[JsValue], hc: HeaderCarrier) =
-    userNotificationsConnector.sendPasscode(data) map {
+  private def sendVerificationCode(data: PhoneNumberVerificationCodeData)(implicit req: Request[JsValue], hc: HeaderCarrier) =
+    userNotificationsConnector.sendVerificationCode(data) map {
       case Left(error) =>
         error.statusCode match {
           case INTERNAL_SERVER_ERROR =>
@@ -122,13 +124,15 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
         )
     }
 
-  def processValidPasscode(validatedPhoneNumber: ValidatedPhoneNumber, passcodeToCheck: String)(implicit
+  def processValidVerificationCode(validatedPhoneNumber: ValidatedPhoneNumber, verificationCodeToCheck: String)(implicit
     req: Request[JsValue],
     hc: HeaderCarrier
   ): Future[Result] =
     (for {
-      maybePhoneNumberAndPasscodeData <- passcodeService.retrievePasscode(validatedPhoneNumber.phoneNumber)
-      result                          <- processPasscode(PhoneNumberAndVerificationCode(validatedPhoneNumber.phoneNumber, passcodeToCheck), maybePhoneNumberAndPasscodeData)
+      maybePhoneNumberAndverificationCodeData <- verificationCodeService.retrieveVerificationCode(validatedPhoneNumber.phoneNumber)
+      result <- processVerificationCode(PhoneNumberAndVerificationCode(validatedPhoneNumber.phoneNumber, verificationCodeToCheck),
+                                        maybePhoneNumberAndverificationCodeData
+      )
     } yield result).recover {
       case err =>
         metricsService.recordMongoCacheFailure()
@@ -136,41 +140,50 @@ class SendCodeService @Inject() (passcodeGenerator: VerificationCodeGenerator,
         InternalServerError(Json.toJson(VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.SERVER_EXPERIENCED_AN_ISSUE)))
     }
 
-  private def processPasscode(enteredPhoneNumberAndPasscode: PhoneNumberAndVerificationCode,
-                              maybePhoneNumberAndPasscode: Option[PhoneNumberVerificationCodeData]
+  private def processVerificationCode(enteredPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode,
+                                      maybePhoneNumberAndVerificationCode: Option[PhoneNumberVerificationCodeData]
   )(implicit
     req: Request[JsValue],
     hc: HeaderCarrier
   ): Future[Result] =
-    maybePhoneNumberAndPasscode match {
-      case Some(storedPhoneNumberAndPasscode) =>
-        checkIfPasscodeMatches(enteredPhoneNumberAndPasscode, storedPhoneNumberAndPasscode)
+    maybePhoneNumberAndVerificationCode match {
+      case Some(storedPhoneNumberAndVerificationCode) =>
+        checkIfVerificationCodeMatches(enteredPhoneNumberAndVerificationCode, storedPhoneNumberAndVerificationCode)
       case _ =>
         auditService.sendExplicitAuditEvent(
           PhoneNumberVerificationCheck,
-          VerificationCheckAuditEvent(enteredPhoneNumberAndPasscode.phoneNumber, enteredPhoneNumberAndPasscode.verificationCode, StatusCode.CODE_NOT_SENT)
+          VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
+                                      enteredPhoneNumberAndVerificationCode.verificationCode,
+                                      StatusCode.CODE_NOT_SENT
+          )
         )
         Future.successful(Ok(Json.toJson(VerificationStatus(StatusCode.CODE_SEND_ERROR, StatusMessage.CODE_NOT_RECOGNISED))))
     }
 
-  private def checkIfPasscodeMatches(enteredPhoneNumberAndpasscode: PhoneNumberAndVerificationCode,
-                                     maybePhoneNumberAndpasscodeData: PhoneNumberVerificationCodeData
+  private def checkIfVerificationCodeMatches(enteredPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode,
+                                             maybePhoneNumberAndverificationCodeData: PhoneNumberVerificationCodeData
   )(implicit
     req: Request[JsValue],
     hc: HeaderCarrier
   ): Future[Result] =
-    if (enteredPhoneNumberAndpasscode.verificationCode == maybePhoneNumberAndpasscodeData.verificationCode) {
+    if (enteredPhoneNumberAndVerificationCode.verificationCode == maybePhoneNumberAndverificationCodeData.verificationCode) {
       metricsService.recordCodeVerified()
       auditService.sendExplicitAuditEvent(
         PhoneNumberVerificationCheck,
-        VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.verificationCode, StatusCode.CODE_SENT)
+        VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
+                                    enteredPhoneNumberAndVerificationCode.verificationCode,
+                                    StatusCode.CODE_SENT
+        )
       )
       Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.CODE_VERIFIED, StatusMessage.CODE_VERIFIED))))
     } else {
       metricsService.recordCodeNotVerified()
       auditService.sendExplicitAuditEvent(
         PhoneNumberVerificationCheck,
-        VerificationCheckAuditEvent(enteredPhoneNumberAndpasscode.phoneNumber, enteredPhoneNumberAndpasscode.verificationCode, StatusCode.CODE_NOT_SENT)
+        VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
+                                    enteredPhoneNumberAndVerificationCode.verificationCode,
+                                    StatusCode.CODE_NOT_SENT
+        )
       )
       Future.successful(NotFound(Json.toJson(new VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.CODE_NOT_RECOGNISED))))
     }

@@ -54,8 +54,9 @@ class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matcher
 
   "/verify" should {
     "return 200 with valid telephone number" in {
-      val phoneNumberPasscodeDataCaptor: ArgumentCaptor[PhoneNumberVerificationCodeData] = ArgumentCaptor.forClass(classOf[PhoneNumberVerificationCodeData])
-      when(mockNotificationsConnector.sendPasscode(phoneNumberPasscodeDataCaptor.capture())(any())).thenReturn(
+      val phoneNumberVerificationCodeDataCaptor: ArgumentCaptor[PhoneNumberVerificationCodeData] =
+        ArgumentCaptor.forClass(classOf[PhoneNumberVerificationCodeData])
+      when(mockNotificationsConnector.sendVerificationCode(phoneNumberVerificationCodeDataCaptor.capture())(any())).thenReturn(
         Future.successful(
           Right(
             HttpResponse(OK, "{}")
@@ -73,7 +74,7 @@ class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matcher
           })
           .futureValue
 
-      phoneNumberPasscodeDataCaptor.getValue.phoneNumber shouldBe "+447811123456"
+      phoneNumberVerificationCodeDataCaptor.getValue.phoneNumber shouldBe "+447811123456"
       response.status shouldBe 200
     }
 

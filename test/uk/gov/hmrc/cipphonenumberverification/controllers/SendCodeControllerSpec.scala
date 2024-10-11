@@ -44,7 +44,7 @@ class SendCodeControllerSpec extends AnyWordSpec with Matchers with MockitoSugar
       val phoneNumber = PhoneNumber("")
       when(
         mockVerifyService
-          .verifyPhoneNumber(meq(phoneNumber))(any[Request[JsValue]], any[HeaderCarrier])
+          .sendCode(meq(phoneNumber))(any[Request[JsValue]], any[HeaderCarrier])
       )
         .thenReturn(Future.successful(Ok))
       val result = controller.sendCode(
