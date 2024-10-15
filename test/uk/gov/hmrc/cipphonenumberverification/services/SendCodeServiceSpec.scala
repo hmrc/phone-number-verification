@@ -29,7 +29,7 @@ import play.api.mvc.{Headers, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, status}
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
-import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.{PhoneNumberVerificationCheck, PhoneNumberVerificationRequest}
+import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.{PhoneNumberVerificationRequest, PhoneNumberVerificationResult}
 import uk.gov.hmrc.cipphonenumberverification.models.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.request.{PhoneNumber, PhoneNumberAndVerificationCode}
@@ -316,8 +316,8 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result: Future[Result] = verifyService.sendCode(enteredPhoneNumber)
 
-      status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.INDETERMINATE
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.VALIDATION_ERROR
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe StatusMessage.ONLY_MOBILES_VERIFIABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
       verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any(), any(), any())
@@ -383,8 +383,8 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_VERIFIED
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
-        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_SENT)
-      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent)
+        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_VERIFIED)
+      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationResult, expectedVerificationCheckAuditEvent)
     }
 
     "return verification error and enter a correct verification code message if cache has expired or if verification code does not exist" in new SetUp {
@@ -408,7 +408,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
         VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_NOT_SENT)
-      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent)
+      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationResult, expectedVerificationCheckAuditEvent)
     }
 
     "return Not verified if verification code does not match" in new SetUp {
@@ -432,8 +432,8 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_VERIFY_FAILURE
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
-        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_NOT_SENT)
-      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationCheck, expectedVerificationCheckAuditEvent)
+        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_VERIFY_FAILURE)
+      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationResult, expectedVerificationCheckAuditEvent)
     }
 
     "return bad request if telephone number is invalid" in new SetUp {

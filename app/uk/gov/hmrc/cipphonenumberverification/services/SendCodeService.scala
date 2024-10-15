@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType
 import play.api.Logging
 import play.api.http.HttpEntity
 import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, TOO_MANY_REQUESTS}
@@ -63,8 +64,11 @@ class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGene
     phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode
   )(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
     validateService.validate(phoneNumberAndVerificationCode.phoneNumber) match {
-      case Right(validatedPhoneNumber) =>
+      case Right(validatedPhoneNumber) if validatedPhoneNumber.phoneNumberType == PhoneNumberType.MOBILE =>
         processValidVerificationCode(validatedPhoneNumber, phoneNumberAndVerificationCode.verificationCode)
+      case Right(validatedPhoneNumber) =>
+        logger.error("Phone number must be a mobile phone number")
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.ONLY_MOBILES_VERIFIABLE))))
       case Left(error) =>
         metricsService.recordVerificationStatus(error)
         logger.error(error.message.toString)
@@ -87,7 +91,7 @@ class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGene
           )
       }
     } else {
-      Future(Ok(Json.toJson(new VerificationStatus(StatusCode.INDETERMINATE, StatusMessage.ONLY_MOBILES_VERIFIABLE))))
+      Future(BadRequest(Json.toJson(new VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.ONLY_MOBILES_VERIFIABLE))))
     }
 
   private def sendVerificationCode(data: PhoneNumberVerificationCodeData)(implicit req: Request[JsValue], hc: HeaderCarrier) =
@@ -151,7 +155,7 @@ class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGene
         checkIfVerificationCodeMatches(enteredPhoneNumberAndVerificationCode, storedPhoneNumberAndVerificationCode)
       case _ =>
         auditService.sendExplicitAuditEvent(
-          PhoneNumberVerificationCheck,
+          PhoneNumberVerificationResult,
           VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
                                       enteredPhoneNumberAndVerificationCode.verificationCode,
                                       StatusCode.CODE_NOT_SENT
@@ -169,20 +173,20 @@ class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGene
     if (enteredPhoneNumberAndVerificationCode.verificationCode == maybePhoneNumberAndverificationCodeData.verificationCode) {
       metricsService.recordCodeVerified()
       auditService.sendExplicitAuditEvent(
-        PhoneNumberVerificationCheck,
+        PhoneNumberVerificationResult,
         VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
                                     enteredPhoneNumberAndVerificationCode.verificationCode,
-                                    StatusCode.CODE_SENT
+                                    StatusCode.CODE_VERIFIED
         )
       )
       Future.successful(Ok(Json.toJson(new VerificationStatus(StatusCode.CODE_VERIFIED, StatusMessage.CODE_VERIFIED))))
     } else {
       metricsService.recordCodeNotVerified()
       auditService.sendExplicitAuditEvent(
-        PhoneNumberVerificationCheck,
+        PhoneNumberVerificationResult,
         VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
                                     enteredPhoneNumberAndVerificationCode.verificationCode,
-                                    StatusCode.CODE_NOT_SENT
+                                    StatusCode.CODE_VERIFY_FAILURE
         )
       )
       Future.successful(NotFound(Json.toJson(new VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.CODE_NOT_RECOGNISED))))

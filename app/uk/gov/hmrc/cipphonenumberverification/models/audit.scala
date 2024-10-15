@@ -26,7 +26,7 @@ object audit {
     type AuditType = Value
 
     val PhoneNumberVerificationRequest: AuditType = Value
-    val PhoneNumberVerificationCheck: AuditType   = Value
+    val PhoneNumberVerificationResult: AuditType  = Value
   }
 
   case class VerificationCheckAuditEvent(phoneNumber: String, verificationCode: String, result: StatusCode)

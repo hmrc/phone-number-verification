@@ -52,22 +52,14 @@ class ValidateService @Inject() (phoneNumberUtil: PhoneNumberUtil, metricsServic
         Left(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER))
     }
 
-  private def isPhoneNumberValid(phoneNumber: String, defaultRegion: String): Option[(GPhoneNumber, GPhoneNumberType)] = {
-    val mandatoryFirstChars = "+0"
-    if (
-      !(phoneNumber.isEmpty ||
-        existsLetter(phoneNumber) ||
-        containsChars(phoneNumber)) &&
-      mandatoryFirstChars.contains(phoneNumber.charAt(0)) &&
-      phoneNumberUtil.isValidNumber(parsePhoneNumber(phoneNumber, defaultRegion))
-    )
+  private def isPhoneNumberValid(phoneNumber: String, defaultRegion: String): Option[(GPhoneNumber, GPhoneNumberType)] =
+    if (phoneNumberUtil.isValidNumber(parsePhoneNumber(phoneNumber, defaultRegion)))
       Try {
         val pn  = parsePhoneNumber(phoneNumber, defaultRegion)
         val pnt = phoneNumberUtil.getNumberType(pn)
         (pn, pnt)
       }.toOption
     else None
-  }
 
   private def getPhoneNumberType(phoneNumber: String, defaultRegion: String): PhoneNumberUtil.PhoneNumberType =
     phoneNumberUtil.getNumberType(phoneNumberUtil.parse(phoneNumber, defaultRegion))
