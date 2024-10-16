@@ -55,10 +55,10 @@ class ValidateServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       verify(mockMetricsServer, atLeastOnce()).recordPhoneNumberNotValidated()
     }
 
-    "return failure if telephone number has no leading zero" in new SetUp {
+    "return success if mobile telephone number has no leading zero" in new SetUp {
       val result: Either[VerificationStatus, ValidatedPhoneNumber] = validateService.validate("7890349087")
-      result shouldBe Left[VerificationStatus, ValidatedPhoneNumber](VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))
-      verify(mockMetricsServer, atLeastOnce()).recordPhoneNumberNotValidated()
+      result shouldBe Right[VerificationStatus, ValidatedPhoneNumber](ValidatedPhoneNumber("+447890349087", PhoneNumberType.MOBILE))
+      verify(mockMetricsServer, atLeastOnce()).recordPhoneNumberValidated("MOBILE")
     }
 
     "return failure if telephone number contains letters" in new SetUp {

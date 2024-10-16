@@ -59,7 +59,7 @@ class NotificationsConnectorSpec
 
       val now                             = System.currentTimeMillis()
       val phoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("test-phone-number", "test-verification-code")
-      val phoneNumberRequest              = VerificationCodeNotificationRequest("test-phone-number", "Your Phone verification code: test-verification-code")
+      val phoneNumberRequest              = VerificationCodeNotificationRequest("test-phone-number", "Your phone verification code is: test-verification-code")
 
       val result = Helpers.await(notificationsConnector.sendVerificationCode(phoneNumberVerificationCodeData))(Helpers.defaultAwaitTimeout)
       result shouldBe a[Right[_, _]]

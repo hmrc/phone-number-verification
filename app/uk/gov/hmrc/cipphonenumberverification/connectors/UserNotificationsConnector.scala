@@ -54,7 +54,7 @@ class UserNotificationsConnector @Inject() (@Named("internal-http-client") httpC
     phoneNumberVerificationCodeData: PhoneNumberVerificationCodeData
   )(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
 
-    val message                             = s"Your Phone verification code: ${phoneNumberVerificationCodeData.verificationCode}"
+    val message                             = s"Your phone verification code is: ${phoneNumberVerificationCodeData.verificationCode}"
     val verificationCodeNotificationRequest = VerificationCodeNotificationRequest(phoneNumberVerificationCodeData.phoneNumber, message)
 
     withCircuitBreaker[Either[UpstreamErrorResponse, HttpResponse]](
