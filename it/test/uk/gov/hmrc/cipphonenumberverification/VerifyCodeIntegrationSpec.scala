@@ -24,7 +24,7 @@ import play.api.http.{Status => HttpStatus}
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcCurlRequestLogger
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{CODE_SEND_ERROR, VALIDATION_ERROR}
+import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{CODE_VERIFY_FAILURE, VALIDATION_ERROR}
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{CODE_NOT_RECOGNISED, INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE}
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
@@ -75,7 +75,7 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
           .futureValue
 
       response.status shouldBe 200
-      (response.json \ "status").as[StatusCode.StatusCode] shouldBe CODE_SEND_ERROR
+      (response.json \ "status").as[StatusCode.StatusCode] shouldBe CODE_VERIFY_FAILURE
       (response.json \ "message").as[StatusMessage.StatusMessage] shouldBe CODE_NOT_RECOGNISED
     }
 

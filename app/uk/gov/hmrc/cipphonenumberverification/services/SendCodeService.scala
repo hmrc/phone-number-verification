@@ -72,7 +72,7 @@ class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGene
       case Left(error) =>
         metricsService.recordVerificationStatus(error)
         logger.error(error.message.toString)
-        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.CODE_NOT_RECOGNISED))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE))))
     }
 
   private def processPhoneNumber(validatedPhoneNumber: ValidatedPhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
@@ -158,10 +158,10 @@ class SendCodeService @Inject() (verificationCodeGenerator: VerificationCodeGene
           PhoneNumberVerificationResult,
           VerificationCheckAuditEvent(enteredPhoneNumberAndVerificationCode.phoneNumber,
                                       enteredPhoneNumberAndVerificationCode.verificationCode,
-                                      StatusCode.CODE_NOT_SENT
+                                      StatusCode.CODE_VERIFY_FAILURE
           )
         )
-        Future.successful(Ok(Json.toJson(VerificationStatus(StatusCode.CODE_SEND_ERROR, StatusMessage.CODE_NOT_RECOGNISED))))
+        Future.successful(Ok(Json.toJson(VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.CODE_NOT_RECOGNISED))))
     }
 
   private def checkIfVerificationCodeMatches(enteredPhoneNumberAndVerificationCode: PhoneNumberAndVerificationCode,

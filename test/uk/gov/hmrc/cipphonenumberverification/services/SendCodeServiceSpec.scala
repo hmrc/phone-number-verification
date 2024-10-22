@@ -35,7 +35,6 @@ import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerifi
 import uk.gov.hmrc.cipphonenumberverification.models.request.{PhoneNumber, PhoneNumberAndVerificationCode}
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{
   CODE_PERSISTING_FAIL,
-  CODE_SEND_ERROR,
   CODE_SENT,
   CODE_VERIFY_FAILURE,
   EXTERNAL_API_FAIL,
@@ -403,11 +402,11 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val result: Future[Result] = verifyService.verifyVerificationCode(phoneNumberAndVerificationCode)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe CODE_SEND_ERROR
+      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe CODE_VERIFY_FAILURE
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe CODE_NOT_RECOGNISED
       // check what is sent to the audit service
       val expectedVerificationCheckAuditEvent: VerificationCheckAuditEvent =
-        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_NOT_SENT)
+        VerificationCheckAuditEvent("enteredPhoneNumber", "enteredVerificationCode", StatusCode.CODE_VERIFY_FAILURE)
       verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(PhoneNumberVerificationResult, expectedVerificationCheckAuditEvent)
     }
 
@@ -448,8 +447,8 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       status(result) shouldBe BAD_REQUEST
       val errorResponse: VerificationStatus = contentAsJson(result).as[VerificationStatus]
-      errorResponse.status shouldBe CODE_VERIFY_FAILURE
-      errorResponse.message shouldBe CODE_NOT_RECOGNISED
+      errorResponse.status shouldBe VALIDATION_ERROR
+      errorResponse.message shouldBe StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE
       verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any(), any(), any())
     }
 
