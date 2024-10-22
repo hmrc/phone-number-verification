@@ -56,9 +56,18 @@ class VerifyCodeControllerSpec extends AnyWordSpec with Matchers with MockitoSug
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.CODE_SENT
     }
 
-    "return 400 for invalid request" in new SetUp {
+    "return 400 for empty telephone number" in new SetUp {
       val result = controller.verifyCode(
         fakeRequest.withBody(Json.toJson(PhoneNumberAndVerificationCode("", "test")))
+      )
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
+      (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE
+    }
+
+    "return 400 for invalid telephone number" in new SetUp {
+      val result = controller.verifyCode(
+        fakeRequest.withBody(Json.toJson(PhoneNumberAndVerificationCode("123", "test")))
       )
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe VALIDATION_ERROR
