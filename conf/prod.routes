@@ -1,3 +1,4 @@
 # Add all the application routes to the app.routes file
 ->        /phone-number-verification        app.Routes
+->        /                                 app.Routes
 ->        /                                 health.Routes
