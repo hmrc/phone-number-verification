@@ -26,14 +26,18 @@ import uk.gov.hmrc.cipphonenumberverification.models.internal.PhoneNumberVerific
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDATION_ERROR
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
-import uk.gov.hmrc.cipphonenumberverification.services.VerificationCodeService
+import uk.gov.hmrc.cipphonenumberverification.services.{ValidateService, VerificationCodeService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class TestVerificationCodeController @Inject() (cc: ControllerComponents, service: VerificationCodeService, override val appConfig: AppConfig)(implicit
+class TestVerificationCodeController @Inject() (cc: ControllerComponents,
+                                                validateService: ValidateService,
+                                                service: VerificationCodeService,
+                                                override val appConfig: AppConfig
+)(implicit
   ec: ExecutionContext
 ) extends BackendController(cc)
     with AccessChecker
@@ -44,15 +48,25 @@ class TestVerificationCodeController @Inject() (cc: ControllerComponents, servic
   def retrieveVerificationCode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
       withJsonBody[PhoneNumber] {
-        phoneNumber =>
-          service.retrieveVerificationCode(phoneNumber.phoneNumber).map {
-            case Some(phoneNumberVerificationCodeData) =>
-              logger.info(s"Verificatio code found for phone number: ${phoneNumber.phoneNumber}")
-              Ok(Json.toJson(phoneNumberVerificationCodeData))
-            case None =>
-              logger.info(s"No verification code found for phone number: ${phoneNumber.phoneNumber}")
-              NoContent
-          }
+        phoneNumberRaw =>
+          validateService
+            .validate(phoneNumberRaw.phoneNumber)
+            .fold(
+              err => {
+                val errJson = Json.toJson(err)
+                logger.info(errJson.toString())
+                Future.successful(BadRequest(errJson))
+              },
+              phoneNumber =>
+                service.retrieveVerificationCode(phoneNumber.phoneNumber).map {
+                  case Some(phoneNumberVerificationCodeData) =>
+                    logger.info(s"Verificatio code found for phone number: ${phoneNumber.phoneNumber}")
+                    Ok(Json.toJson(phoneNumberVerificationCodeData))
+                  case None =>
+                    logger.info(s"No verification code found for phone number: ${phoneNumber.phoneNumber}")
+                    NoContent
+                }
+            )
       }
   }
 
