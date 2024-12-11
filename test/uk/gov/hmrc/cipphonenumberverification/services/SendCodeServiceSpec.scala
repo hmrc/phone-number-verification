@@ -494,12 +494,12 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
     when(verificationCodeGeneratorMock.generate()).thenReturn(verificationCode)
 
     val verifyService =
-      new SendCodeService(verificationCodeGeneratorMock,
-                          auditServiceMock,
-                          verificationServiceMock,
-                          validateServiceMock,
-                          userNotificationsConnectorMock,
-                          metricsServiceMock
+      new LiveSendCodeService(verificationCodeGeneratorMock,
+                              auditServiceMock,
+                              verificationServiceMock,
+                              validateServiceMock,
+                              userNotificationsConnectorMock,
+                              metricsServiceMock
       )
   }
 }
