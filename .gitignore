@@ -1,7 +1,7 @@
 !.gitignore
 !.scalafmt.conf
 **/*.DS_Store
-**/project/
+**/project/project/
 **/target/
 **/logs/
 **/log/

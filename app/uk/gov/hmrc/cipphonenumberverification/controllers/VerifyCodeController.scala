@@ -25,7 +25,7 @@ import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerif
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
-import uk.gov.hmrc.cipphonenumberverification.services.SendCodeService
+import uk.gov.hmrc.cipphonenumberverification.services.{LiveSendCodeService, SendCodeService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}

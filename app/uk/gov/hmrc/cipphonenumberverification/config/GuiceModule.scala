@@ -22,14 +22,43 @@ import com.google.inject.{AbstractModule, Provides}
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
+import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
+import uk.gov.hmrc.cipphonenumberverification.services.{
+  AuditService,
+  LiveSendCodeService,
+  MetricsService,
+  SendCodeService,
+  TestSendCodeService,
+  ValidateService,
+  VerificationCodeGenerator,
+  VerificationCodeService
+}
 import uk.gov.hmrc.http.client.{HttpClientV2, HttpClientV2Impl}
 
 import javax.inject.Named
+import scala.concurrent.ExecutionContext
 
 class GuiceModule(environment: Environment, config: Configuration) extends AbstractModule {
 
   override def configure(): Unit =
     bind(classOf[PhoneNumberUtil]).toInstance(PhoneNumberUtil.getInstance())
+
+  @Provides
+  def provideSendCodeService(appConfig: AppConfig,
+                             verificationCodeGenerator: VerificationCodeGenerator,
+                             auditService: AuditService,
+                             verificationCodeService: VerificationCodeService,
+                             validateService: ValidateService,
+                             userNotificationsConnector: UserNotificationsConnector,
+                             metricsService: MetricsService
+  )(implicit
+    ec: ExecutionContext
+  ): SendCodeService =
+    if (appConfig.useTestSendCodeService) {
+      new TestSendCodeService(validateService)
+    } else {
+      new LiveSendCodeService(verificationCodeGenerator, auditService, verificationCodeService, validateService, userNotificationsConnector, metricsService)
+    }
 
   @Provides
   @Named("internal-http-client")
