@@ -61,19 +61,14 @@ For reference here are the details for running each of the services individually
 
 #### Test data when using `use-test-phone-number-verification-service = true`
 
-```
-/send-code 
-	+447966123123           CODE_SENT 	
-	12345                   VALIDATION_ERROR 
-	+441494123124           VALIDATION_ERROR	
-
-/verify-code 
-	+447966123123   ABCDEF 	CODE_VERIFIED
-	+447966555666   ABCDEF 	CODE_NOT_FOUND
-	12345                   VALIDATION_ERROR 
-	+441494123124           VALIDATION_ERROR		
-
-```
+| Endpoint     | Phone Number  | Verification Code | Status              | HTTP Response Code |
+|--------------|---------------|-------------------|---------------------|--------------------|
+| /send-code   | +447966123123 |                   | CODE_SENT           | 200                |
+| /send-code   | 12345         |                   | VALIDATION_ERROR    | 400                |
+| /send-code   | +441494123124 |                   | VALIDATION_ERROR    | 400                |
+| /verify-code | +447966123123 | ABCDEF            | CODE_VERIFIED       | 200                |
+| /verify-code | +447966555666 | ABCDEF            | CODE_VERIFY_FAILURE | 404                |
+| /verify-code | +447966123124 | test              | VALIDATION_ERROR    | 400                |
 
 ### License
 
