@@ -59,6 +59,22 @@ For reference here are the details for running each of the services individually
         "verificationCode": "<verification-code>"
     }' 'https://phone-number-verification.protected.mdtp/phone-number-verification/verify-code'
 
+#### Test data when using `use-test-phone-number-verification-service = true`
+
+```
+/send-code 
+	+447966123123           CODE_SENT 	
+	12345                   VALIDATION_ERROR 
+	+441494123124           VALIDATION_ERROR	
+
+/verify-code 
+	+447966123123   ABCDEF 	CODE_VERIFIED
+	+447966555666   ABCDEF 	CODE_NOT_FOUND
+	12345                   VALIDATION_ERROR 
+	+441494123124           VALIDATION_ERROR		
+
+```
+
 ### License
 
 This code is open source software licensed under

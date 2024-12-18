@@ -32,6 +32,7 @@ import uk.gov.hmrc.cipphonenumberverification.models.request.{PhoneNumber, Phone
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
+import uk.gov.hmrc.cipphonenumberverification.services.TestSendCodeService.testVerificationCode
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -201,51 +202,56 @@ class LiveSendCodeService @Inject() (verificationCodeGenerator: VerificationCode
 
 class TestSendCodeService @Inject() (validateService: ValidateService)(implicit val executionContext: ExecutionContext) extends SendCodeService with Logging {
 
-  override def sendCode(phoneNumber: PhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
+  override def sendCode(phoneNumber: PhoneNumber)(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] = {
+    import StatusCode._
+    import StatusMessage._
+
     validateService.validate(phoneNumber.phoneNumber) match {
       case Left(_) =>
-        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
       case Right(value) =>
         val (telNum, telNumType) = (value.phoneNumber, value.phoneNumberType)
         Future.successful(telNum match {
           case TestSendCodeService.verifiablePhoneNumber =>
             Ok(Json.toJson(VerificationStatus(StatusCode.CODE_SENT, StatusMessage.CODE_SENT)))
-          case TestSendCodeService.invalidPhoneNumber =>
-            BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE)))
           case TestSendCodeService.nonMobilePhoneNumber =>
-            BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.ONLY_MOBILES_VERIFIABLE)))
-          case TestSendCodeService.nonVerifiablePhoneNumber =>
-            NotFound(Json.toJson(new VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.CODE_NOT_RECOGNISED)))
+            BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, ONLY_MOBILES_VERIFIABLE)))
           case _ =>
-            BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE)))
+            BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER)))
         })
     }
+  }
 
   override def verifyVerificationCode(
     phoneNumberAndVerificationCode: PhoneNumberAndVerificationCode
-  )(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] =
+  )(implicit req: Request[JsValue], hc: HeaderCarrier): Future[Result] = {
+    import StatusCode._
+    import StatusMessage._
+
     validateService.validate(phoneNumberAndVerificationCode.phoneNumber) match {
       case Left(_) =>
-        Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER))))
+        Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
       case Right(value) =>
         val (telNum, telNumType) = (value.phoneNumber, value.phoneNumberType)
         Future.successful(telNum match {
-          case TestSendCodeService.verifiablePhoneNumber =>
+          case TestSendCodeService.verifiablePhoneNumber if phoneNumberAndVerificationCode.verificationCode == testVerificationCode =>
             Ok(Json.toJson(VerificationStatus(StatusCode.CODE_VERIFIED, StatusMessage.CODE_VERIFIED)))
-          case TestSendCodeService.invalidPhoneNumber =>
-            BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE)))
+          case TestSendCodeService.nonVerifiableCodePhoneNumber if phoneNumberAndVerificationCode.verificationCode == testVerificationCode =>
+            NotFound(Json.toJson(new VerificationStatus(CODE_VERIFY_FAILURE, CODE_NOT_RECOGNISED)))
           case TestSendCodeService.nonVerifiablePhoneNumber =>
-            NotFound(Json.toJson(new VerificationStatus(StatusCode.CODE_VERIFY_FAILURE, StatusMessage.CODE_NOT_RECOGNISED)))
+            NotFound(Json.toJson(new VerificationStatus(CODE_VERIFY_FAILURE, CODE_NOT_RECOGNISED)))
           case _ =>
-            BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE)))
+            BadRequest(Json.toJson(VerificationStatus(CODE_VERIFY_FAILURE, INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE)))
         })
     }
-
+  }
 }
 
 object TestSendCodeService {
-  val verifiablePhoneNumber    = "+447966123123"
-  val invalidPhoneNumber       = "12345"
-  val nonMobilePhoneNumber     = "+441494123124"
-  val nonVerifiablePhoneNumber = "+447966123124"
+  val verifiablePhoneNumber        = "+447966123123"
+  val invalidPhoneNumber           = "12345"
+  val nonMobilePhoneNumber         = "+441494123124"
+  val nonVerifiablePhoneNumber     = "+447966123124"
+  val nonVerifiableCodePhoneNumber = "+447966555666"
+  val testVerificationCode         = "ABCDEF"
 }

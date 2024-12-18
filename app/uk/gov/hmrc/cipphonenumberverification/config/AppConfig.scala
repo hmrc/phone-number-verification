@@ -28,7 +28,7 @@ class AppConfig @Inject() (config: Configuration) {
   lazy val cacheExpiry: Long                            = config.get[Long]("cache.expiry")
   lazy val phoneNotificationConfig: NotificationsConfig = config.get[NotificationsConfig]("microservice.services.user-notifications.phone")
 
-  lazy val useTestSendCodeService: Boolean = config.get[Boolean]("microservice.services.use-test-send-code-service")
+  lazy val useTestSendCodeService: Boolean = config.get[Boolean]("microservice.services.use-test-phone-number-verification-service")
 
   lazy val phoneNotificationAuthHeader = s"Basic $createAuth"
 
