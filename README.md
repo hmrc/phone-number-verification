@@ -17,7 +17,11 @@ The default port for phone-number-stubs is port 6099
 
 #### Integration tests
 
-    sbt clean it:test
+    sbt clean it/test
+
+#### All tests with code coverage
+
+    sbt clean coverage test it/test coverageReport
 
 ### Running app
 
