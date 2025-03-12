@@ -22,10 +22,8 @@ import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumberAndVerificationCode
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage
-import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
-import uk.gov.hmrc.cipphonenumberverification.services.{LiveSendCodeService, SendCodeService}
+import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
+import uk.gov.hmrc.cipphonenumberverification.services.SendCodeService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}

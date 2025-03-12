@@ -24,14 +24,14 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.Helpers
-import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.cipphonenumberverification.config.{AppConfig, NotificationsConfig}
 import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, VerificationCodeNotificationRequest}
 import uk.gov.hmrc.cipphonenumberverification.utils.TestActorSystem
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
 import java.util.UUID
+import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 class NotificationsConnectorSpec
@@ -42,6 +42,7 @@ class NotificationsConnectorSpec
     with EitherValues
     with HttpClientV2Support
     with TestActorSystem {
+
   import VerificationCodeNotificationRequest.Implicits._
 
   val notificationUrl: String = "/notifications/sms"
@@ -57,11 +58,14 @@ class NotificationsConnectorSpec
         NotificationsConfig("http", wireMockHost, wireMockPort, UUID.randomUUID().toString)
       )
 
-      val now                             = System.currentTimeMillis()
-      val phoneNumberVerificationCodeData = PhoneNumberVerificationCodeData("test-phone-number", "test-verification-code")
-      val phoneNumberRequest              = VerificationCodeNotificationRequest("test-phone-number", "Your phone verification code is: test-verification-code")
+      val phoneNumberVerificationCodeData: PhoneNumberVerificationCodeData =
+        PhoneNumberVerificationCodeData("test-phone-number", "test-verification-code")
 
-      val result = Helpers.await(notificationsConnector.sendVerificationCode(phoneNumberVerificationCodeData))(Helpers.defaultAwaitTimeout)
+      val phoneNumberRequest: VerificationCodeNotificationRequest =
+        VerificationCodeNotificationRequest("test-phone-number", "Your phone verification code is: test-verification-code")
+
+      val result: Either[UpstreamErrorResponse, HttpResponse] =
+        Helpers.await(notificationsConnector.sendVerificationCode(phoneNumberVerificationCodeData))(Helpers.defaultAwaitTimeout)
       result shouldBe a[Right[_, _]]
       verify(
         postRequestedFor(urlEqualTo(notificationUrl)).withRequestBody(equalToJson(Json.toJson(phoneNumberRequest).toString()))
@@ -71,8 +75,7 @@ class NotificationsConnectorSpec
 
   trait SetUp {
     implicit protected val hc: HeaderCarrier = HeaderCarrier()
-    protected val appConfigMock              = mock[AppConfig]
-    val cbConfigData                         = CircuitBreakerConfig("test-service")
+    protected val appConfigMock: AppConfig   = mock[AppConfig]
 
     implicit class IntToDuration(timeout: Int) {
       def toDuration: FiniteDuration = Duration(timeout, java.util.concurrent.TimeUnit.SECONDS)
@@ -82,9 +85,7 @@ class NotificationsConnectorSpec
 
     val notificationsConnector = new UserNotificationsConnector(
       httpClientV2,
-      appConfigMock,
-      cbConfigData,
-      scala.concurrent.ExecutionContext.Implicits.global
+      appConfigMock
     )
   }
 }

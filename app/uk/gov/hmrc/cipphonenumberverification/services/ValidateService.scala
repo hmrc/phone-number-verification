@@ -17,15 +17,11 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil
-import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat
-import com.google.i18n.phonenumbers.PhoneNumberUtil.{PhoneNumberType => GPhoneNumberType}
+import com.google.i18n.phonenumbers.PhoneNumberUtil.{PhoneNumberFormat, PhoneNumberType => GPhoneNumberType}
 import com.google.i18n.phonenumbers.Phonenumber.{PhoneNumber => GPhoneNumber}
-import org.apache.commons.lang3.StringUtils
 import play.api.Logging
 import uk.gov.hmrc.cipphonenumberverification.models.internal.ValidatedPhoneNumber
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode
-import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage
-import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
+import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage, VerificationStatus}
 
 import javax.inject.{Inject, Singleton}
 import scala.util.{Failure, Success, Try}
@@ -53,23 +49,18 @@ class ValidateService @Inject() (phoneNumberUtil: PhoneNumberUtil, metricsServic
     }
 
   private def isPhoneNumberValid(phoneNumber: String, defaultRegion: String): Option[(GPhoneNumber, GPhoneNumberType)] =
-    if (phoneNumberUtil.isValidNumber(parsePhoneNumber(phoneNumber, defaultRegion)))
+    if (phoneNumberUtil.isValidNumber(parsePhoneNumber(phoneNumber, defaultRegion))) {
       Try {
         val pn  = parsePhoneNumber(phoneNumber, defaultRegion)
         val pnt = phoneNumberUtil.getNumberType(pn)
         (pn, pnt)
       }.toOption
-    else None
-
-  private def getPhoneNumberType(phoneNumber: String, defaultRegion: String): PhoneNumberUtil.PhoneNumberType =
-    phoneNumberUtil.getNumberType(phoneNumberUtil.parse(phoneNumber, defaultRegion))
-
-  private def existsLetter(phoneNumber: String) = phoneNumber.exists(_.isLetter)
-
-  private def containsChars(phoneNumber: String) = StringUtils.containsAny(phoneNumber, "[]")
+    } else {
+      None
+    }
 
   private val formatInE164 = (x: GPhoneNumber) => phoneNumberUtil.format(x, PhoneNumberFormat.E164)
 
-  private def parsePhoneNumber(phoneNumber: String, defaultRegion: String = "GB"): GPhoneNumber =
+  private def parsePhoneNumber(phoneNumber: String, defaultRegion: String): GPhoneNumber =
     phoneNumberUtil.parse(phoneNumber, defaultRegion)
 }

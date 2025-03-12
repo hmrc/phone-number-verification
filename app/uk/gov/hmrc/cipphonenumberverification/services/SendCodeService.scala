@@ -101,7 +101,7 @@ class LiveSendCodeService @Inject() (verificationCodeGenerator: VerificationCode
       Future(BadRequest(Json.toJson(new VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.ONLY_MOBILES_VERIFIABLE))))
     }
 
-  private def sendVerificationCode(data: PhoneNumberVerificationCodeData)(implicit req: Request[JsValue], hc: HeaderCarrier) =
+  private def sendVerificationCode(data: PhoneNumberVerificationCodeData)(implicit hc: HeaderCarrier) =
     userNotificationsConnector.sendVerificationCode(data) map {
       case Left(error) =>
         error.statusCode match {

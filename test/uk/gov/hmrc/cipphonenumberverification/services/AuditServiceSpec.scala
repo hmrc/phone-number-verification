@@ -17,7 +17,7 @@
 package uk.gov.hmrc.cipphonenumberverification.services
 
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{eq => meq, _}
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -55,7 +55,7 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       actualEDE.tags shouldBe empty
       actualEDE.redactionLog.redactedFields shouldBe empty
       actualEDE.truncationLog.truncatedFields shouldBe empty
-      Try(UUID.fromString(actualEDE.eventId)) shouldBe a[Success[UUID]]
+      Try(UUID.fromString(actualEDE.eventId)) shouldBe a[Success[_]]
       val djs = actualEDE.detail
       (djs \ "phoneNumber").as[String] shouldBe "test-phone-number"
       (djs \ "verificationCode").as[String] shouldBe "test-verification-code"
