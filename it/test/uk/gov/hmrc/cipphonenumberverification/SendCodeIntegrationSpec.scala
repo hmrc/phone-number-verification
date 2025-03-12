@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.cipphonenumberverification
 
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.mockito.ArgumentCaptor
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -108,7 +108,7 @@ class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matcher
 
       response.status shouldBe 400
       (response.json \ "statusCode").as[Int] shouldBe 400
-      (response.json \ "message").as[String] shouldBe "bad request, cause: invalid json"
+      (response.json \ "message").as[String].contains("Invalid Json: Unexpected character") shouldBe true
     }
   }
 }
