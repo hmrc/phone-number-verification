@@ -16,23 +16,13 @@
 
 package uk.gov.hmrc.cipphonenumberverification.config
 
-import org.apache.pekko.actor.ActorSystem
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.inject.{AbstractModule, Provides}
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Environment}
-import uk.gov.hmrc.cipphonenumberverification.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
-import uk.gov.hmrc.cipphonenumberverification.services.{
-  AuditService,
-  LiveSendCodeService,
-  MetricsService,
-  SendCodeService,
-  TestSendCodeService,
-  ValidateService,
-  VerificationCodeGenerator,
-  VerificationCodeService
-}
+import uk.gov.hmrc.cipphonenumberverification.services._
 import uk.gov.hmrc.http.client.{HttpClientV2, HttpClientV2Impl}
 
 import javax.inject.Named
@@ -67,20 +57,4 @@ class GuiceModule(environment: Environment, config: Configuration) extends Abstr
     actorSystem: ActorSystem
   ): HttpClientV2 =
     new HttpClientV2Impl(wsClient, actorSystem, config, Seq())
-
-  @Provides
-  @Named("user-notifications-circuit-breaker")
-  def provideCallValidateCircuitBreakerConfig: CircuitBreakerConfig = {
-    val appName = config
-      .getOptional[String]("appName")
-      .getOrElse(throw new IllegalArgumentException("Cannot find appName in application.conf"))
-
-    CircuitBreakerConfig(
-      s"$appName-user-notifications",
-      config.get[Int]("microservice.services.user-notifications.phone.circuit-breaker.maxFailures"),
-      config.get[Int]("microservice.services.user-notifications.phone.circuit-breaker.resetTimeout"),
-      config.get[Int]("microservice.services.user-notifications.phone.circuit-breaker.callTimeout")
-    )
-  }
-
 }
