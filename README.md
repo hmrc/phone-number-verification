@@ -25,12 +25,12 @@ The default port for phone-number-stubs is port 6099
 
 ### Running app
 
-    sm --start PHONE_NUMBER_VERIFICATION_ALL
+    sm2 --start PHONE_NUMBER_VERIFICATION_ALL
 
 Run the services against the current versions in dev, stop the PHONE_NUMBER_VERIFICATION service and start manually
 
-    sm --start PHONE_NUMBER_VERIFICATION_ALL -r
-    sm --stop PHONE_NUMBER_VERIFICATION
+    sm2 --start PHONE_NUMBER_VERIFICATION_ALL -r
+    sm2 --stop PHONE_NUMBER_VERIFICATION
     cd phone-number-verification
     sbt run
 
