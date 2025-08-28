@@ -29,10 +29,7 @@ import javax.inject.{Inject, Named, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UserNotificationsConnector @Inject() (
-  @Named("internal-http-client") httpClient: HttpClientV2,
-  config: AppConfig
-)(implicit ec: ExecutionContext) {
+class UserNotificationsConnector @Inject() (httpClient: HttpClientV2, config: AppConfig)(implicit ec: ExecutionContext) {
 
   import VerificationCodeNotificationRequest.Implicits._
 
