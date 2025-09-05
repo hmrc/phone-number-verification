@@ -49,12 +49,4 @@ class GuiceModule(environment: Environment, config: Configuration) extends Abstr
     } else {
       new LiveSendCodeService(verificationCodeGenerator, auditService, verificationCodeService, validateService, userNotificationsConnector, metricsService)
     }
-
-  @Provides
-  @Named("internal-http-client")
-  def provideInternalHttpClient(
-    wsClient: WSClient,
-    actorSystem: ActorSystem
-  ): HttpClientV2 =
-    new HttpClientV2Impl(wsClient, actorSystem, config, Seq())
 }
