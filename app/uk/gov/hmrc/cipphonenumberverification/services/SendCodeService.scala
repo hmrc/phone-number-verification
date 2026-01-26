@@ -73,7 +73,7 @@ class LiveSendCodeService @Inject() (verificationCodeGenerator: VerificationCode
     validateService.validate(phoneNumberAndVerificationCode.phoneNumber) match {
       case Right(validatedPhoneNumber) if validatedPhoneNumber.phoneNumberType == PhoneNumberType.MOBILE =>
         processValidVerificationCode(validatedPhoneNumber, phoneNumberAndVerificationCode.verificationCode)
-      case Right(validatedPhoneNumber) =>
+      case Right(_) =>
         logger.error("Phone number must be a mobile phone number")
         Future.successful(BadRequest(Json.toJson(VerificationStatus(StatusCode.VALIDATION_ERROR, StatusMessage.ONLY_MOBILES_VERIFIABLE))))
       case Left(error) =>
@@ -210,8 +210,7 @@ class TestSendCodeService @Inject() (validateService: ValidateService)(implicit 
       case Left(_) =>
         Future.successful(BadRequest(Json.toJson(VerificationStatus(VALIDATION_ERROR, INVALID_TELEPHONE_NUMBER))))
       case Right(value) =>
-        val (telNum, telNumType) = (value.phoneNumber, value.phoneNumberType)
-        Future.successful(telNum match {
+        Future.successful(value.phoneNumber match {
           case TestSendCodeService.verifiablePhoneNumber =>
             Ok(Json.toJson(VerificationStatus(StatusCode.CODE_SENT, StatusMessage.CODE_SENT)))
           case TestSendCodeService.nonMobilePhoneNumber =>

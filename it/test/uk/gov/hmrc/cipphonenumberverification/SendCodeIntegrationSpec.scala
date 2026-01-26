@@ -37,6 +37,8 @@ import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDAT
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.http.HttpResponse
+import play.api.libs.ws.writeableOf_JsValue
+import play.api.libs.ws.writeableOf_String
 
 import scala.concurrent.Future
 

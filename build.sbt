@@ -1,31 +1,15 @@
 import uk.gov.hmrc.DefaultBuildSettings
 
-ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / majorVersion := 1
+ThisBuild / scalaVersion := "3.3.7"
 
 val appName = "phone-number-verification"
-
-lazy val scalaCompilerOptions = Seq(
-  "-Xlint:-missing-interpolator,_",
-  "-Ywarn-unused:imports",
-  "-Ywarn-unused:privates",
-  "-Ywarn-unused:locals",
-  "-Ywarn-unused:explicits",
-  "-Ywarn-unused:implicits",
-  "-Ywarn-value-discard",
-  "-Ywarn-unused:patvars",
-  "-Ywarn-dead-code",
-  "-deprecation",
-  "-feature",
-  "-unchecked",
-  "-language:implicitConversions"
-)
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin, BuildInfoPlugin)
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
-    scalacOptions += "-Wconf:cat=unused-imports&src=routes/.*:s"
+    scalacOptions += "-Wconf:src=routes/.*:s"
   )
   .settings(
     Compile / scalafmtOnCompile := true,
