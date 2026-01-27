@@ -28,6 +28,7 @@ import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{CODE_V
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.{CODE_NOT_RECOGNISED, INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE}
 import uk.gov.hmrc.cipphonenumberverification.models.response.{StatusCode, StatusMessage}
 import uk.gov.hmrc.cipphonenumberverification.utils.DataSteps
+import play.api.libs.ws.writeableOf_JsValue
 
 class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with DataSteps {
 

@@ -18,8 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType
 import org.mockito.Mockito.when
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK}

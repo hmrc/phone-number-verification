@@ -18,14 +18,10 @@ package uk.gov.hmrc.cipphonenumberverification.config
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.inject.{AbstractModule, Provides}
-import org.apache.pekko.actor.ActorSystem
-import play.api.libs.ws.WSClient
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
-import uk.gov.hmrc.cipphonenumberverification.services._
-import uk.gov.hmrc.http.client.{HttpClientV2, HttpClientV2Impl}
+import uk.gov.hmrc.cipphonenumberverification.services.*
 
-import javax.inject.Named
 import scala.concurrent.ExecutionContext
 
 class GuiceModule(environment: Environment, config: Configuration) extends AbstractModule {
