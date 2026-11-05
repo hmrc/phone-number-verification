@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.models
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.StatusCode
 
-object audit {
+object Audit {
   abstract class AuditEvent(phoneNumber: String, verificationCode: String)
 
   object AuditType extends Enumeration {
@@ -27,10 +27,11 @@ object audit {
 
     val PhoneNumberVerificationRequest: AuditType = Value
     val PhoneNumberVerificationResult: AuditType  = Value
+    val JourneyInitialised: AuditType             = Value
   }
 
   case class VerificationCheckAuditEvent(phoneNumber: String, verificationCode: String, result: StatusCode)
-      extends audit.AuditEvent(phoneNumber, verificationCode)
+      extends Audit.AuditEvent(phoneNumber, verificationCode)
 
   object VerificationCheckAuditEvent {
 
@@ -39,7 +40,7 @@ object audit {
     }
   }
 
-  case class VerificationRequestAuditEvent(phoneNumber: String, verificationCode: String) extends audit.AuditEvent(phoneNumber, verificationCode)
+  case class VerificationRequestAuditEvent(phoneNumber: String, verificationCode: String) extends Audit.AuditEvent(phoneNumber, verificationCode)
 
   object VerificationRequestAuditEvent {
 

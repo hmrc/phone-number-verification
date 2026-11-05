@@ -43,6 +43,8 @@ trait DataSteps {
     wsClient
       .url(s"$baseUrl/phone-number-verification/send-code")
       .withHttpHeaders(("Authorization", "local-test-token"))
+      .withHttpHeaders(("Content-Type", "application/json"))
+      .withHttpHeaders(("User-Agent", "test-only"))
       .post(Json.parse {
         s"""{"phoneNumber": "$phoneNumber"}""".stripMargin
       })

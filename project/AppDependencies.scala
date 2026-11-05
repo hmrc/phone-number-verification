@@ -14,7 +14,9 @@ object AppDependencies {
   )
 
   val test: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc"       %% s"bootstrap-test$playSuffix"  % bootstrapPlayVersion,
-    "uk.gov.hmrc.mongo" %% s"hmrc-mongo-test$playSuffix" % mongoVersion
+    "uk.gov.hmrc"       %% s"bootstrap-test$playSuffix"   % bootstrapPlayVersion,
+    "uk.gov.hmrc.mongo" %% s"hmrc-mongo-test$playSuffix"  % mongoVersion,
+    "org.scalamock"     %% "scalamock"                    % "7.5.5"
+
   ).map(_ % Test)
 }

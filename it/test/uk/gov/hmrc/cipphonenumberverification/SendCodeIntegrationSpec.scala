@@ -70,6 +70,8 @@ class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matcher
         wsClient
           .url(s"$baseUrl/phone-number-verification/send-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             """{"phoneNumber": "07811123456"}""".stripMargin
@@ -85,6 +87,8 @@ class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matcher
         wsClient
           .url(s"$baseUrl/phone-number-verification/send-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{"phoneNumber": ""}""".stripMargin
@@ -102,7 +106,8 @@ class SendCodeIntegrationSpec extends AnyWordSpec with MockitoSugar with Matcher
           .url(s"$baseUrl/phone-number-verification/send-code")
           .withHttpHeaders(
             ("Authorization", "fake-token"),
-            ("Content-Type", "application/json")
+            ("Content-Type", "application/json"),
+            ("User-Agent", "test-only")
           )
           .withRequestFilter(AhcCurlRequestLogger())
           .post(s"""{"phoneNumber": }""")

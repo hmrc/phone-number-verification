@@ -29,8 +29,8 @@ import play.api.mvc.{Headers, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, status}
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
-import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.{PhoneNumberVerificationRequest, PhoneNumberVerificationResult}
-import uk.gov.hmrc.cipphonenumberverification.models.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType.{PhoneNumberVerificationRequest, PhoneNumberVerificationResult}
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.request.{PhoneNumber, PhoneNumberAndVerificationCode}
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.{
@@ -121,7 +121,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val errorResponse: VerificationStatus = contentAsJson(result).as[VerificationStatus]
       errorResponse.status shouldBe VALIDATION_ERROR
       errorResponse.message shouldBe INVALID_TELEPHONE_NUMBER
-      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[Request[JsValue]], any[HeaderCarrier], any())
+      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[HeaderCarrier], any())
       verify(verificationCodeGeneratorMock, never()).generate()
       verify(verificationServiceMock, never()).persistVerificationCode(any())
       verify(verificationServiceMock, never()).retrieveVerificationCode(any())
@@ -191,10 +191,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       verify(validateServiceMock, atLeastOnce()).validate("test")
       verify(verificationCodeGeneratorMock, atLeastOnce()).generate()
       val expectedAuditEvent: VerificationRequestAuditEvent = VerificationRequestAuditEvent("normalised-phone-number", verificationCode)
-      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(meq(PhoneNumberVerificationRequest), meq(expectedAuditEvent))(any[Request[JsValue]],
-                                                                                                                                   any[HeaderCarrier],
-                                                                                                                                   any()
-      )
+      verify(auditServiceMock, atLeastOnce()).sendExplicitAuditEvent(meq(PhoneNumberVerificationRequest), meq(expectedAuditEvent))(any[HeaderCarrier], any())
       verify(verificationServiceMock, atLeastOnce()).persistVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))
       verify(userNotificationsConnectorMock, atLeastOnce()).sendVerificationCode(meq(phoneNumberVerificationCodeDataFromDb))(any[HeaderCarrier])
       verify(metricsServiceMock, atLeastOnce()).recordUpstreamError(any[UpstreamErrorResponse])
@@ -319,7 +316,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe StatusCode.VALIDATION_ERROR
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe StatusMessage.ONLY_MOBILES_VERIFIABLE
       verify(validateServiceMock, atLeastOnce()).validate("test")
-      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any(), any(), any())
+      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[HeaderCarrier], any())
       verify(verificationServiceMock, never()).persistVerificationCode(any())
       verify(verificationServiceMock, never()).retrieveVerificationCode(any())
       verify(userNotificationsConnectorMock, never()).sendVerificationCode(any())(any[HeaderCarrier])
@@ -449,7 +446,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val errorResponse: VerificationStatus = contentAsJson(result).as[VerificationStatus]
       errorResponse.status shouldBe VALIDATION_ERROR
       errorResponse.message shouldBe StatusMessage.INVALID_TELEPHONE_NUMBER_OR_VERIFICATION_CODE
-      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any(), any(), any())
+      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[HeaderCarrier], any())
     }
 
     "return internal sever error when datastore exception occurs on get" in new SetUp {
@@ -470,7 +467,7 @@ class SendCodeServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       status(result) shouldBe INTERNAL_SERVER_ERROR
       (contentAsJson(result) \ "status").as[StatusCode.StatusCode] shouldBe CODE_VERIFY_FAILURE
       (contentAsJson(result) \ "message").as[StatusMessage.StatusMessage] shouldBe SERVER_EXPERIENCED_AN_ISSUE
-      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any(), any(), any())
+      verify(auditServiceMock, never()).sendExplicitAuditEvent(any(), any())(any[HeaderCarrier], any())
     }
   }
 

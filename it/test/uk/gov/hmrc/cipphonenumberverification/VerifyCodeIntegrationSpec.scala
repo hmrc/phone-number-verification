@@ -47,6 +47,8 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
@@ -66,6 +68,8 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
@@ -93,6 +97,8 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
@@ -110,6 +116,8 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
@@ -137,6 +145,8 @@ class VerifyCodeIntegrationSpec extends AnyWordSpec with Matchers with ScalaFutu
         wsClient
           .url(s"$baseUrl/phone-number-verification/verify-code")
           .withHttpHeaders(("Authorization", "fake-token"))
+          .withHttpHeaders(("Content-Type", "application/json"))
+          .withHttpHeaders(("User-Agent", "test-only"))
           .withRequestFilter(AhcCurlRequestLogger())
           .post(Json.parse {
             s"""{
