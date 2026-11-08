@@ -3,4 +3,5 @@
 POST        /send-code          uk.gov.hmrc.cipphonenumberverification.controllers.SendCodeController.sendCode
 POST        /verify-code        uk.gov.hmrc.cipphonenumberverification.controllers.VerifyCodeController.verifyCode
 
-POST        /journey/init       uk.gov.hmrc.cipphonenumberverification.controllers.JourneyController.initJourney
+POST        /journey/init                   uk.gov.hmrc.cipphonenumberverification.controllers.JourneyController.initJourney
+GET         /journey/:journeyId/details     uk.gov.hmrc.cipphonenumberverification.controllers.JourneyController.journeyDetails(journeyId: String)

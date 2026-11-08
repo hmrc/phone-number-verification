@@ -46,3 +46,7 @@ class JourneyService @Inject()(
         s"/phone-number-verification/journey/$journeyId/enter-pass-code"
     }
   }
+
+    def getJourneyDetails(journeyId: String): Future[Option[JourneyConfig]] = {
+        journeyRepository.get(journeyId)
+    }

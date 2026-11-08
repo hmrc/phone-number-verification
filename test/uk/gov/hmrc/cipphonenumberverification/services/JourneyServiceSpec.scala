@@ -19,6 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import org.scalatest.matchers.should.Matchers.{shouldBe, shouldNot}
 import uk.gov.hmrc.cipphonenumberverification.connectors.MockJourneyRepository
 import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType
+import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.{BaseSpec, TestData}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -98,5 +99,23 @@ class JourneyServiceSpec
 
       result shouldBe s"/phone-number-verification/journey/$testJourneyId/enter-pass-code"
 
+    "getJourneyDetails" should :
 
+      "return the journey config when it exists" in new SetUp:
+        MockJourneyRepository
+          .get(testJourneyId)
+          .returns(Future.successful(Some(testJourneyConfigWithNoPhoneNumber)))
+
+        val result: Option[JourneyConfig] = service.getJourneyDetails(testJourneyId).futureValue
+
+        result shouldBe Some(testJourneyConfigWithNoPhoneNumber)
+
+      "return None when the journey config does not exist" in new SetUp:
+        MockJourneyRepository
+          .get(testJourneyId)
+          .returns(Future.successful(None))
+
+        val result: Option[JourneyConfig] = service.getJourneyDetails(testJourneyId).futureValue
+
+        result shouldBe None
 

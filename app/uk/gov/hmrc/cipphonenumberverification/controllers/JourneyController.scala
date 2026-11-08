@@ -17,7 +17,7 @@
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import play.api.libs.json.Json
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.cipphonenumberverification.controllers.actions.AllowListAction
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.services.JourneyService
@@ -45,4 +45,18 @@ class JourneyController @Inject()(
           logger.error("Failed to initialize journey", ex)
           InternalServerError
     }
+  }
+
+  def journeyDetails(journeyId: String): Action[AnyContent] = authAction.async { implicit request =>
+      logger.info(s"Fetching journey details for journeyId: $journeyId")
+  
+      journeyService.getJourneyDetails(journeyId)
+      .map {
+          case Some(details) => Ok(Json.toJson(details))
+          case None => NotFound
+      }.recover {
+          case ex: Exception =>
+          logger.error(s"Failed to fetch journey details for journeyId: $journeyId", ex)
+          InternalServerError
+      }
   }

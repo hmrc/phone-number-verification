@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
-import org.scalamock.handlers.CallHandler2
+import org.scalamock.handlers.{CallHandler1, CallHandler2}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.TestSuite
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
@@ -35,3 +35,8 @@ trait MockJourneyRepository extends MockFactory:
       (mockJourneyRepository
         .set(_: String, _: JourneyConfig))
         .expects(journeyId, journeyConfig)
+
+    def get(journeyId: String): CallHandler1[String, Future[Option[JourneyConfig]]] = 
+      (mockJourneyRepository
+        .get(_: String))
+        .expects(journeyId)

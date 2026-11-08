@@ -38,44 +38,83 @@ class JourneyControllerSpec
       journeyService = mockJourneyService
     )
 
-  "The JourneyController" should :
+  "The JourneyController" when :
 
-    "return 201 Created when initJourney is called with valid journey config" in :
-      val fakeRequest = FakeRequest("POST", "/journey/init")
-        .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
-        .withBody(testJourneyConfigWithNoPhoneNumber)
-
-      val redirectUrl = "http://test-redirect-url"
-
-      MockJourneyService.initJourney(testJourneyConfigWithNoPhoneNumber)(
-        Future.successful(redirectUrl)
-      )
-
-      val result = controller().initJourney(fakeRequest)
-
-      status(result) shouldBe CREATED
-      contentAsJson(result) shouldBe Json.toJson(redirectUrl)
-
-    "return 400 Bad Request when initJourney is called with invalid journey config" in :
-      val invalidRequest = FakeRequest("POST", "/journey/init")
-        .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
-        .withBody(Json.obj("invalid" -> "data"))
-
-      val result = controller().initJourney(invalidRequest)
-
-      status(result) shouldBe BAD_REQUEST
-
-    "return 500 Internal Server Error when initJourney fails" in :
-      val fakeRequest = FakeRequest("POST", "/journey/init")
-        .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
-        .withBody(testJourneyConfigWithNoPhoneNumber)
-
-      MockJourneyService.initJourney(testJourneyConfigWithNoPhoneNumber)(
-        Future.failed(new RuntimeException("Test exception"))
-      )
-
-      val result = controller().initJourney(fakeRequest)
-
-      status(result) shouldBe INTERNAL_SERVER_ERROR
-
-
+    ".initJourney" when :
+    
+      "return 201 Created when initJourney is called with valid journey config" in :
+        val fakeRequest = FakeRequest("POST", "/journey/init")
+          .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
+          .withBody(testJourneyConfigWithNoPhoneNumber)
+  
+        val redirectUrl = "http://test-redirect-url"
+  
+        MockJourneyService.initJourney(testJourneyConfigWithNoPhoneNumber)(
+          Future.successful(redirectUrl)
+        )
+  
+        val result = controller().initJourney(fakeRequest)
+  
+        status(result) shouldBe CREATED
+        contentAsJson(result) shouldBe Json.toJson(redirectUrl)
+  
+      "return 400 Bad Request when initJourney is called with invalid journey config" in :
+        val invalidRequest = FakeRequest("POST", "/journey/init")
+          .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
+          .withBody(Json.obj("invalid" -> "data"))
+  
+        val result = controller().initJourney(invalidRequest)
+  
+        status(result) shouldBe BAD_REQUEST
+  
+      "return 500 Internal Server Error when initJourney fails" in :
+        val fakeRequest = FakeRequest("POST", "/journey/init")
+          .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
+          .withBody(testJourneyConfigWithNoPhoneNumber)
+  
+        MockJourneyService.initJourney(testJourneyConfigWithNoPhoneNumber)(
+          Future.failed(new RuntimeException("Test exception"))
+        )
+  
+        val result = controller().initJourney(fakeRequest)
+  
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+      
+    ".journeyDetails" when :
+      
+      "return 200 OK with journey details when journeyDetails is called for an existing journey" in :
+        val journeyId = "existing-journey-id"
+        val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
+  
+        MockJourneyService.getJourneyDetails(journeyId)(
+          Future.successful(Some(testJourneyConfigWithPhoneNumber))
+        )
+  
+        val result = controller().journeyDetails(journeyId)(fakeRequest)
+  
+        status(result) shouldBe OK
+        contentAsJson(result) shouldBe Json.toJson(testJourneyConfigWithPhoneNumber)
+  
+      "return 404 Not Found when journeyDetails is called for a missing journey" in :
+        val journeyId = "missing-journey-id"
+        val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
+  
+        MockJourneyService.getJourneyDetails(journeyId)(
+          Future.successful(None)
+        )
+  
+        val result = controller().journeyDetails(journeyId)(fakeRequest)
+  
+        status(result) shouldBe NOT_FOUND
+  
+      "return 500 Internal Server Error when journeyDetails fails" in :
+        val journeyId = "failing-journey-id"
+        val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
+  
+        MockJourneyService.getJourneyDetails(journeyId)(
+          Future.failed(new RuntimeException("Test exception"))
+        )
+  
+        val result = controller().journeyDetails(journeyId)(fakeRequest)
+  
+        status(result) shouldBe INTERNAL_SERVER_ERROR
