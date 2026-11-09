@@ -27,6 +27,8 @@ Together these capabilities let a frontend/service verify a user’s phone numbe
 
 This endpoint is used by a consuming frontend to start a phone number verification journey before handing the user off to the phone number verification frontend screens.
 
+Include a `User-Agent` HTTP header with the consuming service's name. This must be the same name that was added to the allow list when the service onboarded.
+
 Use this endpoint when your service wants to begin a verification flow and provide the journey configuration, including:
 
 - a `credentialId` identifying the user in your service.
@@ -38,6 +40,7 @@ Example request:
 
     POST /phone-number-verification/journey/init
     Content-Type: application/json
+    User-Agent: <consuming-service-name>
 
     {
       "credentialId": "my-credential-id",
@@ -73,6 +76,15 @@ The response is a string containing the journey URL that the frontend should red
 
 This lets the consuming service kick off the verification journey without needing to manage the SMS code lifecycle itself. 
 The service handles the journey state and then the frontend continues the user through the relevant screens.
+
+### GET /journey/{journeyId}/details
+
+This endpoint retrieves the configuration for an existing journey. Include a `User-Agent` HTTP header with the consuming service's name; it must be the same name that was added to the allow list when the service onboarded.
+
+Example request:
+
+    GET /phone-number-verification/journey/{journeyId}/details
+    User-Agent: <consuming-service-name>
 
 
 ### Testing
