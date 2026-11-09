@@ -1,0 +1,22 @@
+meta {
+  name: "Journey Details"
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/phone-number-verification/journey/{{journeyId}}/details
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  User-Agent: test-only
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:6083
+  journeyId: e40ae1bf-bf1d-47bb-b15e-9fbad2a20109
+}
+

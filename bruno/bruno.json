@@ -1,0 +1,11 @@
+{
+  "version": "1",
+  "name": "phone-number-verification",
+  "type": "collection",
+  "ignore": [
+    ".git",
+    "node_modules",
+    "target"
+  ]
+}
+
