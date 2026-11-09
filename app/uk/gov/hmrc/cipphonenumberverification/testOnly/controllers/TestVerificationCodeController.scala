@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.controllers
+package uk.gov.hmrc.cipphonenumberverification.testOnly.controllers
 
 import play.api.Logging
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.controllers.access.AccessChecker
@@ -43,8 +43,8 @@ class TestVerificationCodeController @Inject() (cc: ControllerComponents,
 ) extends BackendController(cc)
     with AccessChecker
     with Logging {
-  import PhoneNumber.Implicits._
-  import PhoneNumberVerificationCodeData.Implicits._
+  import PhoneNumber.Implicits.*
+  import PhoneNumberVerificationCodeData.Implicits.*
 
   def retrieveVerificationCode: Action[JsValue] = accessCheckedAction(parse.json) {
     implicit request =>
