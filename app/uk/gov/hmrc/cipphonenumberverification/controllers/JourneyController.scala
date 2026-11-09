@@ -23,13 +23,13 @@ import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.services.JourneyService
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 class JourneyController @Inject()(
                                    cc: ControllerComponents,
                                    allowListAction: AllowListAction,
                                    journeyService: JourneyService
-                                 )
+                                 )(implicit ec: ExecutionContext)
   extends PhoneNumberVerificationBaseController(cc):
 
   private val authAction = allowListAction()
