@@ -21,12 +21,12 @@ import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.cipphonenumberverification.BaseISpec
 import uk.gov.hmrc.cipphonenumberverification.config.MockAppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
-import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyConfigMongoDocument
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 class JourneyMongoRepositoryISpec
   extends BaseISpec
-    with DefaultPlayMongoRepositorySupport[JourneyConfigMongoDocument]
+    with DefaultPlayMongoRepositorySupport[JourneyMongoDocument]
     with MockAppConfig:
 
   protected override val repository: JourneyMongoRepository = {
@@ -44,7 +44,13 @@ class JourneyMongoRepositoryISpec
 
       val journeyId: String = "testJourneyId"
       val journeyConfig: JourneyConfig = testJourneyConfigWithPhoneNumber
+      val journeyUserAgent: String = testUserAgent
 
-      repository.set(journeyId, journeyConfig).futureValue
+      repository.set(journeyId, journeyUserAgent, journeyConfig).futureValue
 
-      repository.get(journeyId).futureValue shouldBe Some(journeyConfig)
+      val result = repository.get(journeyId).futureValue
+      val journeyMongoDocument = result.get
+
+      journeyMongoDocument.journeyId shouldBe journeyId
+      journeyMongoDocument.journeyUserAgent shouldBe journeyUserAgent
+      journeyMongoDocument.journeyConfig shouldBe journeyConfig

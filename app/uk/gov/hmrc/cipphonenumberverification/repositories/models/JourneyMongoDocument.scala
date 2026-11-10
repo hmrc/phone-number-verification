@@ -22,13 +22,14 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class JourneyConfigMongoDocument(
+case class JourneyMongoDocument(
                                        journeyId: String,
                                        journeyCreatedAt: Instant,
+                                       journeyUserAgent: String,
                                        journeyConfig: JourneyConfig
                                      )
 
-object JourneyConfigMongoDocument:
+object JourneyMongoDocument:
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
-  implicit val formats: OFormat[JourneyConfigMongoDocument] = Json.format[JourneyConfigMongoDocument]
+  implicit val formats: OFormat[JourneyMongoDocument] = Json.format[JourneyMongoDocument]

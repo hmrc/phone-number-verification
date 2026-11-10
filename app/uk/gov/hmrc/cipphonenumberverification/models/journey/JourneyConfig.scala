@@ -23,14 +23,7 @@ case class JourneyConfig(
   options: JourneyOptions,
   labels: Option[JourneyLabels] = None,
   phoneNumberToVerify: Option[String] = None
-) {
-
-  def forAuditing(journeyId: String): JsValue =
-    Json.obj(
-      "journeyId"    -> journeyId,
-      "credentialId" -> credentialId
-    )
-}
+)
 
 object JourneyConfig {
   implicit val formats: Format[JourneyConfig] = Json.format

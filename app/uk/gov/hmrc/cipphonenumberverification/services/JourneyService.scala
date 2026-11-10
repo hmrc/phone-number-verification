@@ -19,6 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.repositories.JourneyRepository
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.UUID
@@ -34,11 +35,11 @@ class JourneyService @Inject()(
 
   private[services] def generateJourneyId: String = UUID.randomUUID().toString
 
-  def initJourney(journeyConfig: JourneyConfig)(implicit hc: HeaderCarrier): Future[String] = {
+  def initJourney(journeyUserAgent: String, journeyConfig: JourneyConfig)(implicit hc: HeaderCarrier): Future[String] = {
     val journeyId = generateJourneyId
 
-    journeyRepository.set(journeyId, journeyConfig).map { _ =>
-      auditService.sendExplicitAuditEvent(AuditType.JourneyInitialised, journeyConfig.forAuditing(journeyId))
+    journeyRepository.set(journeyId, journeyUserAgent, journeyConfig).map { _ =>
+      auditService.auditJourneyInitialised(journeyId, journeyUserAgent, journeyConfig)
 
       if (journeyConfig.phoneNumberToVerify.isEmpty)
         s"/phone-number-verification/journey/$journeyId/enter-phone-number"
@@ -47,6 +48,6 @@ class JourneyService @Inject()(
     }
   }
 
-    def getJourneyDetails(journeyId: String): Future[Option[JourneyConfig]] = {
+    def getJourneyDetails(journeyId: String): Future[Option[JourneyMongoDocument]] = {
         journeyRepository.get(journeyId)
     }

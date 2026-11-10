@@ -31,7 +31,7 @@ class JourneyControllerISpec extends BaseISpec:
       .url(s"$baseUrl/phone-number-verification/journey/init")
       .withHttpHeaders(
         HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-        HeaderNames.USER_AGENT -> testUserAgent,
+        HeaderNames.USER_AGENT -> testUserAgent
       )
       .post(Json.stringify(requestBody))
       .futureValue

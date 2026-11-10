@@ -37,17 +37,15 @@ class JourneyActionSpec extends BaseSpec with MockJourneyService:
         .withHeaders("X-Test" -> "test-value")
         .withBody("phone-number")
 
+      val serviceResponse = testJourneyMongoDocument(testJourneyConfigWithPhoneNumber)
+
       MockJourneyService.getJourneyDetails(journeyId)(
-        Future.successful(Some(testJourneyConfigWithPhoneNumber))
+        Future.successful(Some(serviceResponse))
       )
 
       val result = action(journeyId).invokeBlock(request, journeyRequest => {
-        journeyRequest.journeyId shouldBe journeyId
-        journeyRequest.journeyConfig shouldBe testJourneyConfigWithPhoneNumber
-        journeyRequest.body shouldBe request.body
-        journeyRequest.headers shouldBe request.headers
-        journeyRequest.method shouldBe request.method
-        journeyRequest.uri shouldBe request.uri
+        journeyRequest.journeyMongoDocument shouldBe serviceResponse
+        journeyRequest.headers.get("X-Test") shouldBe Some("test-value")
         Future.successful(Results.Ok)
       })
 
@@ -71,8 +69,9 @@ class JourneyActionSpec extends BaseSpec with MockJourneyService:
 
     "propagate failures from the block" in:
       val exception = new RuntimeException("Block failed")
+
       MockJourneyService.getJourneyDetails(journeyId)(
-        Future.successful(Some(testJourneyConfigWithPhoneNumber))
+        Future.successful(Some(testJourneyMongoDocument(testJourneyConfigWithPhoneNumber)))
       )
 
       val result = action(journeyId).invokeBlock(FakeRequest(), _ => Future.failed(exception))

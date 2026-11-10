@@ -17,6 +17,9 @@
 package uk.gov.hmrc.cipphonenumberverification
 
 import uk.gov.hmrc.cipphonenumberverification.models.journey.{JourneyConfig, JourneyOptions}
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
+
+import java.time.Instant
 
 trait TestData:
 
@@ -43,4 +46,11 @@ trait TestData:
       accessibilityStatementUrl = "http://test-accessibility-url"
     ),
     phoneNumberToVerify = Some("1234567890")
+  )
+  
+  def testJourneyMongoDocument(journeyConfig: JourneyConfig) = JourneyMongoDocument(
+    journeyId = testJourneyId,
+    journeyCreatedAt = Instant.now(),
+    journeyUserAgent = testUserAgent,
+    journeyConfig = journeyConfig
   )

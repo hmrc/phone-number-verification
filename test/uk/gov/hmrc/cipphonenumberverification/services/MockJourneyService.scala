@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import org.scalamock.handlers.CallHandler1
-import org.scalamock.handlers.CallHandler2
+import org.scalamock.handlers.{CallHandler1, CallHandler2, CallHandler3}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.TestSuite
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -31,13 +31,13 @@ trait MockJourneyService extends MockFactory:
   lazy val mockJourneyService: JourneyService = mock[JourneyService]
 
   object MockJourneyService:
-    def initJourney(journeyConfig: JourneyConfig)(response: Future[String])(implicit hc: HeaderCarrier): CallHandler2[JourneyConfig, HeaderCarrier, Future[String]] =
+    def initJourney(journeyUserAgent: String, journeyConfig: JourneyConfig)(response: Future[String])(implicit hc: HeaderCarrier): CallHandler3[String, JourneyConfig, HeaderCarrier, Future[String]] =
       (mockJourneyService
-        .initJourney(_: JourneyConfig)(_: HeaderCarrier))
-        .expects(journeyConfig, *)
+        .initJourney(_: String, _: JourneyConfig)(_: HeaderCarrier))
+        .expects(journeyUserAgent, journeyConfig, *)
         .returning(response)
 
-    def getJourneyDetails(journeyId: String)(response: Future[Option[JourneyConfig]]): CallHandler1[String, Future[Option[JourneyConfig]]] =
+    def getJourneyDetails(journeyId: String)(response: Future[Option[JourneyMongoDocument]]): CallHandler1[String, Future[Option[JourneyMongoDocument]]] =
       (mockJourneyService
         .getJourneyDetails _)
         .expects(journeyId)

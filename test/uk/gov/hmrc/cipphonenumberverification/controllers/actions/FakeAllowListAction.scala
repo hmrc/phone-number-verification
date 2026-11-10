@@ -24,12 +24,19 @@ import scala.concurrent.{ExecutionContext, Future}
 class FakeAllowListAction @Inject()(bodyParsers: PlayBodyParsers):
 
   def apply(isAllowed: Boolean = true): AllowListAction = () =>
-    new ActionBuilder[Request, AnyContent]:
+    new ActionBuilder[AllowListRequest, AnyContent]:
       override def parser: BodyParser[AnyContent] = bodyParsers.anyContent
 
       override def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-      override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] =
-        if (isAllowed) block(request) else {
+      override def invokeBlock[A](request: Request[A], block: AllowListRequest[A] => Future[Result]): Future[Result] =
+        if (isAllowed)
+          block(
+            new AllowListRequest(
+              request.headers.get(play.api.http.HeaderNames.USER_AGENT).getOrElse("unknown"),
+              request
+            )
+          )
+        else {
           Future.successful(Results.Forbidden)
         }
