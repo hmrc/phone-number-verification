@@ -18,13 +18,14 @@ package uk.gov.hmrc.cipphonenumberverification.controllers.actions
 
 import play.api.mvc.*
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class FakeJourneyAction @Inject()(bodyParsers: PlayBodyParsers):
 
-  def apply(journeyId: String, journeyConfig: Either[Exception, Option[JourneyConfig]]): JourneyAction =
+  def apply(journeyId: String, journeyUserAgent: String, journeyConfig: Either[Exception, Option[JourneyConfig]]): JourneyAction =
     new JourneyAction:
       override def apply(actualJourneyId: String): ActionBuilder[JourneyRequest, AnyContent] =
         new ActionBuilder[JourneyRequest, AnyContent]:
@@ -34,7 +35,7 @@ class FakeJourneyAction @Inject()(bodyParsers: PlayBodyParsers):
 
           override def invokeBlock[A](request: Request[A], block: JourneyRequest[A] => Future[Result]): Future[Result] =
             journeyConfig match {
-              case Right(Some(config)) => block(new JourneyRequest(journeyId, config, request))
+              case Right(Some(config)) => block(new JourneyRequest(JourneyMongoDocument(journeyId, java.time.Instant.now(), journeyUserAgent, config), request))
               case Right(None)         => Future.successful(Results.NotFound)
               case Left(_)             => Future.successful(Results.InternalServerError)
             }

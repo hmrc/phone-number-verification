@@ -21,7 +21,7 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.*
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
-import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyConfigMongoDocument
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -32,18 +32,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[JourneyMongoRepository])
 trait JourneyRepository:
-  def set(journeyId: String, journey: JourneyConfig): Future[Unit]
+  def set(journeyId: String, journeyUserAgent: String, journeyConfig: JourneyConfig): Future[JourneyMongoDocument]
 
-  def get(journeyId: String): Future[Option[JourneyConfig]]
+  def get(journeyId: String): Future[Option[JourneyMongoDocument]]
 
 @Singleton
 class JourneyMongoRepository @Inject()(mongoComponent: MongoComponent, appConfig: AppConfig)
                                       (implicit ec: ExecutionContext)
 
-  extends PlayMongoRepository[JourneyConfigMongoDocument](
-    collectionName = "journey-config",
+  extends PlayMongoRepository[JourneyMongoDocument](
+    collectionName = "journey",
     mongoComponent = mongoComponent,
-    domainFormat = JourneyConfigMongoDocument.formats,
+    domainFormat = JourneyMongoDocument.formats,
     indexes = Seq(
       IndexModel(Indexes.ascending("journeyCreatedAt"), IndexOptions().name("ttl").expireAfter(appConfig.journeyCacheExpiry, TimeUnit.MINUTES)),
       IndexModel(Indexes.ascending("journeyId"), IndexOptions().name("journeyId").unique(true)),
@@ -60,11 +60,13 @@ class JourneyMongoRepository @Inject()(mongoComponent: MongoComponent, appConfig
       update = Updates.set("journeyCreatedAt", Instant.now())
     ).toFuture().map(_ => ())
 
-  def set(journeyId: String, journey: JourneyConfig): Future[Unit] =
-    collection.insertOne(JourneyConfigMongoDocument(journeyId, Instant.now(), journey)).toFuture().map(_ => ())
+  def set(journeyId: String, journeyUserAgent: String, journeyConfig: JourneyConfig): Future[JourneyMongoDocument] = {
+    val document = JourneyMongoDocument(journeyId, Instant.now(), journeyUserAgent, journeyConfig)
+    collection.insertOne(document).toFuture().map(_ => document)
+  }
 
-  def get(journeyId: String): Future[Option[JourneyConfig]] = {
+  def get(journeyId: String): Future[Option[JourneyMongoDocument]] = {
     keepAlive(journeyId).flatMap { _ =>
-      collection.find(byJourneyId(journeyId)).headOption().map(_.map(_.journeyConfig))
+      collection.find(byJourneyId(journeyId)).headOption()
     }
   }

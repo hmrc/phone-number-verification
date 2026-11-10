@@ -18,7 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.{HeaderNames, MimeTypes}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers.*
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.BaseSpec
@@ -41,7 +41,9 @@ class JourneyControllerSpec
       allowListAction = new FakeAllowListAction(Helpers.stubPlayBodyParsers())(isAllowed = isAllowed),
       journeyService = mockJourneyService,
       withJourney = new FakeJourneyAction(Helpers.stubPlayBodyParsers())(
-        journeyId = "existing-journey-id", journeyConfig = configuredJourney
+        journeyId = "existing-journey-id",
+        journeyUserAgent = testUserAgent,
+        journeyConfig = configuredJourney
       )
     )
 
@@ -52,11 +54,12 @@ class JourneyControllerSpec
       "return 201 Created when initJourney is called with valid journey config" in :
         val fakeRequest = FakeRequest("POST", "/journey/init")
           .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
+          .withHeaders(HeaderNames.USER_AGENT -> testUserAgent)
           .withBody(testJourneyConfigWithNoPhoneNumber)
   
         val redirectUrl = "http://test-redirect-url"
   
-        MockJourneyService.initJourney(testJourneyConfigWithNoPhoneNumber)(
+        MockJourneyService.initJourney(testUserAgent, testJourneyConfigWithNoPhoneNumber)(
           Future.successful(redirectUrl)
         )
   
@@ -68,6 +71,7 @@ class JourneyControllerSpec
       "return 400 Bad Request when initJourney is called with invalid journey config" in :
         val invalidRequest = FakeRequest("POST", "/journey/init")
           .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
+          .withHeaders(HeaderNames.USER_AGENT -> testUserAgent)
           .withBody(Json.obj("invalid" -> "data"))
   
         val result = controller(configuredJourney = Right(Some(testJourneyConfigWithNoPhoneNumber))).initJourney(invalidRequest)
@@ -77,9 +81,10 @@ class JourneyControllerSpec
       "return 500 Internal Server Error when initJourney fails" in :
         val fakeRequest = FakeRequest("POST", "/journey/init")
           .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
+          .withHeaders(HeaderNames.USER_AGENT -> testUserAgent)
           .withBody(testJourneyConfigWithNoPhoneNumber)
   
-        MockJourneyService.initJourney(testJourneyConfigWithNoPhoneNumber)(
+        MockJourneyService.initJourney(testUserAgent, testJourneyConfigWithNoPhoneNumber)(
           Future.failed(new RuntimeException("Test exception"))
         )
   
@@ -104,7 +109,7 @@ class JourneyControllerSpec
         val result = controller(configuredJourney = Right(Some(testJourneyConfigWithPhoneNumber))).journeyDetails(journeyId)(fakeRequest)
   
         status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson(testJourneyConfigWithPhoneNumber)
+        (contentAsJson(result) \ "journeyConfig").as[JsValue] shouldBe Json.toJson(testJourneyConfigWithPhoneNumber)
   
       "return 404 Not Found when journeyDetails is called for a missing journey" in :
         val journeyId = "missing-journey-id"

@@ -20,7 +20,7 @@ import com.google.inject.ImplementedBy
 import play.api.Logging
 import play.api.mvc.*
 import play.api.mvc.Results.*
-import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 import uk.gov.hmrc.cipphonenumberverification.services.JourneyService
 
 import javax.inject.{Inject, Singleton}
@@ -28,8 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class JourneyRequest[A](
-                         val journeyId: String,
-                         val journeyConfig: JourneyConfig,
+                         val journeyMongoDocument: JourneyMongoDocument,
                          request: Request[A]
                        ) extends WrappedRequest[A](request)
 
@@ -56,7 +55,7 @@ class JourneyActionImpl @Inject()(
         logger.info(s"Fetching journey details for journeyId: $journeyId")
 
         journeyService.getJourneyDetails(journeyId).transformWith {
-          case Success(Some(journey)) => block(new JourneyRequest(journeyId, journey, request))
+          case Success(Some(journeyMongoDocument)) => block(new JourneyRequest(journeyMongoDocument, request))
           case Success(None) => Future.successful(NotFound)
           case Failure(ex) =>
             logger.error(s"Failed to fetch journey details for journeyId: $journeyId", ex)
