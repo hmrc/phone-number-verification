@@ -25,8 +25,8 @@ import play.api.mvc.Results.{BadGateway, BadRequest, InternalServerError, NotFou
 import play.api.mvc.{Request, ResponseHeader, Result}
 import uk.gov.hmrc.cipphonenumberverification.connectors.UserNotificationsConnector
 import uk.gov.hmrc.cipphonenumberverification.models
-import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType._
-import uk.gov.hmrc.cipphonenumberverification.models.audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType._
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.{VerificationCheckAuditEvent, VerificationRequestAuditEvent}
 import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.request.{PhoneNumber, PhoneNumberAndVerificationCode}
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode

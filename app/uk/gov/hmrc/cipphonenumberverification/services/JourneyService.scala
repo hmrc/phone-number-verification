@@ -1,0 +1,52 @@
+/*
+ * Copyright 2026 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.cipphonenumberverification.services
+
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType
+import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
+import uk.gov.hmrc.cipphonenumberverification.repositories.JourneyRepository
+import uk.gov.hmrc.http.HeaderCarrier
+
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
+
+@Singleton
+class JourneyService @Inject()(
+                                journeyRepository: JourneyRepository,
+                                auditService: AuditService
+                              )
+                              (implicit ec: ExecutionContext):
+
+  private[services] def generateJourneyId: String = UUID.randomUUID().toString
+
+  def initJourney(journeyConfig: JourneyConfig)(implicit hc: HeaderCarrier): Future[String] = {
+    val journeyId = generateJourneyId
+
+    journeyRepository.set(journeyId, journeyConfig).map { _ =>
+      auditService.sendExplicitAuditEvent(AuditType.JourneyInitialised, journeyConfig.forAuditing(journeyId))
+
+      if (journeyConfig.phoneNumberToVerify.isEmpty)
+        s"/phone-number-verification/journey/$journeyId/enter-phone-number"
+      else
+        s"/phone-number-verification/journey/$journeyId/enter-pass-code"
+    }
+  }
+
+    def getJourneyDetails(journeyId: String): Future[Option[JourneyConfig]] = {
+        journeyRepository.get(journeyId)
+    }

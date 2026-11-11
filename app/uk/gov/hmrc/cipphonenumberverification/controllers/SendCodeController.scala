@@ -34,7 +34,7 @@ import scala.reflect.ClassTag
 
 @Singleton()
 class SendCodeController @Inject() (cc: ControllerComponents, service: SendCodeService, metricsService: MetricsService, override val appConfig: AppConfig)
-    extends BackendController(cc)
+    extends PhoneNumberVerificationBaseController(cc)
     with AccessChecker
     with Logging {
 

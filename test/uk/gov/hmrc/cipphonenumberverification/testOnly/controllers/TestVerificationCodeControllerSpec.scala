@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.cipphonenumberverification.controllers
+package uk.gov.hmrc.cipphonenumberverification.testOnly.controllers
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType
-import org.mockito.Mockito._
+import org.mockito.Mockito.*
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play._
-import play.api.libs.json._
+import org.scalatestplus.play.*
+import play.api.libs.json.*
 import play.api.mvc.Result
-import play.api.test.Helpers._
-import play.api.test._
+import play.api.test.*
+import play.api.test.Helpers.*
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
 import uk.gov.hmrc.cipphonenumberverification.models.internal.{PhoneNumberVerificationCodeData, ValidatedPhoneNumber}
 import uk.gov.hmrc.cipphonenumberverification.models.request.PhoneNumber
@@ -31,6 +31,7 @@ import uk.gov.hmrc.cipphonenumberverification.models.response.StatusCode.VALIDAT
 import uk.gov.hmrc.cipphonenumberverification.models.response.StatusMessage.INVALID_TELEPHONE_NUMBER
 import uk.gov.hmrc.cipphonenumberverification.models.response.VerificationStatus
 import uk.gov.hmrc.cipphonenumberverification.services.{ValidateService, VerificationCodeService}
+import uk.gov.hmrc.cipphonenumberverification.testOnly.controllers.TestVerificationCodeController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

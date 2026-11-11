@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +18,44 @@ package uk.gov.hmrc.cipphonenumberverification.services
 
 import com.google.inject.Inject
 import play.api.Logging
-import play.api.http.HeaderNames
-import play.api.libs.json.{JsObject, JsString, JsValue, Json, Writes}
-import play.api.mvc.Request
+import play.api.libs.json.{JsObject, JsValue, Json, Writes}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditEvent
-import uk.gov.hmrc.cipphonenumberverification.models.audit.AuditType.AuditType
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditEvent
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType.AuditType
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.AuditExtensions.auditHeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
-import java.util.UUID
 import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 
 @Singleton()
 class AuditService @Inject() (auditConnector: AuditConnector, appConfig: AppConfig)(implicit ec: ExecutionContext) extends Logging {
 
-  def sendExplicitAuditEvent[T <: AuditEvent](auditType: AuditType,
-                                              auditEvent: T
-  )(implicit req: Request[JsValue], hc: HeaderCarrier, writes: Writes[T]): Unit = {
-    logger.debug(s"Sending explicit audit event for $auditEvent")
+  def sendExplicitAuditEvent[T <: AuditEvent](auditType: AuditType, auditEvent: T)(implicit hc: HeaderCarrier, writes: Writes[T]): Unit = {
+    logger.info(s"Sending explicit auditType $auditType, detail: $auditEvent")
+
     val dataEvent = ExtendedDataEvent(
       auditSource = appConfig.appName,
       auditType = auditType.toString,
-      eventId = UUID.randomUUID().toString,
-      detail = Json.toJson(auditEvent).as[JsObject] ++
-        req.headers
-          .get(HeaderNames.USER_AGENT)
-          .map(
-            ua => JsObject(Map("userAgent" -> JsString(ua)))
-          )
-          .getOrElse(JsObject.empty)
+      tags = hc.appendToDefaultTags(hc.extraHeaders.toMap),
+      detail = Json.toJson(auditEvent).as[JsObject]
     )
+
+    auditConnector.sendExtendedEvent(dataEvent)
+  }
+
+  def sendExplicitAuditEvent(auditType: AuditType, detail: JsValue)(implicit hc: HeaderCarrier): Unit = {
+    logger.info(s"Sending explicit auditType $auditType, detail: $detail")
+
+    val dataEvent = ExtendedDataEvent(
+      auditSource = appConfig.appName,
+      auditType = auditType.toString,
+      tags = hc.appendToDefaultTags(hc.extraHeaders.toMap),
+      detail = Json.toJson(detail).as[JsObject]
+    )
+
     auditConnector.sendExtendedEvent(dataEvent)
   }
 }

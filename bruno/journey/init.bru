@@ -1,0 +1,32 @@
+meta {
+  name: "Journey Init"
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/phone-number-verification/journey/init
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  User-Agent: test-only
+}
+
+body:json {
+  {
+    "credentialId": "testCredentialId",
+    "options": {
+      "serviceUrl": "http://test-service-url",
+      "completionUrl": "http://test-completion-url",
+      "signOutUrl": "http://test-sign-out-url",
+      "accessibilityStatementUrl": "http://test-accessibility-url"
+    }
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:6083
+}
