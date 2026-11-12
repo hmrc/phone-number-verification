@@ -22,7 +22,8 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.cipphonenumberverification.BaseSpec
-import uk.gov.hmrc.cipphonenumberverification.controllers.actions.FakeAllowListAction
+import uk.gov.hmrc.cipphonenumberverification.controllers.actions.{FakeAllowListAction, FakeJourneyAction}
+import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.services.MockJourneyService
 
 import scala.concurrent.Future
@@ -31,11 +32,17 @@ class JourneyControllerSpec
   extends BaseSpec
     with MockJourneyService:
 
-  private def controller(): JourneyController =
+  private def controller(
+                          isAllowed: Boolean = true,
+                          configuredJourney: Either[Exception, Option[JourneyConfig]]
+                        ): JourneyController =
     new JourneyController(
       cc = Helpers.stubControllerComponents(),
-      allowListAction = new FakeAllowListAction(Helpers.stubPlayBodyParsers())(isAllowed = true),
-      journeyService = mockJourneyService
+      allowListAction = new FakeAllowListAction(Helpers.stubPlayBodyParsers())(isAllowed = isAllowed),
+      journeyService = mockJourneyService,
+      withJourney = new FakeJourneyAction(Helpers.stubPlayBodyParsers())(
+        journeyId = "existing-journey-id", journeyConfig = configuredJourney
+      )
     )
 
   "The JourneyController" when :
@@ -53,7 +60,7 @@ class JourneyControllerSpec
           Future.successful(redirectUrl)
         )
   
-        val result = controller().initJourney(fakeRequest)
+        val result = controller(configuredJourney = Right(Some(testJourneyConfigWithNoPhoneNumber))).initJourney(fakeRequest)
   
         status(result) shouldBe CREATED
         contentAsJson(result) shouldBe Json.toJson(redirectUrl)
@@ -63,7 +70,7 @@ class JourneyControllerSpec
           .withHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
           .withBody(Json.obj("invalid" -> "data"))
   
-        val result = controller().initJourney(invalidRequest)
+        val result = controller(configuredJourney = Right(Some(testJourneyConfigWithNoPhoneNumber))).initJourney(invalidRequest)
   
         status(result) shouldBe BAD_REQUEST
   
@@ -76,21 +83,25 @@ class JourneyControllerSpec
           Future.failed(new RuntimeException("Test exception"))
         )
   
-        val result = controller().initJourney(fakeRequest)
+        val result = controller(configuredJourney = Left(new RuntimeException("Test exception"))).initJourney(fakeRequest)
   
         status(result) shouldBe INTERNAL_SERVER_ERROR
       
     ".journeyDetails" when :
+
+      "return 403 Forbidden without fetching the journey when access is denied" in :
+        val journeyId = "existing-journey-id"
+        val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
+
+        val result = controller(isAllowed = false, configuredJourney = Right(Some(testJourneyConfigWithNoPhoneNumber))).journeyDetails(journeyId)(fakeRequest)
+
+        status(result) shouldBe FORBIDDEN
       
       "return 200 OK with journey details when journeyDetails is called for an existing journey" in :
         val journeyId = "existing-journey-id"
         val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
   
-        MockJourneyService.getJourneyDetails(journeyId)(
-          Future.successful(Some(testJourneyConfigWithPhoneNumber))
-        )
-  
-        val result = controller().journeyDetails(journeyId)(fakeRequest)
+        val result = controller(configuredJourney = Right(Some(testJourneyConfigWithPhoneNumber))).journeyDetails(journeyId)(fakeRequest)
   
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(testJourneyConfigWithPhoneNumber)
@@ -98,12 +109,8 @@ class JourneyControllerSpec
       "return 404 Not Found when journeyDetails is called for a missing journey" in :
         val journeyId = "missing-journey-id"
         val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
-  
-        MockJourneyService.getJourneyDetails(journeyId)(
-          Future.successful(None)
-        )
-  
-        val result = controller().journeyDetails(journeyId)(fakeRequest)
+
+        val result = controller(configuredJourney = Right(None)).journeyDetails(journeyId)(fakeRequest)
   
         status(result) shouldBe NOT_FOUND
   
@@ -111,10 +118,6 @@ class JourneyControllerSpec
         val journeyId = "failing-journey-id"
         val fakeRequest = FakeRequest("GET", s"/journey/$journeyId")
   
-        MockJourneyService.getJourneyDetails(journeyId)(
-          Future.failed(new RuntimeException("Test exception"))
-        )
-  
-        val result = controller().journeyDetails(journeyId)(fakeRequest)
+        val result = controller(configuredJourney = Left(new RuntimeException("Test exception"))).journeyDetails(journeyId)(fakeRequest)
   
         status(result) shouldBe INTERNAL_SERVER_ERROR
