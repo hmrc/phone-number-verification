@@ -18,7 +18,7 @@ package uk.gov.hmrc.cipphonenumberverification.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.cipphonenumberverification.controllers.actions.AllowListAction
+import uk.gov.hmrc.cipphonenumberverification.controllers.actions.{AllowListAction, JourneyAction}
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.services.JourneyService
 
@@ -28,7 +28,8 @@ import scala.concurrent.ExecutionContext
 class JourneyController @Inject()(
                                    cc: ControllerComponents,
                                    allowListAction: AllowListAction,
-                                   journeyService: JourneyService
+                                   journeyService: JourneyService,
+                                   withJourney: JourneyAction
                                  )(implicit ec: ExecutionContext)
   extends PhoneNumberVerificationBaseController(cc):
 
@@ -47,16 +48,6 @@ class JourneyController @Inject()(
     }
   }
 
-  def journeyDetails(journeyId: String): Action[AnyContent] = authAction.async { implicit request =>
-      logger.info(s"Fetching journey details for journeyId: $journeyId")
-  
-      journeyService.getJourneyDetails(journeyId)
-      .map {
-          case Some(details) => Ok(Json.toJson(details))
-          case None => NotFound
-      }.recover {
-          case ex: Exception =>
-          logger.error(s"Failed to fetch journey details for journeyId: $journeyId", ex)
-          InternalServerError
-      }
+  def journeyDetails(journeyId: String): Action[AnyContent] = (authAction andThen withJourney(journeyId)) { implicit request =>
+    Ok(Json.toJson(request.journeyConfig))
   }
