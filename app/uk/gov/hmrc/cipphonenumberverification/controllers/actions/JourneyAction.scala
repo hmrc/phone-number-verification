@@ -53,6 +53,8 @@ class JourneyActionImpl @Inject()(
       override def executionContext: ExecutionContext = ec
 
       override def invokeBlock[A](request: Request[A], block: JourneyRequest[A] => Future[Result]): Future[Result] =
+        logger.info(s"Fetching journey details for journeyId: $journeyId")
+
         journeyService.getJourneyDetails(journeyId).transformWith {
           case Success(Some(journey)) => block(new JourneyRequest(journeyId, journey, request))
           case Success(None) => Future.successful(NotFound)
