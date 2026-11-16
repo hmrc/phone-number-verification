@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
+import play.api.http.HeaderNames
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.cipphonenumberverification.controllers.actions.{AllowListAction, AllowListRequest, JourneyAction}
@@ -41,7 +42,7 @@ class JourneyController @Inject()(
 
       journeyService.initJourney(allowListRequest.userAgent, allowListRequest.body)
         .map { redirectUrl =>
-          Created(Json.toJson(redirectUrl))
+          Created.withHeaders(HeaderNames.LOCATION -> redirectUrl)
         }.recover {
           case ex: Exception =>
             logger.error("Failed to initialize journey", ex)

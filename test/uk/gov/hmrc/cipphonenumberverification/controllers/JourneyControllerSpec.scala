@@ -66,7 +66,7 @@ class JourneyControllerSpec
         val result = controller(configuredJourney = Right(Some(testJourneyConfigWithNoPhoneNumber))).initJourney(fakeRequest)
   
         status(result) shouldBe CREATED
-        contentAsJson(result) shouldBe Json.toJson(redirectUrl)
+        header(HeaderNames.LOCATION, result) shouldBe Some(redirectUrl)
   
       "return 400 Bad Request when initJourney is called with invalid journey config" in :
         val invalidRequest = FakeRequest("POST", "/journey/init")
