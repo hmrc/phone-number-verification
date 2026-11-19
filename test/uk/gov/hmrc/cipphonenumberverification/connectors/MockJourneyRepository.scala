@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.cipphonenumberverification.connectors
 
-import org.scalamock.handlers.{CallHandler1, CallHandler2}
+import org.scalamock.handlers.{CallHandler1, CallHandler2, CallHandler3}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.TestSuite
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.repositories.JourneyRepository
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 
 import scala.concurrent.Future
 
@@ -31,12 +32,12 @@ trait MockJourneyRepository extends MockFactory:
 
   object MockJourneyRepository:
 
-    def set(journeyId: String, journeyConfig: JourneyConfig): CallHandler2[String, JourneyConfig, Future[Unit]] = 
+    def set(journeyId: String, journeyUserAgent: String, journeyConfig: JourneyConfig): CallHandler3[String, String, JourneyConfig, Future[JourneyMongoDocument]] = 
       (mockJourneyRepository
-        .set(_: String, _: JourneyConfig))
-        .expects(journeyId, journeyConfig)
+        .set(_: String, _: String, _: JourneyConfig))
+        .expects(journeyId, journeyUserAgent, journeyConfig)
 
-    def get(journeyId: String): CallHandler1[String, Future[Option[JourneyConfig]]] = 
+    def get(journeyId: String): CallHandler1[String, Future[Option[JourneyMongoDocument]]] = 
       (mockJourneyRepository
         .get(_: String))
         .expects(journeyId)

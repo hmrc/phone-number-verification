@@ -19,7 +19,7 @@ package uk.gov.hmrc.cipphonenumberverification.services
 import org.scalatest.matchers.should.Matchers.{shouldBe, shouldNot}
 import uk.gov.hmrc.cipphonenumberverification.connectors.MockJourneyRepository
 import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType
-import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
+import uk.gov.hmrc.cipphonenumberverification.repositories.models.JourneyMongoDocument
 import uk.gov.hmrc.cipphonenumberverification.{BaseSpec, TestData}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -61,10 +61,10 @@ class JourneyServiceSpec
 
     "fail when persisting the journey fails" in new SetUp:
       MockJourneyRepository
-        .set(testJourneyId, testJourneyConfigWithNoPhoneNumber)
+        .set(testJourneyId, testUserAgent, testJourneyConfigWithNoPhoneNumber)
         .returns(Future.failed(new RuntimeException("database failure")))
 
-      val result: Future[String] = service.initJourney(testJourneyConfigWithNoPhoneNumber)
+      val result: Future[String] = service.initJourney(testUserAgent, testJourneyConfigWithNoPhoneNumber)
 
       val exception: Throwable = result.failed.futureValue
       exception shouldBe a[RuntimeException]
@@ -73,49 +73,45 @@ class JourneyServiceSpec
     "audit and return the correct redirect URL when phoneNumberToVerify is empty" in new SetUp:
 
       MockJourneyRepository
-        .set(testJourneyId, testJourneyConfigWithNoPhoneNumber)
-        .returns(Future.successful(()))
+        .set(testJourneyId, testUserAgent, testJourneyConfigWithNoPhoneNumber)
+        .returns(Future.successful(testJourneyMongoDocument(testJourneyConfigWithNoPhoneNumber)))
 
-      MockAuditService.sendExplicitAuditEvent(
-        AuditType.JourneyInitialised,
-        testJourneyConfigWithNoPhoneNumber.forAuditing(testJourneyId)
-      )
+      MockAuditService.auditJourneyInitialised(testJourneyId, testUserAgent, testJourneyConfigWithNoPhoneNumber)
 
-      val result: String = service.initJourney(testJourneyConfigWithNoPhoneNumber).futureValue
+      val result: String = service.initJourney(testUserAgent, testJourneyConfigWithNoPhoneNumber).futureValue
 
       result shouldBe s"/phone-number-verification/journey/$testJourneyId/enter-phone-number"
 
     "audit and return the correct redirect URL when phoneNumberToVerify is not empty" in new SetUp:
       MockJourneyRepository
-        .set(testJourneyId, testJourneyConfigWithPhoneNumber)
-        .returns(Future.successful(()))
+        .set(testJourneyId, testUserAgent, testJourneyConfigWithPhoneNumber)
+        .returns(Future.successful(testJourneyMongoDocument(testJourneyConfigWithPhoneNumber)))
 
-      MockAuditService.sendExplicitAuditEvent(
-        AuditType.JourneyInitialised,
-        testJourneyConfigWithPhoneNumber.forAuditing(testJourneyId)
-      )
+      MockAuditService.auditJourneyInitialised(testJourneyId, testUserAgent, testJourneyConfigWithPhoneNumber)
 
-      val result: String = service.initJourney(testJourneyConfigWithPhoneNumber).futureValue
+      val result: String = service.initJourney(testUserAgent, testJourneyConfigWithPhoneNumber).futureValue
 
       result shouldBe s"/phone-number-verification/journey/$testJourneyId/enter-pass-code"
 
     "getJourneyDetails" should :
 
       "return the journey config when it exists" in new SetUp:
+
+        val journeyResponseFromMongo: JourneyMongoDocument = testJourneyMongoDocument(testJourneyConfigWithNoPhoneNumber)
+
         MockJourneyRepository
           .get(testJourneyId)
-          .returns(Future.successful(Some(testJourneyConfigWithNoPhoneNumber)))
+          .returns(Future.successful(Some(journeyResponseFromMongo)))
 
-        val result: Option[JourneyConfig] = service.getJourneyDetails(testJourneyId).futureValue
+        val result: Option[JourneyMongoDocument] = service.getJourneyDetails(testJourneyId).futureValue
 
-        result shouldBe Some(testJourneyConfigWithNoPhoneNumber)
+        result shouldBe Some(journeyResponseFromMongo)
 
       "return None when the journey config does not exist" in new SetUp:
         MockJourneyRepository
           .get(testJourneyId)
           .returns(Future.successful(None))
 
-        val result: Option[JourneyConfig] = service.getJourneyDetails(testJourneyId).futureValue
+        val result: Option[JourneyMongoDocument] = service.getJourneyDetails(testJourneyId).futureValue
 
         result shouldBe None
-

@@ -27,9 +27,11 @@ import uk.gov.hmrc.cipphonenumberverification.models.{AccessForbidden, Error}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+class AllowListRequest[A](val userAgent: String, request: Request[A]) extends WrappedRequest[A](request)
+
 @ImplementedBy(classOf[AllowListActionImpl])
 trait AllowListAction {
-  def apply(): ActionBuilder[Request, AnyContent]
+  def apply(): ActionBuilder[AllowListRequest, AnyContent]
 }
 
 @Singleton
@@ -40,20 +42,21 @@ class AllowListActionImpl @Inject()(
                                    (implicit ec: ExecutionContext)
   extends AllowListAction:
 
-  override def apply(): ActionBuilder[Request, AnyContent] =
-    new ActionBuilder[Request, AnyContent]:
+  override def apply(): ActionBuilder[AllowListRequest, AnyContent] =
+    new ActionBuilder[AllowListRequest, AnyContent]:
 
       override def parser: BodyParser[AnyContent] = parsers.anyContent
 
       override def executionContext: ExecutionContext = ec
 
-      override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] =
+      override def invokeBlock[A](request: Request[A], block: AllowListRequest[A] => Future[Result]): Future[Result] =
         
         val userAgent = request.headers.get(HeaderNames.USER_AGENT)
           
-        if (!config.allowListEnabled || userAgent.forall(config.allowedClients.contains))
-          block(request)
-        else
+        if (!config.allowListEnabled || userAgent.forall(config.allowedClients.contains)) {
+          assert(userAgent.isDefined, "User-Agent header is missing in the request")
+          block(new AllowListRequest(userAgent.get, request))
+        } else
           Future.successful(
             Forbidden(Json.toJson[Error](AccessForbidden(userAgent.getOrElse("unknown"), config.accessRequestFormUrl)))
           )

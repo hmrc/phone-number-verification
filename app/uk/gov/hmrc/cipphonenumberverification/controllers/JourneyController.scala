@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.cipphonenumberverification.controllers
 
+import play.api.http.HeaderNames
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.cipphonenumberverification.controllers.actions.{AllowListAction, JourneyAction}
+import uk.gov.hmrc.cipphonenumberverification.controllers.actions.{AllowListAction, AllowListRequest, JourneyAction}
 import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.cipphonenumberverification.services.JourneyService
 
@@ -35,19 +36,21 @@ class JourneyController @Inject()(
 
   private val authAction = allowListAction()
 
-  def initJourney: Action[JourneyConfig] = authAction.async(parse.json[JourneyConfig]) { implicit request =>
-    logger.info(s"Initializing journey with config: ${Json.toJson(request.body)}")
+  def initJourney: Action[JourneyConfig] = authAction.async(parse.json[JourneyConfig]) {
+    implicit allowListRequest: AllowListRequest[JourneyConfig] =>
+      logger.info(s"Initializing journey for ${allowListRequest.userAgent} with config: ${Json.toJson(allowListRequest.body)}")
 
-    journeyService.initJourney(request.body)
-      .map { redirectUrl =>
-        Created(Json.toJson(redirectUrl))
-      }.recover {
-        case ex: Exception =>
-          logger.error("Failed to initialize journey", ex)
-          InternalServerError
-    }
+      journeyService.initJourney(allowListRequest.userAgent, allowListRequest.body)
+        .map { redirectUrl =>
+          Created.withHeaders(HeaderNames.LOCATION -> redirectUrl)
+        }.recover {
+          case ex: Exception =>
+            logger.error("Failed to initialize journey", ex)
+            InternalServerError
+      }
   }
 
-  def journeyDetails(journeyId: String): Action[AnyContent] = (authAction andThen withJourney(journeyId)) { implicit request =>
-    Ok(Json.toJson(request.journeyConfig))
+  def journeyDetails(journeyId: String): Action[AnyContent] = (authAction andThen withJourney(journeyId)) {
+    implicit request =>
+      Ok(Json.toJson(request.journeyMongoDocument))
   }

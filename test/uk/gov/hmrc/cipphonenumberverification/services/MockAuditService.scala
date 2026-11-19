@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.cipphonenumberverification.services
 
-import org.scalamock.handlers.CallHandler3
+import org.scalamock.handlers.{CallHandler3, CallHandler4}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.TestSuite
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType.AuditType
+import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait MockAuditService extends MockFactory:
@@ -35,3 +36,9 @@ trait MockAuditService extends MockFactory:
       (mockAuditService
         .sendExplicitAuditEvent(_: AuditType, _: JsValue)(_: HeaderCarrier))
         .expects(auditType, detail, *)
+        
+    def auditJourneyInitialised(journeyId: String, journeyUserAgent: String, journeyConfig: JourneyConfig)
+                             (implicit hc: HeaderCarrier): CallHandler4[String, String, JourneyConfig, HeaderCarrier, Unit] =
+      (mockAuditService
+        .auditJourneyInitialised(_: String, _: String, _: JourneyConfig)(_: HeaderCarrier))
+        .expects(journeyId, journeyUserAgent, journeyConfig, *)

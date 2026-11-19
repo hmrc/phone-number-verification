@@ -20,8 +20,9 @@ import com.google.inject.Inject
 import play.api.Logging
 import play.api.libs.json.{JsObject, JsValue, Json, Writes}
 import uk.gov.hmrc.cipphonenumberverification.config.AppConfig
-import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditEvent
 import uk.gov.hmrc.cipphonenumberverification.models.Audit.AuditType.AuditType
+import uk.gov.hmrc.cipphonenumberverification.models.Audit.{AuditEvent, AuditType}
+import uk.gov.hmrc.cipphonenumberverification.models.journey.JourneyConfig
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions.auditHeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -57,5 +58,17 @@ class AuditService @Inject() (auditConnector: AuditConnector, appConfig: AppConf
     )
 
     auditConnector.sendExtendedEvent(dataEvent)
+  }
+
+  def auditJourneyInitialised(journeyId: String, journeyUserAgent: String, journeyConfig: JourneyConfig)(implicit hc: HeaderCarrier): Unit = {
+    logger.info(s"Auditing journey initialised for journeyId $journeyId, userAgent $journeyUserAgent, config: $journeyConfig")
+
+    val detail = Json.obj(
+      "journeyId"           -> journeyId,
+      "journeyUserAgent"    -> journeyUserAgent,
+      "journeyCredentialId" -> journeyConfig.credentialId
+    )
+
+    sendExplicitAuditEvent(AuditType.JourneyInitialised, detail)
   }
 }

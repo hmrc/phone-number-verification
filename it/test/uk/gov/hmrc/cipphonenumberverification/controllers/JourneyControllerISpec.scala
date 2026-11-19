@@ -31,7 +31,7 @@ class JourneyControllerISpec extends BaseISpec:
       .url(s"$baseUrl/phone-number-verification/journey/init")
       .withHttpHeaders(
         HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-        HeaderNames.USER_AGENT -> testUserAgent,
+        HeaderNames.USER_AGENT -> testUserAgent
       )
       .post(Json.stringify(requestBody))
       .futureValue
@@ -54,8 +54,11 @@ class JourneyControllerISpec extends BaseISpec:
           val response = executeRequest(Json.toJson(testJourneyConfigWithNoPhoneNumber))
 
           response.status shouldBe 201
-          response.json.as[String] should fullyMatch regex
-            s"/phone-number-verification/journey/[a-f0-9\\-]+/enter-phone-number"
+
+          val locationHeader = response.header(HeaderNames.LOCATION)
+          locationHeader shouldBe defined
+          locationHeader.get should fullyMatch regex
+            "/phone-number-verification/journey/[a-f0-9\\-]+/enter-phone-number"
 
     "valid journey configuration with phone number" should :
 
@@ -64,5 +67,8 @@ class JourneyControllerISpec extends BaseISpec:
           val response = executeRequest(Json.toJson(testJourneyConfigWithPhoneNumber))
 
           response.status shouldBe 201
-          response.json.as[String] should fullyMatch regex
-            s"/phone-number-verification/journey/[a-f0-9\\-]+/enter-pass-code"
+
+          val locationHeader = response.header(HeaderNames.LOCATION)
+          locationHeader shouldBe defined
+          locationHeader.get should fullyMatch regex
+            "/phone-number-verification/journey/[a-f0-9\\-]+/enter-pass-code"

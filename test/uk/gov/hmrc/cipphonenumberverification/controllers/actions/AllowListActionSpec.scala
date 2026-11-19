@@ -51,10 +51,10 @@ class AllowListActionSpec extends BaseSpec with MockAppConfig:
               HeaderNames.CONTENT_TYPE -> MimeTypes.JSON
             )
 
-          val result = action()(Results.Ok("allowed"))(fakeRequest)
+          val result = action()(request => Results.Ok(request.userAgent))(fakeRequest)
 
           status(result) shouldBe Status.OK
-          contentAsString(result) shouldBe "allowed"
+          contentAsString(result) shouldBe "foo-agent"
 
       "the User-Agent is NOT on the allow list" should :
 
