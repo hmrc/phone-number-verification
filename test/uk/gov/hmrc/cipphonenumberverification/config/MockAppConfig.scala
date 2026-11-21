@@ -38,3 +38,6 @@ trait MockAppConfig extends MockFactory:
       
     def journeyCacheExpiry(minutes: Long): CallHandler0[Long] =
       (() => mockAppConfig.journeyCacheExpiry).expects().returning(minutes).anyNumberOfTimes()
+
+    def phoneNumberAttemptsExpiry(hours: Long): CallHandler0[Long] =
+      (() => mockAppConfig.phoneNumberAttemptsExpiry).expects().returning(hours).anyNumberOfTimes()

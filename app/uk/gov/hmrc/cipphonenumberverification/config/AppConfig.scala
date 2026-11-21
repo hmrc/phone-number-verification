@@ -28,6 +28,7 @@ trait AppConfig {
   def appName: String
   def cacheExpiry: Long
   def journeyCacheExpiry: Long
+  def phoneNumberAttemptsExpiry: Long
   def phoneNotificationConfig: NotificationsConfig
 
   def useTestSendCodeService: Boolean
@@ -49,6 +50,7 @@ class AppConfigImpl @Inject() (config: Configuration) extends AppConfig {
   lazy val appName: String                              = config.get[String]("appName")
   lazy val cacheExpiry: Long                            = config.get[Long]("cache.expiry")
   lazy val journeyCacheExpiry: Long                     = config.get[Long]("journey.config.cache.expiry")
+  lazy val phoneNumberAttemptsExpiry: Long              = config.get[Long]("phone-number-attempts.cache.expiry")
   lazy val phoneNotificationConfig: NotificationsConfig = config.get[NotificationsConfig]("microservice.services.user-notifications.phone")
 
   lazy val useTestSendCodeService: Boolean = config.get[Boolean]("microservice.services.use-test-phone-number-verification-service")
