@@ -54,3 +54,4 @@ class JourneyController @Inject()(
     implicit request =>
       Ok(Json.toJson(request.journeyMongoDocument))
   }
+

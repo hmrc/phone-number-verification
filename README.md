@@ -231,6 +231,12 @@ For reference here are the details for running each of the services individually
 | /verify-code | +447966555666 | ABCDEF            | CODE_VERIFY_FAILURE | 404                |
 | /verify-code | +447966123124 | test              | VALIDATION_ERROR    | 400                |
 
+### Test Only endpoints
+
+| Endpoint                         | Description                                      |
+|---------------------------------|--------------------------------------------------|
+| /test-only/phone-number-attempts/:credentialId       | Delete all attempts for a given credentialId (used in tests to reset state) |
+
 ### License
 
 This code is open source software licensed under
